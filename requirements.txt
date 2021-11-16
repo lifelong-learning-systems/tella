@@ -1,0 +1,1 @@
+git+https://github.com/ContinualAI/avalanche.git#egg=avalanche-lib

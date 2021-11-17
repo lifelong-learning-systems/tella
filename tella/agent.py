@@ -31,142 +31,151 @@ class Agent(abc.ABC):
     """
     The base Agent class for continual reinforcement learning.
 
-    The only requirement is to implement :meth:`Agent.get_action()`.
+    The only requirement is to implement :meth:`Agent.step()`.
     """
 
-    def __init__(
-        self,
-        observation_space: gym.Space,
-        action_space: gym.Space,
-    ) -> None:
-        self.observation_space = observation_space
-        self.action_space = action_space
-
-    def save(self, path: str, **kwargs) -> None:
-        """
-        Save the parameters to `path`.
-        """
-        pass
-
-    def load(self, path: str, **kwargs) -> None:
-        """
-        Load paramters from `path`.
-        """
-        pass
-
-    def handle_block_start(self, is_learning_allowed: bool, **kwargs) -> None:
+    def block_start(self, is_learning_allowed: bool) -> None:
         """
         Signifies a new block (either learning or evaluation) is about to start.
 
-        The next method called would be :meth:`Agent.handle_task_start()`.
+        The next method called would be :meth:`Agent.task_start()`.
 
         :param is_learning_allowed: Whether the block is a learning block or
             an evaluation block.
         """
         pass
 
-    def handle_task_start(
-        self, task_info: typing.Optional[typing.Dict[str, typing.Any]], **kwargs
+    def task_start(
+        self,
+        observation_space: gym.Space,
+        action_space: gym.Space,
+        task_name: typing.Optional[str],
+        variant_name: typing.Optional[str],
     ) -> None:
         """
         Signifies interaction with a new task is about to start. `task_info`
         may contain task id/label or task parameters.
 
-        The next method called would be :meth:`Agent.handle_episode_start()`.
+        The next method called would be :meth:`Agent.episode_start()`.
 
-        :param task_info: TODO what is this?
+        :param observation_space: The observation space from the :class:`gym.Env`.
+        :param action_space: The action space from the :class:`gym.Env`.
+        :param task_name: An optional value indicating the name of the task
+        :param variant_name: An optional value indicating the name of the task variant
         """
         pass
 
-    def handle_episode_start(self, **kwargs) -> None:
+    def episode_start(self) -> None:
         """
         Signifies a new episode is about to start.
 
-        The next method called would be :meth:`Agent.get_action()`.
+        The next method called would be :meth:`Agent.step()`.
         """
         pass
 
     @abc.abstractmethod
-    def get_action(self, observation: Observation, **kwargs) -> Action:
+    def step(self, observation: Observation) -> Action:
         """
         Asks the agent for an action given an observation from the environment.
 
-        The next method called would be :meth:`Agent.handle_step_result()`.
+        .. e.g.
+
+            action = agent.step(obs)
+            ... = env.step(action)
+
+        The next method called would be :meth:`Agent.step_result()`.
 
         :param observation: The observation from the environment.
         :return: An action that can be passed to :meth:`gym.Env.step()`.
         """
         pass
 
-    def handle_step_result(
+    def step_result(
         self,
         observation: Observation,
         action: Action,
         reward: float,
         done: bool,
         next_observation: Observation,
-        **kwargs,
     ) -> None:
         """
         Gives the result of calling :meth:`gym.Env.step()` with a given action.
 
         .. e.g.
-            action = agent.get_action(obs)
+
+            action = agent.step(obs)
             next_obs, reward, done, info = env.step(action)
-            agent.handle_step_result(obs, action, reward, done, next_obs)
+            agent.step_result(obs, action, reward, done, next_obs)
 
         The next method called would be :meth:`Agent.get_action()` if done is False,
-        otherwise :meth:`Agent.handle_episode_end()`.
+        otherwise :meth:`Agent.episode_end()`.
         """
         pass
 
-    def handle_episode_end(self, **kwargs) -> None:
+    def episode_end(self) -> None:
         """
         Signifies an episode has just ended.
 
-        The next method called would be :meth:`Agent.handle_episode_start()` if
-        there are more episodes for the task, otherwise :meth:`Agent.handle_task_end()`.
+        The next method called would be :meth:`Agent.episode_start()` if
+        there are more episodes for the task, otherwise :meth:`Agent.task_end()`.
         """
         pass
 
-    def handle_task_end(
-        self, task_info: typing.Optional[typing.Dict[str, typing.Any]], **kwargs
+    def task_end(
+        self,
+        observation_space: gym.Space,
+        action_space: gym.Space,
+        task_name: typing.Optional[str],
+        variant_name: typing.Optional[str],
     ) -> None:
         """
         Signifies interaction with a task has just ended.
 
-        The next method called would be :meth:`Agent.handle_task_start()` if there
-        are more tasks in the block, otherwise :meth:`Agent.handle_block_end()`.
+        The next method called would be :meth:`Agent.task_start()` if there
+        are more tasks in the block, otherwise :meth:`Agent.block_end()`.
 
-        :param task_info: The same data passed into the last :meth:`Agent.handle_task_start()`.
+        :param observation_space: The observation space from the :class:`gym.Env`.
+        :param action_space: The action space from the :class:`gym.Env`.
+        :param task_name: An optional value indicating the name of the task
+        :param variant_name: An optional value indicating the name of the task variant
         """
         pass
 
-    def handle_block_end(self, is_learning_allowed: bool, **kwargs) -> None:
+    def block_end(self, is_learning_allowed: bool) -> None:
         """
         Signifies the end of a block.
 
-        The next method called would be :meth:`Agent.handle_block_start()`
+        The next method called would be :meth:`Agent.block_start()`
         if there are more blocks, otherwise the program would end.
 
-        :param is_learning_allowed: The same data passed into the last :meth:`Agent.handle_block_end()`.
+        :param is_learning_allowed: The same data passed into the last :meth:`Agent.block_end()`.
         """
         pass
 
-    def learning_rollout(self, env: gym.Env, **kwargs) -> None:
+    @abc.abstractmethod
+    def save_internal_state(self, path: str) -> bool:
         """
-        Default implementation of interacting with the environment during a learning
-        block.
+        Tells the agent to save any internal parameters to `path`. This is
+        to enable restoring agent to a previous state - i.e. checkpointing.
 
-        :param env: The :class:`gym.Env` to interact with.
+        NOTE: this can be in any format, the only requirement is that
+        :meth:`Agent.restore_internal_state(path)` can load in data that was saved.
+
+        This function will be called by code external to the Agent.
+
+        :return: A boolean indicating whether file creation and saving was successful
         """
-        self.handle_episode_start(**kwargs)
-        obs = env.reset()
-        done = False
-        while not done:
-            action = self.get_action(obs, **kwargs)
-            next_obs, reward, done, info = env.step(action)
-            self.handle_step_result(obs, next_obs, action, reward, done, **kwargs)
-            if not done:
-                obs = next_obs
-        self.handle_episode_end(**kwargs)
+        return False
+
+    @abc.abstractmethod
+    def restore_internal_state(self, path: str) -> bool:
+        """
+        Tells the agent to restore internal paramters that were previously saved
+        by :meth:`Agent.save_internal_state(path)`. This is to enable recovering
+        from a previous crash by restoring state to a checkpoint.
+
+        This function will be called by code external to the Agent.
+
+        :return: A boolean indicating whether restoration was successful
+        """
+        return False

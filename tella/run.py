@@ -2,16 +2,17 @@ import typing
 import gym
 
 
-class Runner:
+def run(agent: "Agent", curriculum: "Curriculum", runner_cls=None) -> None:
     """
-    Main runner class of tella. Runs an Agent through a Curriculum.
-
-    .. Intended use:
-        agent = ...
-        curriculum = ...
-        Runner(agent, curriculum).run()
+    Main entrypoint for tella. Runs an agent through a curriculum. See :meth:`_Runner.run`
+    for default implementation of this.
     """
+    if runner_cls is None:
+        runner_cls = _Runner
+    return runner_cls(agent, curriculum).run()
 
+
+class _Runner:
     def __init__(self, agent: "Agent", curriculum: "Curriculum"):
         self.agent = agent
         self.curriculum = curriculum
@@ -57,6 +58,6 @@ class Runner:
                 self.agent.handle_episode_start()
                 reward = run_episode_fn(env)
                 self.agent.handle_episode.end()
-                self.logger.log({"reward": reward, ...})  # NOTE: put all l2logger stuff here
+                self.logger.log({"reward": reward})  # NOTE: put all l2logger stuff here
             self.agent.handle_task_end({"task_label": ..., "task_params": ...})
         self.agent.handle_block_end(**block_params)

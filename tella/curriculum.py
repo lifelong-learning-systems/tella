@@ -1,110 +1,140 @@
 import typing
-import gym
 import abc
-import inspect
+
+T = typing.TypeVar("T")
+S = typing.TypeVar("S")
 
 
-class TaskBlock:
+class Experience(abc.ABC, typing.Generic[S, T]):
     """
-    Represents a block of episodes that use the same task class & task params.
+    An experience transforms some generic parameter U into a iterable of
+    generic parameters T.
 
-    This is the basic building block of a lifelong learning curriculum.
+    For RL this can be thought of as taking an agent (parameter U) and producing
+    an iterable of transitions (obs/action/rewards).
 
-    NOTE: does not instantiate the gym.Env object until :meth:`TaskBlock.task()` is called
+    For classification this can be thought of as taking None (parameter U) and
+    producing an iterable of labelled data.
     """
 
-    def __init__(
-        self,
-        task_cls: typing.Type[gym.Env],
-        *,
-        num_episodes: int,
-        params: typing.Optional[typing.Dict] = None,
-    ):
-        if params is None:
-            params = {}
-        self.task_cls = task_cls
-        self.params = params
-        self.num_episodes = num_episodes
-
-    def task(self) -> gym.Env:
+    @abc.abstractmethod
+    def validate(self) -> None:
         """
-        Construct the gym environment with the associated parameters
-        :return: :class:`gym.Env`
-        """
-        return self.task_cls(**self.params)
+        A method to validate that the experience is set up properly.
 
-    def get_invalid_params(self) -> typing.List[str]:
+        This should raise an Exception if the experience is not set up properly.
         """
-        Determines whether any of the parameters do not match the signature
-        of the class constructor using the `inspect` package.
+        pass
 
-        :return: List of parameter names that do not match with the signature
-            returned from inspect
+    @abc.abstractmethod
+    def generate(self, s: S) -> typing.Iterable[T]:
+        pass
+
+
+class Block(abc.ABC):
+    """
+    This represents a sequence of :class:`Experience`.
+
+    Additionally a block can either allow learning and collection of
+    data to happen (i.e. `block.is_learning_allowed() == True`), or not
+    (i.e. `block.is_learning_allowed() == False`).
+
+    .. Example Usage:
+
+        block: Block = ...
+        for experience: Experience in block.experiences():
+            ... # Do something with each experience
+
+    """
+
+    @abc.abstractmethod
+    def is_learning_allowed(self) -> bool:
         """
-        invalid_params = []
-        task_signature = inspect.signature(self.task_cls)
-        for name, _value in self.params.items():
-            if name not in task_signature.parameters:
-                invalid_params.append(name)
-        return invalid_params
+        :return: True if learning is allowed to happen, False otherwise.
+        """
 
-    def __repr__(self) -> str:
-        return f"TaskBlock({self.task_cls.__name__}, num_episodes={self.num_episodes}, params={self.params})"
+    @abc.abstractmethod
+    def experiences(self) -> typing.Iterable[Experience]:
+        """
+        :return: An Iterable of :class:`Experience`.
+        """
 
 
 class Curriculum(abc.ABC):
     """
-    Represents a curriculum for lifelong/continual RL.
-
-    At a high level a curriculum is comprised of a sequence of tasks (i.e. :class:`gym.Env`)
-    that the agent will learn from.
-
-    This class organizes the curriculum into two parts:
-    1. Learning blocks, which are a sequence of 1+ :class:`TaskBlock`
-    2. Evaluation block, which is a 1= :class:`TaskBlock`
+    Represents a lifelong/continual learning curriculum. A curriculum is simply
+    a sequence of :class:`Block`s.
     """
 
-    observation_space: gym.Space
-    action_space: gym.Space
+    @abc.abstractmethod
+    def blocks(self) -> typing.Iterable[Block]:
+        """
+        :return: An Iterable of :class:`Block`.
+        """
+
+
+class LearnBlock(Block):
+    """
+    A helper class to create learning blocks. Experiences are passed into the
+    constructor, and is_learning_allowed always returns True.
+    """
+
+    def __init__(self, experiences: typing.Iterable[Experience]) -> None:
+        self._experiences = experiences
+
+    def experiences(self) -> typing.Iterable[Experience]:
+        return self._experiences
+
+    def is_learning_allowed(self) -> bool:
+        return True
+
+
+class EvalBlock(Block):
+    """
+    A helper class to create evaluation blocks. Experiences are passed into the
+    constructor, and is_learning_allowed always returns False.
+    """
+
+    def __init__(self, experiences: typing.Iterable[Experience]) -> None:
+        self._experiences = experiences
+
+    def experiences(self) -> typing.Iterable[Experience]:
+        return self._experiences
+
+    def is_learning_allowed(self) -> bool:
+        return False
+
+
+class InterleavedEvalCurriculum(Curriculum):
+    """
+    One possible version of a curriculum where a single evaluation block
+    is interleaved between a sequence of learning blocks.
+
+    This class implements :meth:`Curriculum.blocks()`, and expects the user
+    to implement two new methods:
+
+        1. learn_blocks(), which returns the sequence of :class:`LearnBlock`.
+        2. eval_block(), which returns the single :class:`EvalBlock` to be
+            interleaved between each :class:`LearnBlock`.
+
+    """
 
     @abc.abstractmethod
-    def learning_blocks(self) -> typing.Iterable[typing.Iterable[TaskBlock]]:
-        pass
+    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
+        """
+        :return: An iterable of :class:`LearnBlock`.
+        """
 
     @abc.abstractmethod
-    def eval_block(self) -> typing.Iterable[TaskBlock]:
-        pass
-
-    def validate(self):
+    def eval_block(self) -> EvalBlock:
         """
-        Helper function to do a partial check that task parameters are specified
-        correctly.
-
-        This loops through all learning blocks and the eval block to check
-        if the parameters are specified correctly.
-
-        See :class:`TaskBlock.get_invalid_params()` for how this checks for
-        incorrect parameters.
-
-        :return: None
+        :return: The single :class:`EvalBlock` to interleave between each
+            individual :class:`LearnBlock` returned from
+                :meth:`InterleavedEvalCurriculum.learn_blocks`.
         """
-        for i_block, learning_block in enumerate(self.learning_blocks()):
-            for i_task, task_block in enumerate(learning_block):
-                invalids = task_block.get_invalid_params()
-                if len(invalids) > 0:
-                    lines = [
-                        f"Incompatible task parameters detected in learning block #{i_block}, task block #{i_task}. {task_block}",
-                        f"Invalid parameters: {invalids}",
-                        f"Task class signature: {inspect.signature(task_block.task_cls)}",
-                    ]
-                    raise ValueError("\n".join(lines))
 
-        for task_block in self.eval_block():
-            invalids = task_block.get_invalid_params()
-            if len(invalids) > 0:
-                lines = [
-                    f"Incompatible task parameters detected in learning block #{i_block}, task block #{i_task}. {task_block}",
-                    f"Invalid parameters: {invalids}",
-                    f"Task class signature: {inspect.signature(task_block.task_cls)}",
-                ]
-                raise ValueError("\n".join(lines))
+    def blocks(self) -> typing.Iterable[Block]:
+        yield self.eval_block()
+        for block in self.learn_blocks():
+            yield block
+            yield self.eval_block()

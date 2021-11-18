@@ -9,9 +9,25 @@ Requirements
 
 Install
 -------------
+Cython needs to be installed into your conda/virtual environment first:
+```
+pip install cython
+```
+Then install the tella package and its dependencies:
+```
+pip install .
+```
 
 API
 -------------
+tella defines an interface for agents that consists of callbacks.
+tella calls the callbacks to run through training and evaluation blocks.
+The callbacks are
+ * block_start() and block_end()
+ * task_start() and tast_end()
+ * episode_start() and episode_end()
+ * step and step_result()
+
 
 Run
 -------------

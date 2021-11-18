@@ -2,14 +2,14 @@ import typing
 import gym
 from tella.agent import Agent
 from tella.curriculum import Curriculum, Block, EvalBlock, LearnBlock
-from tella.rl_experience import RLEpisodeExperience
+from tella.rl_experience import RLEpisodeExperience, ActionFn, Transition
 
 
-def run_rl(agent: Agent, curriculum: Curriculum):
+def run_rl(agent: Agent, curriculum: Curriculum[ActionFn, Transition, gym.Env]):
     for block in curriculum.blocks():
         agent.block_start(block.is_learning_allowed())
         for experience in block.experiences():
-            env: gym.Env = experience.info()
+            env = experience.info()
             agent.task_start(env.observation_space, env.action_space, None, None)
             for obs, action, reward, done, next_obs in experience.generate(agent.step):
                 if block.is_learning_allowed():
@@ -23,7 +23,7 @@ def run_rl(agent: Agent, curriculum: Curriculum):
         agent.block_end(block.is_learning_allowed())
 
 
-class ExampleCurriculum(Curriculum):
+class ExampleCurriculum(Curriculum[ActionFn, Transition, gym.Env]):
     def blocks(self) -> typing.Iterable[Block]:
         yield LearnBlock(
             [RLEpisodeExperience(lambda: gym.make("CartPole-v1"), num_episodes=1)]

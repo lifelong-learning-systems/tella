@@ -36,7 +36,7 @@ class Experience(abc.ABC, typing.Generic[S, T, I]):
         pass
 
 
-class Block(abc.ABC):
+class Block(abc.ABC, typing.Generic[S, T, I]):
     """
     This represents a sequence of :class:`Experience`.
 
@@ -59,58 +59,58 @@ class Block(abc.ABC):
         """
 
     @abc.abstractmethod
-    def experiences(self) -> typing.Iterable[Experience]:
+    def experiences(self) -> typing.Iterable[Experience[S, T, I]]:
         """
         :return: An Iterable of :class:`Experience`.
         """
 
 
-class Curriculum(abc.ABC):
+class Curriculum(abc.ABC, typing.Generic[S, T, I]):
     """
     Represents a lifelong/continual learning curriculum. A curriculum is simply
     a sequence of :class:`Block`s.
     """
 
     @abc.abstractmethod
-    def blocks(self) -> typing.Iterable[Block]:
+    def blocks(self) -> typing.Iterable[Block[S, T, I]]:
         """
         :return: An Iterable of :class:`Block`.
         """
 
 
-class LearnBlock(Block):
+class LearnBlock(typing.Generic[S, T, I], Block[S, T, I]):
     """
     A helper class to create learning blocks. Experiences are passed into the
     constructor, and is_learning_allowed always returns True.
     """
 
-    def __init__(self, experiences: typing.Iterable[Experience]) -> None:
+    def __init__(self, experiences: typing.Iterable[Experience[S, T, I]]) -> None:
         self._experiences = experiences
 
-    def experiences(self) -> typing.Iterable[Experience]:
+    def experiences(self) -> typing.Iterable[Experience[S, T, I]]:
         return self._experiences
 
     def is_learning_allowed(self) -> bool:
         return True
 
 
-class EvalBlock(Block):
+class EvalBlock(typing.Generic[S, T, I], Block[S, T, I]):
     """
     A helper class to create evaluation blocks. Experiences are passed into the
     constructor, and is_learning_allowed always returns False.
     """
 
-    def __init__(self, experiences: typing.Iterable[Experience]) -> None:
+    def __init__(self, experiences: typing.Iterable[Experience[S, T, I]]) -> None:
         self._experiences = experiences
 
-    def experiences(self) -> typing.Iterable[Experience]:
+    def experiences(self) -> typing.Iterable[Experience[S, T, I]]:
         return self._experiences
 
     def is_learning_allowed(self) -> bool:
         return False
 
 
-class InterleavedEvalCurriculum(Curriculum):
+class InterleavedEvalCurriculum(typing.Generic[S, T, I], Curriculum[S, T, I]):
     """
     One possible version of a curriculum where a single evaluation block
     is interleaved between a sequence of learning blocks.
@@ -125,20 +125,20 @@ class InterleavedEvalCurriculum(Curriculum):
     """
 
     @abc.abstractmethod
-    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
+    def learn_blocks(self) -> typing.Iterable[LearnBlock[S, T, I]]:
         """
         :return: An iterable of :class:`LearnBlock`.
         """
 
     @abc.abstractmethod
-    def eval_block(self) -> EvalBlock:
+    def eval_block(self) -> EvalBlock[S, T, I]:
         """
         :return: The single :class:`EvalBlock` to interleave between each
             individual :class:`LearnBlock` returned from
                 :meth:`InterleavedEvalCurriculum.learn_blocks`.
         """
 
-    def blocks(self) -> typing.Iterable[Block]:
+    def blocks(self) -> typing.Iterable[Block[S, T, I]]:
         yield self.eval_block()
         for block in self.learn_blocks():
             yield block

@@ -4,11 +4,12 @@ from tella.curriculum import (
     EvalBlock,
     LearnBlock,
 )
-from tella.rl_experience import RLEpisodeExperience
+import gym
+from tella.rl_experience import RLEpisodeExperience, ActionFn, Transition
 from random_env import *
 
 
-class ExampleCondensed(InterleavedEvalCurriculum):
+class ExampleCondensed(InterleavedEvalCurriculum[ActionFn, Transition, gym.Env]):
     def __init__(self, seed: int):
         super().__init__()
         self.rng = np.random.default_rng(seed)
@@ -47,7 +48,7 @@ class ExampleCondensed(InterleavedEvalCurriculum):
 if __name__ == "__main__":
     curriculum = ExampleCondensed(seed=0)
     for i, block in enumerate(curriculum.blocks()):
-        for task_experience in block.experiences():
+        for experience in block.experiences():
             print(
-                f"Block {i}, learning_allowed={block.is_learning_allowed()}, experience={task_experience}"
+                f"Block {i}, learning_allowed={block.is_learning_allowed()}, experience={experience}, info={experience.info()}"
             )

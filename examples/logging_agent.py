@@ -20,6 +20,7 @@ class LoggingAgent(Agent):
         task_name: typing.Optional[str],
         variant_name: typing.Optional[str],
     ) -> None:
+        self.action_space = action_space
         logger.info(
             f"\tAbout to start interacting with a new task. {observation_space=} {action_space=} {task_name=} {variant_name=}"
         )

@@ -8,13 +8,13 @@ I = typing.TypeVar("I")
 
 class Experience(abc.ABC, typing.Generic[S, T, I]):
     """
-    An experience transforms some generic parameter U into a iterable of
+    An experience transforms some generic parameter S into a iterable of
     generic parameters T.
 
-    For RL this can be thought of as taking an agent (parameter U) and producing
+    For RL this can be thought of as taking an agent (parameter S) and producing
     an iterable of transitions (obs/action/rewards).
 
-    For classification this can be thought of as taking None (parameter U) and
+    For classification this can be thought of as taking None (parameter S) and
     producing an iterable of labelled data.
     """
 

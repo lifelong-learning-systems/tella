@@ -38,8 +38,9 @@ class LoggingAgent(Agent):
         reward: float,
         done: bool,
         next_observation: Observation,
-    ) -> None:
+    ) -> bool:
         logger.info(f"\t\t\tReceived step result {done=}")
+        return True
 
     def episode_end(self) -> None:
         logger.info("\t\tEpisode just ended")

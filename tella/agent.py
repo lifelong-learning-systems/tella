@@ -97,7 +97,7 @@ class Agent(abc.ABC):
         reward: float,
         done: bool,
         next_observation: Observation,
-    ) -> None:
+    ) -> bool:
         """
         Gives the result of calling :meth:`gym.Env.step()` with a given action.
 
@@ -105,12 +105,19 @@ class Agent(abc.ABC):
 
             action = agent.step(obs)
             next_obs, reward, done, info = env.step(action)
-            agent.step_result(obs, action, reward, done, next_obs)
+            keep_going = agent.step_result(obs, action, reward, done, next_obs)
+            done = done or not keep_going
+
+        Also allows the agent to end episode early by returning False from this
+        method. If True is returned, this indicates that the episode should continue
+        unless done is True.
 
         The next method called would be :meth:`Agent.get_action()` if done is False,
         otherwise :meth:`Agent.episode_end()`.
+
+        :return: A boolean indicating whether to continue with the episode.
         """
-        pass
+        return True
 
     def episode_end(self) -> None:
         """

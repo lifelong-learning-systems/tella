@@ -7,6 +7,9 @@ logger = logging.getLogger(__name__)
 
 
 class LoggingAgent(Agent):
+    def __init__(self) -> None:
+        self.action_space = None
+
     def block_start(self, is_learning_allowed: bool) -> None:
         if is_learning_allowed:
             logger.info("About to start a new learning block")
@@ -23,6 +26,7 @@ class LoggingAgent(Agent):
         logger.info(
             f"\tAbout to start interacting with a new task. {observation_space=} {action_space=} {task_name=} {variant_name=}"
         )
+        self.action_space = action_space
 
     def episode_start(self) -> None:
         logger.info("\t\tAbout to start a new episode")

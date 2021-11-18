@@ -3,9 +3,10 @@ import abc
 
 T = typing.TypeVar("T")
 S = typing.TypeVar("S")
+I = typing.TypeVar("I")
 
 
-class Experience(abc.ABC, typing.Generic[S, T]):
+class Experience(abc.ABC, typing.Generic[S, T, I]):
     """
     An experience transforms some generic parameter U into a iterable of
     generic parameters T.
@@ -24,6 +25,10 @@ class Experience(abc.ABC, typing.Generic[S, T]):
 
         This should raise an Exception if the experience is not set up properly.
         """
+        pass
+
+    @abc.abstractmethod
+    def info(self) -> I:
         pass
 
     @abc.abstractmethod

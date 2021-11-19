@@ -28,11 +28,11 @@ class LoggingAgent(Agent):
     def episode_start(self) -> None:
         logger.info("\t\tAbout to start a new episode")
 
-    def step(self, observation: Observation) -> Action:
+    def step_observe(self, observation: Observation) -> Action:
         logger.info("\t\t\tReturn random action")
         return self.action_space.sample()
 
-    def step_result(
+    def step_reward(
         self,
         observation: Observation,
         action: Action,
@@ -62,11 +62,3 @@ class LoggingAgent(Agent):
             logger.info("Done with learning block")
         else:
             logger.info("Done with evaluation block")
-
-    def save_internal_state(self, path: str) -> bool:
-        logger.info("Saving internal state")
-        return False
-
-    def restore_internal_state(self, path: str) -> bool:
-        logger.info("Restoring internal state")
-        return False

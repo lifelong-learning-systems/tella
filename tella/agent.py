@@ -31,7 +31,7 @@ class Agent(abc.ABC):
     """
     The base Agent class for continual reinforcement learning.
 
-    The only requirement is to implement :meth:`Agent.step()`.
+    The only requirement is to implement :meth:`Agent.step_observe()`.
     """
 
     def block_start(self, is_learning_allowed: bool) -> None:
@@ -69,28 +69,28 @@ class Agent(abc.ABC):
         """
         Signifies a new episode is about to start.
 
-        The next method called would be :meth:`Agent.step()`.
+        The next method called would be :meth:`Agent.step_observe()`.
         """
         pass
 
     @abc.abstractmethod
-    def step(self, observation: Observation) -> Action:
+    def step_observe(self, observation: Observation) -> Action:
         """
         Asks the agent for an action given an observation from the environment.
 
         .. e.g.
 
-            action = agent.step(obs)
+            action = agent.step_observe(obs)
             ... = env.step(action)
 
-        The next method called would be :meth:`Agent.step_result()`.
+        The next method called would be :meth:`Agent.step_reward()`.
 
         :param observation: The observation from the environment.
         :return: An action that can be passed to :meth:`gym.Env.step()`.
         """
         pass
 
-    def step_result(
+    def step_reward(
         self,
         observation: Observation,
         action: Action,
@@ -103,16 +103,16 @@ class Agent(abc.ABC):
 
         .. e.g.
 
-            action = agent.step(obs)
+            action = agent.step_observe(obs)
             next_obs, reward, done, info = env.step(action)
-            keep_going = agent.step_result(obs, action, reward, done, next_obs)
+            keep_going = agent.step_reward(obs, action, reward, done, next_obs)
             done = done or not keep_going
 
         Also allows the agent to end episode early by returning False from this
         method. If True is returned, this indicates that the episode should continue
         unless done is True.
 
-        The next method called would be :meth:`Agent.get_action()` if done is False,
+        The next method called would be :meth:`Agent.step_observe()` if done is False,
         otherwise :meth:`Agent.episode_end()`.
 
         :return: A boolean indicating whether to continue with the episode.
@@ -159,7 +159,6 @@ class Agent(abc.ABC):
         """
         pass
 
-    @abc.abstractmethod
     def save_internal_state(self, path: str) -> bool:
         """
         Tells the agent to save any internal parameters to `path`. This is
@@ -174,7 +173,6 @@ class Agent(abc.ABC):
         """
         return False
 
-    @abc.abstractmethod
     def restore_internal_state(self, path: str) -> bool:
         """
         Tells the agent to restore internal paramters that were previously saved

@@ -29,9 +29,9 @@ def main():
 
     obs, done = env.reset(), False
     while not done:
-        action = agent.step(obs)
+        action = agent.step_observe(obs)
         next_obs, reward, done, info = env.step(action)
-        agent.step_result(obs, action, reward, done, next_obs)
+        agent.step_reward(obs, action, reward, done, next_obs)
 
     agent.episode_end()
 

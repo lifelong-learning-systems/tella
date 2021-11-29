@@ -21,35 +21,32 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import typing
 import abc
-import gym
+from ..experiences.experience import GenericExperience
 
-Observation = typing.TypeVar("Observation")
-Action = typing.TypeVar("Action")
+Metrics = typing.Dict[str, float]
 
 
-class Agent(abc.ABC):
+class ContinualLearningAgent(abc.ABC, typing.Generic[GenericExperience]):
     """
-    The base Agent class for continual reinforcement learning.
+    The base class for a continual learning agent. A CL Agent is an agent that
+    can consume some experience of a generic type (:class:`GenericExperience`).
 
-    The only requirement is to implement :meth:`Agent.step_observe()`.
+    The only requirement is to implement :meth:`ContinualLearningAgent.consume_experience()`,
+    which takes an object of type :class:`GenericExperience`.
     """
 
-    def __init__(self, observation_space: gym.Space, action_space: gym.Space) -> None:
-        """
-        The constructor for the Agent.
-
-        :param observation_space: The observation space from the :class:`gym.Env`.
-        :param action_space: The action space from the :class:`gym.Env`.
-        """
+    def __init__(self) -> None:
         super().__init__()
-        self.observation_space = observation_space
-        self.action_space = action_space
+        self.is_learning_allowed: bool = False
 
     def block_start(self, is_learning_allowed: bool) -> None:
         """
         Signifies a new block (either learning or evaluation) is about to start.
 
-        The next method called would be :meth:`Agent.task_start()`.
+        The next method called would be :meth:`ContinualLearningAgent.task_start()`.
+
+        NOTE: the attribute :attr:`ContinualLearningAgent.is_learning_allowed` is
+            also set outside of this method.
 
         :param is_learning_allowed: Whether the block is a learning block or
             an evaluation block.
@@ -65,75 +62,23 @@ class Agent(abc.ABC):
         Signifies interaction with a new task is about to start. `task_info`
         may contain task id/label or task parameters.
 
-        The next method called would be :meth:`Agent.episode_start()`.
+        The next method called would be :meth:`ContinualLearningAgent.consume_experience()`.
 
         :param task_name: An optional value indicating the name of the task
         :param variant_name: An optional value indicating the name of the task variant
         """
         pass
 
-    def episode_start(self) -> None:
-        """
-        Signifies a new episode is about to start.
-
-        The next method called would be :meth:`Agent.step_observe()`.
-        """
-        pass
-
     @abc.abstractmethod
-    def step_observe(self, observation: Observation) -> Action:
+    def consume_experience(self, experience: GenericExperience) -> Metrics:
         """
-        Asks the agent for an action given an observation from the environment.
+        Passes an object of type :class:`Experience` to the agent to consume.
 
-        .. e.g.
+        The next method called would be :meth:`ContinualLearningAgent.task_end()`.
 
-            action = agent.step_observe(obs)
-            ... = env.step(action)
-
-        The next method called would be :meth:`Agent.step_reward()`.
-
-        :param observation: The observation from the environment.
-        :return: An action that can be passed to :meth:`gym.Env.step()`.
+        :return: Dictionary with string keys, and float values. It represents
+            some generic metrics that were calculated across the experiences
         """
-        pass
-
-    def step_reward(
-        self,
-        observation: Observation,
-        action: Action,
-        reward: float,
-        done: bool,
-        next_observation: Observation,
-    ) -> bool:
-        """
-        Gives the result of calling :meth:`gym.Env.step()` with a given action.
-
-        .. e.g.
-
-            action = agent.step_observe(obs)
-            next_obs, reward, done, info = env.step(action)
-            keep_going = agent.step_reward(obs, action, reward, done, next_obs)
-            done = done or not keep_going
-
-        Also allows the agent to end episode early by returning False from this
-        method. If True is returned, this indicates that the episode should continue
-        unless done is True.
-
-        The next method called would be :meth:`Agent.step_observe()` if done is False,
-        otherwise :meth:`Agent.episode_end()`.
-
-        :return: A boolean indicating whether to continue with the episode.
-        """
-        return True
-
-    def episode_end(self) -> None:
-        """
-        Signifies an episode has just ended.
-
-        The next method called would be :meth:`Agent.episode_start()` if
-        there are more episodes for the task, otherwise :meth:`Agent.task_end()`.
-        """
-        pass
 
     def task_end(
         self,

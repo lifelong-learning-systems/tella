@@ -5,11 +5,13 @@ from tella.curriculum import (
     LearnBlock,
 )
 import gym
-from tella.rl_experience import RLEpisodeExperience, ActionFn, Transition
+from tella.rl_experience import RLEpisodeExperience, ActionFn, MDPTransition
 from random_env import *
 
 
-class ExampleDispersed(InterleavedEvalCurriculum[ActionFn, Transition, gym.Env]):
+class ExampleDispersed(
+    InterleavedEvalCurriculum[ActionFn, typing.Iterable[MDPTransition], gym.Env]
+):
     def __init__(self, num_repetitions: int, seed: int):
         super().__init__()
         self.rng = np.random.default_rng(seed)

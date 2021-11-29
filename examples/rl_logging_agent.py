@@ -42,10 +42,12 @@ class LoggingAgent(ContinualRLAgent):
         return super().consume_experience(experience)
 
     def step_observe(
-        self, observations: typing.List[Observation]
-    ) -> typing.List[Action]:
+        self, observations: typing.List[typing.Optional[Observation]]
+    ) -> typing.List[typing.Optional[Action]]:
         logger.info(f"\t\t\tReturn {len(observations)} random actions")
-        return [self.action_space.sample() for obs in observations]
+        return [
+            None if obs is None else self.action_space.sample() for obs in observations
+        ]
 
     def step_transition(self, transition: MDPTransition) -> bool:
         obs, action, reward, done, next_obs = transition

@@ -62,8 +62,8 @@ class ContinualRLAgent(ContinualLearningAgent[RLExperience]):
 
     @abc.abstractmethod
     def step_observe(
-        self, observations: typing.List[Observation]
-    ) -> typing.List[Action]:
+        self, observations: typing.List[typing.Optional[Observation]]
+    ) -> typing.List[typing.Optional[Action]]:
         """
         Asks the agent for an action for each observation in the list passed in.
         The observations will be consistent with whatever :class:`gym.vector.VectorEnv`
@@ -74,6 +74,20 @@ class ContinualRLAgent(ContinualLearningAgent[RLExperience]):
             observations = vector_env.reset()
             actions = agent.step_observe(observations)
             ... = vector_env.step(actions)
+
+        If there are environments that are done, but no more new steps can be taken
+        due to limitations from the curricula, a None will be passed inplace of
+        an observation. This is done to preserve the ordering of observations.
+
+        In the case that `observations[i] is None`, then the i'th action returned
+        should also be `None`.
+
+        .. i.e.
+
+            observations = ...
+            observations[2] = None
+            actions = agent.step_observe(observations)
+            assert actions[2] is None
 
         :param observations: The observations from the environment.
         :return: Actions that can be passed to :meth:`gym.vector.VectorEnv.step()`.

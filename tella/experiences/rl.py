@@ -15,7 +15,9 @@ is the resulting observation that happens after applying action to the first
 observation in the tuple.
 """
 
-ActionFn = typing.Callable[[typing.List[Observation]], typing.List[Action]]
+ActionFn = typing.Callable[
+    [typing.List[typing.Optional[Observation]]], typing.List[typing.Optional[Action]]
+]
 """
 A function that takes a list of Observations and returns a list of Actions, one
 for each observation.

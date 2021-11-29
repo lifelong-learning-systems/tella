@@ -34,6 +34,17 @@ class Agent(abc.ABC):
     The only requirement is to implement :meth:`Agent.step_observe()`.
     """
 
+    def __init__(self, observation_space: gym.Space, action_space: gym.Space) -> None:
+        """
+        The constructor for the Agent.
+
+        :param observation_space: The observation space from the :class:`gym.Env`.
+        :param action_space: The action space from the :class:`gym.Env`.
+        """
+        super().__init__()
+        self.observation_space = observation_space
+        self.action_space = action_space
+
     def block_start(self, is_learning_allowed: bool) -> None:
         """
         Signifies a new block (either learning or evaluation) is about to start.
@@ -47,8 +58,6 @@ class Agent(abc.ABC):
 
     def task_start(
         self,
-        observation_space: gym.Space,
-        action_space: gym.Space,
         task_name: typing.Optional[str],
         variant_name: typing.Optional[str],
     ) -> None:
@@ -58,8 +67,6 @@ class Agent(abc.ABC):
 
         The next method called would be :meth:`Agent.episode_start()`.
 
-        :param observation_space: The observation space from the :class:`gym.Env`.
-        :param action_space: The action space from the :class:`gym.Env`.
         :param task_name: An optional value indicating the name of the task
         :param variant_name: An optional value indicating the name of the task variant
         """
@@ -130,8 +137,6 @@ class Agent(abc.ABC):
 
     def task_end(
         self,
-        observation_space: gym.Space,
-        action_space: gym.Space,
         task_name: typing.Optional[str],
         variant_name: typing.Optional[str],
     ) -> None:
@@ -141,8 +146,6 @@ class Agent(abc.ABC):
         The next method called would be :meth:`Agent.task_start()` if there
         are more tasks in the block, otherwise :meth:`Agent.block_end()`.
 
-        :param observation_space: The observation space from the :class:`gym.Env`.
-        :param action_space: The action space from the :class:`gym.Env`.
         :param task_name: An optional value indicating the name of the task
         :param variant_name: An optional value indicating the name of the task variant
         """

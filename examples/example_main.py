@@ -14,16 +14,11 @@ def main():
     logging.basicConfig(level=logging.INFO)
 
     env: gym.Env = gym.make("CartPole-v1")
-    agent: Agent = LoggingAgent()
+    agent: Agent = LoggingAgent(env.observation_space, env.action_space)
 
     agent.block_start(is_learning_allowed=True)
 
-    agent.task_start(
-        env.observation_space,
-        env.action_space,
-        task_name="CartPole",
-        variant_name="Default",
-    )
+    agent.task_start(task_name="CartPole", variant_name="Default")
 
     agent.episode_start()
 
@@ -35,12 +30,7 @@ def main():
 
     agent.episode_end()
 
-    agent.task_end(
-        env.observation_space,
-        env.action_space,
-        task_name="CartPole",
-        variant_name="Default",
-    )
+    agent.task_end(task_name="CartPole", variant_name="Default")
 
     agent.block_end(is_learning_allowed=True)
 

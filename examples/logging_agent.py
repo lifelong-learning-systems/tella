@@ -7,8 +7,9 @@ logger = logging.getLogger(__name__)
 
 
 class LoggingAgent(Agent):
-    def __init__(self) -> None:
-        self.action_space = None
+    def __init__(self, observation_space: gym.Space, action_space: gym.Space) -> None:
+        super().__init__(observation_space, action_space)
+        logger.info(f"Constructed with {observation_space=} {action_space=}")
 
     def block_start(self, is_learning_allowed: bool) -> None:
         if is_learning_allowed:
@@ -18,16 +19,12 @@ class LoggingAgent(Agent):
 
     def task_start(
         self,
-        observation_space: gym.Space,
-        action_space: gym.Space,
         task_name: typing.Optional[str],
         variant_name: typing.Optional[str],
     ) -> None:
-        self.action_space = action_space
         logger.info(
-            f"\tAbout to start interacting with a new task. {observation_space=} {action_space=} {task_name=} {variant_name=}"
+            f"\tAbout to start interacting with a new task. {task_name=} {variant_name=}"
         )
-        self.action_space = action_space
 
     def episode_start(self) -> None:
         logger.info("\t\tAbout to start a new episode")
@@ -52,14 +49,10 @@ class LoggingAgent(Agent):
 
     def task_end(
         self,
-        observation_space: gym.Space,
-        action_space: gym.Space,
         task_name: typing.Optional[str],
         variant_name: typing.Optional[str],
     ) -> None:
-        logger.info(
-            f"\tDone interacting with task. {observation_space=} {action_space=} {task_name=} {variant_name=}"
-        )
+        logger.info(f"\tDone interacting with task. {task_name=} {variant_name=}")
 
     def block_end(self, is_learning_allowed: bool) -> None:
         if is_learning_allowed:

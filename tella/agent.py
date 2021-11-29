@@ -158,29 +158,3 @@ class Agent(abc.ABC):
         :param is_learning_allowed: The same data passed into the last :meth:`Agent.block_end()`.
         """
         pass
-
-    def save_internal_state(self, path: str) -> bool:
-        """
-        Tells the agent to save any internal parameters to `path`. This is
-        to enable restoring agent to a previous state - i.e. checkpointing.
-
-        NOTE: this can be in any format, the only requirement is that
-        :meth:`Agent.restore_internal_state(path)` can load in data that was saved.
-
-        This function will be called by code external to the Agent.
-
-        :return: A boolean indicating whether file creation and saving was successful
-        """
-        return False
-
-    def restore_internal_state(self, path: str) -> bool:
-        """
-        Tells the agent to restore internal paramters that were previously saved
-        by :meth:`Agent.save_internal_state(path)`. This is to enable recovering
-        from a previous crash by restoring state to a checkpoint.
-
-        This function will be called by code external to the Agent.
-
-        :return: A boolean indicating whether restoration was successful
-        """
-        return False

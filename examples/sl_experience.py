@@ -6,7 +6,11 @@ from torchvision.datasets import VisionDataset
 
 
 class TorchVisionExperience(
-    Experience[int, typing.Tuple[torch.Tensor, torch.LongTensor], VisionDataset]
+    Experience[
+        int,
+        typing.Iterable[typing.Tuple[torch.Tensor, torch.LongTensor]],
+        VisionDataset,
+    ]
 ):
     def __init__(self, dataset: VisionDataset) -> None:
         self.dataset = dataset

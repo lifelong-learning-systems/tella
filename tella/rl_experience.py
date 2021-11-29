@@ -7,7 +7,8 @@ Observation = typing.TypeVar("Observation")
 Action = typing.TypeVar("Action")
 Reward = float
 Done = bool
-Transition = typing.Tuple[Observation, Action, Reward, Done, Observation]
+
+MDPTransition = typing.Tuple[Observation, Action, Reward, Done, Observation]
 """
 A transition is a tuple with data representing a transition of an MDP.
 """
@@ -17,10 +18,10 @@ ActionFn = typing.Callable[[Observation], Action]
 A function that takes an Observation and returns an Action.
 """
 
-RLExperience = Experience[ActionFn, Transition, gym.Env]
+RLExperience = Experience[ActionFn, typing.Iterable[MDPTransition], gym.Env]
 """
-An RLExperience is an Experience that takes an ActionFn and produces an iterable
-of Transitions
+An RLExperience is an Experience with ActionFn as the InputType,
+Iterable[MDPTransition] as OutputType, and :class:`gym.Env` as InfoType.
 """
 
 
@@ -54,7 +55,7 @@ class RLEpisodeExperience(RLExperience):
             self._env = self._task_cls(**self._params)
         return self._env
 
-    def generate(self, action_fn: ActionFn) -> typing.Iterable[Transition]:
+    def generate(self, action_fn: ActionFn) -> typing.Iterable[MDPTransition]:
         env = self.info()
         for _i_episode in range(self._num_episodes):
             obs = env.reset()

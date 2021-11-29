@@ -18,22 +18,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-
-from .agent import Agent
-
-
-def run(agent_builder, curriculum_path):
-
-    # read curriculum
-
-    # curriculum tells us to run agent 2 times for 5 iterations each and then quit
-    for trial in range(2):
-        logger = None
-        observation_space = None
-        action_space = None
-        agent = agent_builder(observation_space, action_space, logger)
-
-        print(f"Trial {trial}")
-        for iteration in range(5):
-            print(f"  iteration {iteration}")
-            agent.step()

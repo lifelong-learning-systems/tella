@@ -1,10 +1,10 @@
 import gym
 import logging
-from tella.agent import Agent
-from logging_agent import LoggingAgent
+from tella.agents.continual_rl_agent import ContinualRLAgent
+from rl_logging_agent import LoggingAgent
 
 """
-Example usage of an Agent.
+Example usage of an ContinualRLAgent.
 
 In this case we assume there is only 1 block with 1 task and 1 episode for simplicity.
 """
@@ -14,21 +14,19 @@ def main():
     logging.basicConfig(level=logging.INFO)
 
     env: gym.Env = gym.make("CartPole-v1")
-    agent: Agent = LoggingAgent(env.observation_space, env.action_space)
+    agent: ContinualRLAgent = LoggingAgent(
+        env.observation_space, env.action_space, num_envs=1
+    )
 
     agent.block_start(is_learning_allowed=True)
 
     agent.task_start(task_name="CartPole", variant_name="Default")
 
-    agent.episode_start()
-
     obs, done = env.reset(), False
     while not done:
-        action = agent.step_observe(obs)
+        action = list(agent.step_observe([obs]))[0]
         next_obs, reward, done, info = env.step(action)
-        agent.step_reward(obs, action, reward, done, next_obs)
-
-    agent.episode_end()
+        agent.step_transition((obs, action, reward, done, next_obs))
 
     agent.task_end(task_name="CartPole", variant_name="Default")
 

@@ -74,22 +74,66 @@ class LimitedEpisodesExperience(RLExperience):
 
     def generate(self, action_fn: ActionFn) -> typing.Iterable[MDPTransition]:
         env = self.info()
-        num_episodes_left = self._num_episodes
+
+        num_episodes_finished = 0
+
+        # data to keep track of which observations to mask out (set to None)
+        episode_ids = list(range(self._num_envs))
+        next_episode_id = episode_ids[-1] + 1
+
         observations = env.reset()
-        while num_episodes_left > 0:
-            # FIXME: this always uses all environments in the vector env. this will leak extra episodes to the consumer
-            actions = action_fn(observations)
-            next_observations, rewards, dones, infos = env.step(actions)
+        while num_episodes_finished < self._num_episodes:
+            # mask out any environments that have episode id above max episodes
+            mask = [ep_id >= self._num_episodes for ep_id in episode_ids]
+
+            # replace masked environment observations with None
+            masked_observations = _where(mask, None, observations)
+
+            # query for the actions
+            actions = action_fn(masked_observations)
+
+            # replace masked environment actions with random action
+            unmasked_actions = _where(mask, env.single_action_space.sample(), actions)
+
+            # step in the VectorEnv
+            next_observations, rewards, dones, infos = env.step(unmasked_actions)
+
+            # yield all the non masked transitions
             for i in range(self._num_envs):
-                # FIXME: if done[i] == True, then we need to return info[i]["terminal_observation"]
-                yield (
-                    observations[i],
-                    actions[i],
-                    rewards[i],
-                    dones[i],
-                    next_observations[i],
-                )
+                if not mask[i]:
+                    # FIXME: if done[i] == True, then we need to return info[i]["terminal_observation"]
+                    yield (
+                        observations[i],
+                        actions[i],
+                        rewards[i],
+                        dones[i],
+                        next_observations[i],
+                    )
+
+                # increment episode ids if episode ended
+                if dones[i]:
+                    episode_ids[i] = next_episode_id
+                    next_episode_id += 1
+
             observations = next_observations
-            num_episodes_left -= sum(dones)
+            num_episodes_finished += sum(dones)
         self._env.close()
         self._env = None
+
+
+def _where(
+    condition: typing.List[bool], replace_value: typing.Any, original_list: typing.List
+) -> typing.List:
+    """
+    Replaces elements in `original_list[i]` with `replace_value` where the `condition[i]`
+    is True.
+
+    :param condition: List of booleans indicating where to put replace_value
+    :param replace_value: The value to insert into the list
+    :param original_list: The list of values to modify
+    :return: A new list with replace_value inserted where condition elements are True
+    """
+    return [
+        replace_value if condition[i] else original_list[i]
+        for i in range(len(condition))
+    ]

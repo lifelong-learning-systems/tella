@@ -1,10 +1,10 @@
 import typing
 import gym
-from tella.experiences.rl import (
-    MDPTransition,
+from tella.curriculum.rl_task_variant import (
+    StepData,
     Observation,
     Action,
-    RLExperience,
+    AbstractRLTaskVariant,
 )
 from tella.agents.continual_rl_agent import ContinualRLAgent
 import logging
@@ -37,9 +37,9 @@ class LoggingAgent(ContinualRLAgent):
             f"\tAbout to start interacting with a new task. {task_name=} {variant_name=}"
         )
 
-    def consume_experience(self, experience: RLExperience):
-        logger.info("\tConsuming experience")
-        return super().consume_experience(experience)
+    def consume_task_variant(self, task_variant: AbstractRLTaskVariant):
+        logger.info("\tConsuming task variant")
+        return super().consume_task_variant(task_variant)
 
     def step_observe(
         self, observations: typing.List[typing.Optional[Observation]]
@@ -49,9 +49,9 @@ class LoggingAgent(ContinualRLAgent):
             None if obs is None else self.action_space.sample() for obs in observations
         ]
 
-    def step_transition(self, transition: MDPTransition) -> bool:
-        obs, action, reward, done, next_obs = transition
-        logger.info(f"\t\t\tReceived transition {done=}")
+    def step_transition(self, step: StepData) -> bool:
+        obs, action, reward, done, next_obs = step
+        logger.info(f"\t\t\tReceived step {done=}")
         return True
 
     def task_end(

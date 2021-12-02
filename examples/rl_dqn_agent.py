@@ -109,6 +109,7 @@ class MinimalRlDqnAgent(ContinualRLAgent):
         self.q_target.load_state_dict(self.q.state_dict())
         self.memory = ReplayBuffer()
         self.optimizer = optim.Adam(self.q.parameters(), lr=learning_rate)
+        self.training = None
         self.epsilon = 0.01
         self.num_eps_done = 0
         self.q_target_interval = 20
@@ -117,8 +118,10 @@ class MinimalRlDqnAgent(ContinualRLAgent):
         super().block_start(is_learning_allowed)
         if is_learning_allowed:
             logger.info("About to start a new learning block")
+            self.training = True
         else:
             logger.info("About to start a new evaluation block")
+            self.training = False
 
     def task_start(
         self,
@@ -139,7 +142,7 @@ class MinimalRlDqnAgent(ContinualRLAgent):
         logger.info(f"\t\t\tReturn {len(observations)} actions")
         return [
             None if obs is None else
-            self.q.sample_action(torch.from_numpy(obs).float(), self.epsilon)
+            self.q.sample_action(torch.from_numpy(obs).float(), self.epsilon if self.training else 0.0)
             for obs in observations
         ]
 

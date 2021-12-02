@@ -1,9 +1,9 @@
 import typing
 import inspect
-from .curriculum import Curriculum
+from .curriculum import AbstractCurriculum
 
 
-def validate_curriculum(curriculum: Curriculum):
+def validate_curriculum(curriculum: AbstractCurriculum):
     """
     Helper function to do a partial check experiences are specified
     correctly in all of the blocks of the `curriculum`.
@@ -14,15 +14,16 @@ def validate_curriculum(curriculum: Curriculum):
 
     :return: None
     """
-    for i_block, block in enumerate(curriculum.blocks()):
-        for i_experience, experience in enumerate(block.experiences()):
-            try:
-                experience.validate()
-            except Exception as e:
-                raise ValueError(
-                    f"Invalid experience at block #{i_block}, experience #{i_experience}.",
-                    e,
-                )
+    for i_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
+        for i_task_block, task_block in enumerate(block.task_blocks()):
+            for i_task_variant, task_variant in enumerate(task_block.task_variants()):
+                try:
+                    task_variant.validate()
+                except Exception as e:
+                    raise ValueError(
+                        f"Invalid task variant at block #{i_block}, task block #{i_task_block}, task variant #{i_task_variant}.",
+                        e,
+                    )
 
 
 def validate_params(fn: typing.Any, param_names: typing.List[str]) -> None:

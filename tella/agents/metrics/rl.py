@@ -1,11 +1,11 @@
 import abc
 import typing
-from ...experiences.rl import MDPTransition
+from ...curriculum.rl_task_variant import StepData
 
 
 class RLMetricAccumulator(abc.ABC):
     @abc.abstractmethod
-    def track(self, transition: MDPTransition) -> None:
+    def track(self, step: StepData) -> None:
         pass
 
     @abc.abstractmethod
@@ -16,18 +16,18 @@ class RLMetricAccumulator(abc.ABC):
 class MeanEpisodeLength(RLMetricAccumulator):
     def __init__(self) -> None:
         super().__init__()
-        self.num_transitions = 0
+        self.num_steps = 0
         self.num_episodes = 0
 
-    def track(self, transition: MDPTransition) -> None:
-        _obs, _action, _reward, done, _next_obs = transition
-        self.num_transitions += 1
+    def track(self, step: StepData) -> None:
+        _obs, _action, _reward, done, _next_obs = step
+        self.num_steps += 1
         self.num_episodes += int(
             done
-        )  # FIXME: partial episodes will affect num_transitions, but not num_episodes
+        )  # FIXME: partial episodes will affect num_steps, but not num_episodes
 
     def calculate(self) -> typing.Dict[str, float]:
-        return {"MeanEpisodeLength": self.num_transitions / self.num_episodes}
+        return {"MeanEpisodeLength": self.num_steps / self.num_episodes}
 
 
 class MeanEpisodeReward(RLMetricAccumulator):
@@ -44,8 +44,8 @@ class MeanEpisodeReward(RLMetricAccumulator):
         self.total_reward = 0
         self.num_episodes = 0
 
-    def track(self, transition: MDPTransition) -> None:
-        _obs, _action, reward, done, _next_obs = transition
+    def track(self, step: StepData) -> None:
+        _obs, _action, reward, done, _next_obs = step
         self.total_reward += reward
         self.num_episodes += int(
             done
@@ -60,9 +60,9 @@ class Chain(RLMetricAccumulator):
         super().__init__()
         self.accumulators = accumulators
 
-    def track(self, transition: MDPTransition) -> None:
+    def track(self, step: StepData) -> None:
         for accumulator in self.accumulators:
-            accumulator.track(transition)
+            accumulator.track(step)
 
     def calculate(self) -> typing.Dict[str, float]:
         info = {}

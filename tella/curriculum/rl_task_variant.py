@@ -1,18 +1,19 @@
 import typing
 import gym
-from .experience import Experience
+from .task_variant import AbstractTaskVariant
 from ..validation import validate_params
 
 Observation = typing.TypeVar("Observation")
 Action = typing.TypeVar("Action")
 Reward = float
 Done = bool
+NextObservation = Observation
 
-MDPTransition = typing.Tuple[Observation, Action, Reward, Done, Observation]
+StepData = typing.Tuple[Observation, Action, Reward, Done, NextObservation]
 """
-A tuple with data representing a transition of an MDP. The last item of the tuple
-is the resulting observation that happens after applying action to the first
-observation in the tuple.
+A tuple with data containing data from a single step in an MDP.
+The last item of the tuple is the observation resulting from applying the action
+to the observation (i.e. Next observation).
 """
 
 ActionFn = typing.Callable[
@@ -23,19 +24,23 @@ A function that takes a list of Observations and returns a list of Actions, one
 for each observation.
 """
 
-RLExperience = Experience[ActionFn, typing.Iterable[MDPTransition], gym.Env]
+AbstractRLTaskVariant = AbstractTaskVariant[
+    ActionFn, typing.Iterable[StepData], gym.Env
+]
 """
-An RLExperience is an Experience that takes an ActionFn as input, produces an
-Iterable[MDPTransition], and returns a :class:`gym.Env` as the Information.
+An AbstractRLTaskVariant is an TaskVariant that takes an ActionFn as input
+and produces an Iterable[StepData]. It also  returns a :class:`gym.Env` as the
+Information.
 """
 
 
-class LimitedEpisodesExperience(RLExperience):
+class EpisodicTaskVariant(AbstractRLTaskVariant):
     """
-    Represents an experience that consists of a set number of episodes in a :class:`gym.Env`.
+    Represents a TaskVariant that consists of a set number of episodes in a
+    :class:`gym.Env`.
 
-    This is a subclass of the :class:`RLExperience`, which is defined as an :class:`Experience`
-    that takes an :type:`ActionFn` and returns an iterable of :type:`Transition`.
+    This is a concrete subclass of the :class:`AbstractRLTaskVariant`,
+    that takes an :type:`ActionFn` and returns an iterable of :type:`StepData`.
     """
 
     def __init__(
@@ -72,7 +77,7 @@ class LimitedEpisodesExperience(RLExperience):
             self._env = vector_env_cls([self._make_env for _ in range(self._num_envs)])
         return self._env
 
-    def generate(self, action_fn: ActionFn) -> typing.Iterable[MDPTransition]:
+    def generate(self, action_fn: ActionFn) -> typing.Iterable[StepData]:
         env = self.info()
 
         num_episodes_finished = 0

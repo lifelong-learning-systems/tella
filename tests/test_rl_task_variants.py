@@ -1,7 +1,7 @@
 import pytest
 import typing
 import gym
-from tella.experiences.rl import LimitedEpisodesExperience
+from tella.task_variants.rl import EpisodicTaskVariant
 
 
 class DummyEnv(gym.Env):
@@ -35,17 +35,16 @@ def random_action(
 @pytest.mark.parametrize("num_envs", [1, 2, 3, 4])
 def test_num_episodes(num_envs: int):
     for num_episodes in [1, 2, 3, 4, 5, 6, 7, 8]:
-        exp = LimitedEpisodesExperience(
+        exp = EpisodicTaskVariant(
             DummyEnv,
             num_episodes=num_episodes,
             num_envs=num_envs,
             params={"a": 1, "b": 3.0, "c": "a"},
         )
-        transitions = list(exp.generate(random_action))
-        assert len(transitions) == 5 * num_episodes
+        steps = list(exp.generate(random_action))
+        assert len(steps) == 5 * num_episodes
         assert (
-            sum([done for obs, action, reward, done, next_obs in transitions])
-            == num_episodes
+            sum([done for obs, action, reward, done, next_obs in steps]) == num_episodes
         )
 
 

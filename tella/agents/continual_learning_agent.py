@@ -21,18 +21,18 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import typing
 import abc
-from ..experiences.experience import GenericExperience
+from ..curriculum.task_variant import TaskVariantType
 
 Metrics = typing.Dict[str, float]
 
 
-class ContinualLearningAgent(abc.ABC, typing.Generic[GenericExperience]):
+class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
     """
     The base class for a continual learning agent. A CL Agent is an agent that
-    can consume some experience of a generic type (:class:`GenericExperience`).
+    can consume some task variant of a generic type (:class:`TaskVariantType`).
 
-    The only requirement is to implement :meth:`ContinualLearningAgent.consume_experience()`,
-    which takes an object of type :class:`GenericExperience`.
+    The only requirement is to implement :meth:`ContinualLearningAgent.consume_task_variant()`,
+    which takes an object of type :class:`TaskVariantType`.
     """
 
     def __init__(self) -> None:
@@ -70,9 +70,9 @@ class ContinualLearningAgent(abc.ABC, typing.Generic[GenericExperience]):
         pass
 
     @abc.abstractmethod
-    def consume_experience(self, experience: GenericExperience) -> Metrics:
+    def consume_task_variant(self, task_variant: TaskVariantType) -> Metrics:
         """
-        Passes an object of type :class:`Experience` to the agent to consume.
+        Passes an object of type :class:`TaskVariantType` to the agent to consume.
 
         The next method called would be :meth:`ContinualLearningAgent.task_end()`.
 

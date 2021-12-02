@@ -9,11 +9,20 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from tella.agents.continual_rl_agent import ContinualRLAgent, Observation, Action
+from tella.agents.continual_rl_agent import (
+    ContinualRLAgent,
+    Observation,
+    Action,
+    Metrics,
+)
 from tella.agents.metrics.rl import RLMetricAccumulator
-from tella.curriculum import Curriculum, Block, EvalBlock, LearnBlock
-from tella.experiences.rl import LimitedEpisodesExperience, RLExperience
-from tella.experiences.rl import MDPTransition
+from tella.curriculum import *
+from tella.curriculum.rl_task_variant import (
+    StepData,
+    AbstractRLTaskVariant,
+    EpisodicTaskVariant,
+)
+from tella.curriculum.builders import simple_eval_block, simple_learn_block
 from tella.run import run
 
 
@@ -55,7 +64,7 @@ class ReplayBuffer:
             torch.tensor(a_lst),
             torch.tensor(r_lst),
             torch.tensor(s_prime_lst, dtype=torch.float),
-            torch.tensor(done_mask_lst)
+            torch.tensor(done_mask_lst),
         )
 
     def size(self):
@@ -108,8 +117,12 @@ class MinimalRlDqnAgent(ContinualRLAgent):
         num_envs: int,
         metric: typing.Optional[RLMetricAccumulator] = None,
     ) -> None:
-        super(MinimalRlDqnAgent, self).__init__(observation_space, action_space, num_envs, metric)
-        logger.info(f"Constructed with {observation_space=} {action_space=} {num_envs=}")
+        super(MinimalRlDqnAgent, self).__init__(
+            observation_space, action_space, num_envs, metric
+        )
+        logger.info(
+            f"Constructed with {observation_space=} {action_space=} {num_envs=}"
+        )
 
         self.q = Qnet()
         self.q_target = Qnet()
@@ -130,23 +143,32 @@ class MinimalRlDqnAgent(ContinualRLAgent):
             logger.info("About to start a new evaluation block")
             self.training = False
 
-    def task_start(self, task_name: typing.Optional[str], variant_name: typing.Optional[str]) -> None:
-        logger.info(f"\tAbout to start interacting with a new task. {task_name=} {variant_name=}")
+    def task_start(
+        self, task_name: typing.Optional[str], variant_name: typing.Optional[str]
+    ) -> None:
+        logger.info(
+            f"\tAbout to start interacting with a new task. {task_name=} {variant_name=}"
+        )
 
-    def consume_experience(self, experience: RLExperience):
-        logger.info("\tConsuming experience")
-        return super().consume_experience(experience)
+    def consume_task_variant(self, task_variant: AbstractRLTaskVariant) -> Metrics:
+        logger.info("\tConsuming task variant")
+        return super().consume_task_variant(task_variant)
 
-    def step_observe(self, observations: typing.List[typing.Optional[Observation]]) -> typing.List[typing.Optional[Action]]:
+    def step_observe(
+        self, observations: typing.List[typing.Optional[Observation]]
+    ) -> typing.List[typing.Optional[Action]]:
         logger.debug(f"\t\t\tReturn {len(observations)} actions")
         return [
-            None if obs is None else
-            self.q.sample_action(torch.from_numpy(obs).float(), self.epsilon if self.training else 0.0)
+            None
+            if obs is None
+            else self.q.sample_action(
+                torch.from_numpy(obs).float(), self.epsilon if self.training else 0.0
+            )
             for obs in observations
         ]
 
-    def step_transition(self, transition: MDPTransition):
-        s, a, r, done, s_prime = transition
+    def step_transition(self, step: StepData):
+        s, a, r, done, s_prime = step
         self.memory.put((s, a, r / 100.0, s_prime, 0.0 if done else 1.0))
         logger.debug(f"\t\t\tReceived transition {done=}")
 
@@ -154,11 +176,13 @@ class MinimalRlDqnAgent(ContinualRLAgent):
         if done:
             self.num_eps_done += 1
 
-            logger.info(f"\t\t"
-                        f"n_episode: {self.num_eps_done}, "
-                        f"score: {self.metric.calculate()['MeanEpisodeReward']:.1f}, "
-                        f"n_buffer: {self.memory.size()}, "
-                        f"eps: {self.epsilon*100:.1f}%")
+            logger.info(
+                f"\t\t"
+                f"n_episode: {self.num_eps_done}, "
+                f"score: {self.metric.calculate()['MeanEpisodeReward']:.1f}, "
+                f"n_buffer: {self.memory.size()}, "
+                f"eps: {self.epsilon*100:.1f}%"
+            )
 
             if self.memory.size() > 100:  # was 2000 in minimalRL repo
                 logger.info(f"\t\tTraining Q network")
@@ -168,11 +192,15 @@ class MinimalRlDqnAgent(ContinualRLAgent):
                 logger.info(f"\t\tUpdating target Q network")
                 self.q_target.load_state_dict(self.q.state_dict())
 
-            self.epsilon = max(0.01, 0.08 - 0.01*(self.num_eps_done/200))  # Linear annealing from 8% to 1%
+            self.epsilon = max(
+                0.01, 0.08 - 0.01 * (self.num_eps_done / 200)
+            )  # Linear annealing from 8% to 1%
 
         return True  # "keep_going" parameter expected from this method
 
-    def task_end(self, task_name: typing.Optional[str], variant_name: typing.Optional[str]) -> None:
+    def task_end(
+        self, task_name: typing.Optional[str], variant_name: typing.Optional[str]
+    ) -> None:
         logger.info(f"\tDone interacting with task. {task_name=} {variant_name=}")
 
     def block_end(self, is_learning_allowed: bool) -> None:
@@ -182,17 +210,23 @@ class MinimalRlDqnAgent(ContinualRLAgent):
             logger.info("Done with evaluation block")
 
 
-class ExampleCurriculum(Curriculum[RLExperience]):
-    def blocks(self) -> typing.Iterable[Block]:
-        yield LearnBlock(
-            [LimitedEpisodesExperience(lambda: gym.make("CartPole-v1"), num_episodes=1_000)]
+class ExampleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
+    def learn_blocks_and_eval_blocks(
+        self,
+    ) -> typing.Iterable[
+        typing.Union[
+            "AbstractLearnBlock[TaskVariantType]", "AbstractEvalBlock[TaskVariantType]"
+        ]
+    ]:
+        yield simple_learn_block(
+            [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=1_000)]
         )
-        yield EvalBlock(
-            [LimitedEpisodesExperience(lambda: gym.make("CartPole-v1"), num_episodes=100)]
+        yield simple_eval_block(
+            [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=100)]
         )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     env = gym.make("CartPole-v1")

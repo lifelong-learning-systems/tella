@@ -3,22 +3,27 @@ import abc
 import gym
 
 from .metrics.rl import default_metrics, RLMetricAccumulator
-from ..experiences.rl import MDPTransition, Observation, Action, RLExperience
+from ..curriculum.rl_task_variant import (
+    StepData,
+    Observation,
+    Action,
+    AbstractRLTaskVariant,
+)
 from .continual_learning_agent import ContinualLearningAgent, Metrics
 
 
-class ContinualRLAgent(ContinualLearningAgent[RLExperience]):
+class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
     """
     The base class for a continual reinforcement learning agent. This class
-    consumes an experience of type :class:`RLExperience`.
+    consumes an experience of type :class:`AbstractRLTaskVariant`.
 
     This class implements the :meth:`ContinualLearningAgent.consume_experience`,
     and exposes two new required methods for subclasses to implement:
 
         1. step_observe, which :meth:`ContinualRLAgent.consume_experience`
-            passes to :meth:`RLExperience.generate`.
+            passes to :meth:`RLTaskVariant.generate`.
         2. step_transition, which :meth:`ContinualRLAgent.consume_experience`
-            calls with the result of :meth:`RLExperience.generate`.
+            calls with the result of :meth:`RLTaskVariant.generate`.
 
     """
 
@@ -44,15 +49,15 @@ class ContinualRLAgent(ContinualLearningAgent[RLExperience]):
         self.num_envs = num_envs
         self.metric = metric
 
-    def consume_experience(self, experience: RLExperience) -> Metrics:
+    def consume_task_variant(self, task_variant: AbstractRLTaskVariant) -> Metrics:
         """
-        Passes :meth:`ContinualRLAgent.step_observe` to :meth:`RLExperience.generate`
+        Passes :meth:`ContinualRLAgent.step_observe` to :meth:`RLTaskVariant.generate`
         to generate the iterable of :class:`MDPTransition`.
 
         If this is in a learning block (i.e. self.is_learning_allowed is True),
         then each transition is passed to :meth:`ContinualRLAgent.step_transition`.
         """
-        for transition in experience.generate(self.step_observe):
+        for transition in task_variant.generate(self.step_observe):
             self.metric.track(transition)
             if self.is_learning_allowed:
                 keep_going = self.step_transition(transition)
@@ -95,7 +100,7 @@ class ContinualRLAgent(ContinualLearningAgent[RLExperience]):
         pass
 
     @abc.abstractmethod
-    def step_transition(self, transition: MDPTransition) -> bool:
+    def step_transition(self, step_data: StepData) -> bool:
         """
         Gives the transition that results from calling :meth:`gym.Env.step()` with a given action.
 

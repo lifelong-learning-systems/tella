@@ -1,7 +1,7 @@
-import typing
 import collections
-import random
 import logging
+import random
+import typing
 
 import gym
 import torch
@@ -9,9 +9,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from tella.agents.metrics.rl import RLMetricAccumulator
-from tella.experiences.rl import MDPTransition, RLExperience
 from tella.agents.continual_rl_agent import ContinualRLAgent, Observation, Action
+from tella.agents.metrics.rl import RLMetricAccumulator
+from tella.curriculum import Curriculum, Block, EvalBlock, LearnBlock
+from tella.experiences.rl import LimitedEpisodesExperience, RLExperience
+from tella.experiences.rl import MDPTransition
+from tella.run import run
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +31,7 @@ buffer_limit = 50000
 batch_size = 32
 
 
-class ReplayBuffer():
+class ReplayBuffer:
     def __init__(self):
         self.buffer = collections.deque(maxlen=buffer_limit)
 
@@ -47,9 +50,13 @@ class ReplayBuffer():
             s_prime_lst.append(s_prime)
             done_mask_lst.append([done_mask])
 
-        return torch.tensor(s_lst, dtype=torch.float), torch.tensor(a_lst), \
-               torch.tensor(r_lst), torch.tensor(s_prime_lst, dtype=torch.float), \
-               torch.tensor(done_mask_lst)
+        return (
+            torch.tensor(s_lst, dtype=torch.float),
+            torch.tensor(a_lst),
+            torch.tensor(r_lst),
+            torch.tensor(s_prime_lst, dtype=torch.float),
+            torch.tensor(done_mask_lst)
+        )
 
     def size(self):
         return len(self.buffer)
@@ -123,23 +130,15 @@ class MinimalRlDqnAgent(ContinualRLAgent):
             logger.info("About to start a new evaluation block")
             self.training = False
 
-    def task_start(
-        self,
-        task_name: typing.Optional[str],
-        variant_name: typing.Optional[str],
-    ) -> None:
-        logger.info(
-            f"\tAbout to start interacting with a new task. {task_name=} {variant_name=}"
-        )
+    def task_start(self, task_name: typing.Optional[str], variant_name: typing.Optional[str]) -> None:
+        logger.info(f"\tAbout to start interacting with a new task. {task_name=} {variant_name=}")
 
     def consume_experience(self, experience: RLExperience):
         logger.info("\tConsuming experience")
         return super().consume_experience(experience)
 
-    def step_observe(
-        self, observations: typing.List[typing.Optional[Observation]]
-    ) -> typing.List[typing.Optional[Action]]:
-        logger.info(f"\t\t\tReturn {len(observations)} actions")
+    def step_observe(self, observations: typing.List[typing.Optional[Observation]]) -> typing.List[typing.Optional[Action]]:
+        logger.debug(f"\t\t\tReturn {len(observations)} actions")
         return [
             None if obs is None else
             self.q.sample_action(torch.from_numpy(obs).float(), self.epsilon if self.training else 0.0)
@@ -149,7 +148,7 @@ class MinimalRlDqnAgent(ContinualRLAgent):
     def step_transition(self, transition: MDPTransition):
         s, a, r, done, s_prime = transition
         self.memory.put((s, a, r / 100.0, s_prime, 0.0 if done else 1.0))
-        logger.info(f"\t\t\tReceived transition {done=}")
+        logger.debug(f"\t\t\tReceived transition {done=}")
 
         # Handle end-of-episode matters: training, logging, and annealing
         if done:
@@ -173,11 +172,7 @@ class MinimalRlDqnAgent(ContinualRLAgent):
 
         return True  # "keep_going" parameter expected from this method
 
-    def task_end(
-        self,
-        task_name: typing.Optional[str],
-        variant_name: typing.Optional[str],
-    ) -> None:
+    def task_end(self, task_name: typing.Optional[str], variant_name: typing.Optional[str]) -> None:
         logger.info(f"\tDone interacting with task. {task_name=} {variant_name=}")
 
     def block_end(self, is_learning_allowed: bool) -> None:
@@ -187,21 +182,17 @@ class MinimalRlDqnAgent(ContinualRLAgent):
             logger.info("Done with evaluation block")
 
 
+class ExampleCurriculum(Curriculum[RLExperience]):
+    def blocks(self) -> typing.Iterable[Block]:
+        yield LearnBlock(
+            [LimitedEpisodesExperience(lambda: gym.make("CartPole-v1"), num_episodes=1_000)]
+        )
+        yield EvalBlock(
+            [LimitedEpisodesExperience(lambda: gym.make("CartPole-v1"), num_episodes=100)]
+        )
+
+
 if __name__ == '__main__':
-    import logging
-    from tella.run import run
-    from tella.curriculum import Curriculum, Block, EvalBlock, LearnBlock
-    from tella.experiences.rl import LimitedEpisodesExperience, RLExperience
-
-    class ExampleCurriculum(Curriculum[RLExperience]):
-        def blocks(self) -> typing.Iterable[Block]:
-            yield LearnBlock(
-                [LimitedEpisodesExperience(lambda: gym.make("CartPole-v1"), num_episodes=1_000)]
-            )
-            yield EvalBlock(
-                [LimitedEpisodesExperience(lambda: gym.make("CartPole-v1"), num_episodes=100)]
-            )
-
     logging.basicConfig(level=logging.INFO)
 
     env = gym.make("CartPole-v1")

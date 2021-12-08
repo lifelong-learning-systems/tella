@@ -109,11 +109,6 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
             transition = (obs, action, reward, done, next_obs)
             agent.step_transition(transition)
 
-        Also allows the agent to stop consuming an experience early by returning
-        False from this method. If True is returned, this indicates that the episode should continue
-        unless done is True. See :meth:`ContinualRLAgent.consume_experience` for
-        more details.
-
         NOTE: when using vectorized environments (i.e. when `Agent.step_observe`
         receives multiple observations, or when `self.num_envs > 1`),
         :meth:`Agent.step_transition` is called separately for each resulting

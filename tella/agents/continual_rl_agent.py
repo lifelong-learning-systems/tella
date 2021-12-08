@@ -60,9 +60,7 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
         for transition in task_variant.generate(self.step_observe):
             self.metric.track(transition)
             if self.is_learning_allowed:
-                keep_going = self.step_transition(transition)
-                if not keep_going:
-                    break
+                self.step_transition(transition)
         return self.metric.calculate()
 
     @abc.abstractmethod
@@ -100,7 +98,7 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
         pass
 
     @abc.abstractmethod
-    def step_transition(self, step_data: StepData) -> bool:
+    def step_transition(self, step_data: StepData) -> None:
         """
         Gives the transition that results from calling :meth:`gym.Env.step()` with a given action.
 
@@ -109,12 +107,7 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
             action = ...
             next_obs, reward, done, info = env.step(action)
             transition = (obs, action, reward, done, next_obs)
-            keep_going = agent.step_transition(transition)
-
-        Also allows the agent to stop consuming an experience early by returning
-        False from this method. If True is returned, this indicates that the episode should continue
-        unless done is True. See :meth:`ContinualRLAgent.consume_experience` for
-        more details.
+            agent.step_transition(transition)
 
         NOTE: when using vectorized environments (i.e. when `Agent.step_observe`
         receives multiple observations, or when `self.num_envs > 1`),
@@ -123,7 +116,5 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
 
         The next method called would be :meth:`Agent.step_observe()` if done is False,
         otherwise :meth:`Agent.episode_end()`.
-
-        :return: A boolean indicating whether to continue with the episode.
         """
         pass

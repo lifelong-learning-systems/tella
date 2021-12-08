@@ -196,8 +196,6 @@ class MinimalRlDqnAgent(ContinualRLAgent):
                 0.01, 0.08 - 0.01 * (self.num_eps_done / 200)
             )  # Linear annealing from 8% to 1%
 
-        return True  # "keep_going" parameter expected from this method
-
     def task_end(
         self, task_name: typing.Optional[str], variant_name: typing.Optional[str]
     ) -> None:

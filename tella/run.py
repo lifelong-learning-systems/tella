@@ -21,11 +21,13 @@ def run(
         agent.is_learning_allowed = block.is_learning_allowed()
         agent.block_start(block.is_learning_allowed())
         for task_block in block.task_blocks():
+            agent.task_start(None)
             for task_variant in task_block.task_variants():
                 # FIXME: how to provide task & variant info?
-                agent.task_start(None, None)
+                agent.task_variant_start(None, None)
                 metrics = agent.consume_task_variant(task_variant)
                 logger.info(f"TaskVariant produced metrics: {metrics}")
-                agent.task_end(None, None)
+                agent.task_variant_end(None, None)
+            agent.task_end(None)
             # TODO log metrics with l2logger
         agent.block_end(block.is_learning_allowed())

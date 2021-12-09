@@ -56,10 +56,24 @@ class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
     def task_start(
         self,
         task_name: typing.Optional[str],
-        variant_name: typing.Optional[str],
     ) -> None:
         """
         Signifies interaction with a new task is about to start. `task_info`
+        may contain task id/label or task parameters.
+
+        The next method called would be :meth:`ContinualLearningAgent.task_variant_start()`.
+
+        :param task_name: An optional value indicating the name of the task
+        """
+        pass
+
+    def task_variant_start(
+        self,
+        task_name: typing.Optional[str],
+        variant_name: typing.Optional[str],
+    ) -> None:
+        """
+        Signifies interaction with a new task variant is about to start. `task_info`
         may contain task id/label or task parameters.
 
         The next method called would be :meth:`ContinualLearningAgent.consume_experience()`.
@@ -80,10 +94,25 @@ class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
             some generic metrics that were calculated across the experiences
         """
 
-    def task_end(
+    def task_variant_end(
         self,
         task_name: typing.Optional[str],
         variant_name: typing.Optional[str],
+    ) -> None:
+        """
+        Signifies interaction with a task variant has just ended.
+
+        The next method called would be :meth:`Agent.task_variant_start()` if there
+        are more task variants in the block, otherwise :meth:`Agent.task_end()`.
+
+        :param task_name: An optional value indicating the name of the task
+        :param variant_name: An optional value indicating the name of the task variant
+        """
+        pass
+
+    def task_end(
+        self,
+        task_name: typing.Optional[str],
     ) -> None:
         """
         Signifies interaction with a task has just ended.
@@ -92,7 +121,6 @@ class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
         are more tasks in the block, otherwise :meth:`Agent.block_end()`.
 
         :param task_name: An optional value indicating the name of the task
-        :param variant_name: An optional value indicating the name of the task variant
         """
         pass
 

@@ -20,7 +20,7 @@ def main():
 
     agent.block_start(is_learning_allowed=True)
 
-    agent.task_start(task_name="CartPole", variant_name="Default")
+    agent.task_variant_start(task_name="CartPole", variant_name="Default")
 
     obs, done = env.reset(), False
     while not done:
@@ -28,7 +28,7 @@ def main():
         next_obs, reward, done, info = env.step(action)
         agent.step_transition((obs, action, reward, done, next_obs))
 
-    agent.task_end(task_name="CartPole", variant_name="Default")
+    agent.task_variant_end(task_name="CartPole", variant_name="Default")
 
     agent.block_end(is_learning_allowed=True)
 

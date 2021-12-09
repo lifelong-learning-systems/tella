@@ -31,10 +31,16 @@ class LoggingAgent(ContinualRLAgent):
     def task_start(
         self,
         task_name: typing.Optional[str],
+    ) -> None:
+        logger.info(f"\tAbout to start interacting with a new task. {task_name=}")
+
+    def task_variant_start(
+        self,
+        task_name: typing.Optional[str],
         variant_name: typing.Optional[str],
     ) -> None:
         logger.info(
-            f"\tAbout to start interacting with a new task. {task_name=} {variant_name=}"
+            f"\tAbout to start interacting with a new task variant. {task_name=} {variant_name=}"
         )
 
     def consume_task_variant(self, task_variant: AbstractRLTaskVariant):
@@ -56,9 +62,17 @@ class LoggingAgent(ContinualRLAgent):
     def task_end(
         self,
         task_name: typing.Optional[str],
+    ) -> None:
+        logger.info(f"\tDone interacting with task. {task_name=}")
+
+    def task_variant_end(
+        self,
+        task_name: typing.Optional[str],
         variant_name: typing.Optional[str],
     ) -> None:
-        logger.info(f"\tDone interacting with task. {task_name=} {variant_name=}")
+        logger.info(
+            f"\tDone interacting with task variant. {task_name=} {variant_name=}"
+        )
 
     def block_end(self, is_learning_allowed: bool) -> None:
         if is_learning_allowed:

@@ -143,12 +143,8 @@ class MinimalRlDqnAgent(ContinualRLAgent):
             logger.info("About to start a new evaluation block")
             self.training = False
 
-    def task_start(
-        self, task_name: typing.Optional[str], variant_name: typing.Optional[str]
-    ) -> None:
-        logger.info(
-            f"\tAbout to start interacting with a new task. {task_name=} {variant_name=}"
-        )
+    def task_start(self, task_name: typing.Optional[str]) -> None:
+        logger.info(f"\tAbout to start interacting with a new task. {task_name=}")
 
     def consume_task_variant(self, task_variant: AbstractRLTaskVariant) -> Metrics:
         logger.info("\tConsuming task variant")
@@ -196,10 +192,8 @@ class MinimalRlDqnAgent(ContinualRLAgent):
                 0.01, 0.08 - 0.01 * (self.num_eps_done / 200)
             )  # Linear annealing from 8% to 1%
 
-    def task_end(
-        self, task_name: typing.Optional[str], variant_name: typing.Optional[str]
-    ) -> None:
-        logger.info(f"\tDone interacting with task. {task_name=} {variant_name=}")
+    def task_end(self, task_name: typing.Optional[str]) -> None:
+        logger.info(f"\tDone interacting with task. {task_name=}")
 
     def block_end(self, is_learning_allowed: bool) -> None:
         if is_learning_allowed:

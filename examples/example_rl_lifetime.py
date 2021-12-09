@@ -1,9 +1,9 @@
 import typing
 import gym
+import tella
 from tella.curriculum import AbstractCurriculum, AbstractLearnBlock, AbstractEvalBlock
 from tella.curriculum.rl_task_variant import AbstractRLTaskVariant, EpisodicTaskVariant
 from tella.curriculum.builders import simple_learn_block, simple_eval_block
-from tella.run import run
 
 
 class ExampleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
@@ -29,8 +29,4 @@ if __name__ == "__main__":
 
     logging.basicConfig(level=logging.INFO)
 
-    env = gym.make("CartPole-v1")
-    agent = LoggingAgent(env.observation_space, env.action_space, num_envs=1)
-    curriculum = ExampleCurriculum()
-
-    run(agent, curriculum)
+    tella.rl_cli(LoggingAgent, ExampleCurriculum)

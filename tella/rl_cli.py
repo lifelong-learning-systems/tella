@@ -71,7 +71,7 @@ def rl_cli(
         agent_factory,
         curriculum_factory,
         num_lifetimes=args.num_lifetimes,
-        num_envs=args.num_envs,
+        num_parallel_envs=args.num_parallel_envs,
         log_dir=args.log_dir,
     )
 
@@ -84,16 +84,21 @@ def _build_parser(require_curriculum: bool) -> argparse.ArgumentParser:
         "--num-lifetimes",
         default=1,
         type=int,
-        help="Number of lifetimes to execute",
+        help="Number of lifetimes to execute.",
     )
     parser.add_argument(
-        "--num-envs", default=1, type=int, help="Number of environments to use."
+        "--num-parallel-envs",
+        default=1,
+        type=int,
+        help="Number of environments to run in parallel inside of task variant blocks."
+        "This enables the use of multiple CPUs at the same time for running environment logic,"
+        " via vectorized environments.",
     )
     parser.add_argument(
         "--log-dir",
         default="./logs",
         type=str,
-        help="The root directory for the l2logger logs produced",
+        help="The root directory for the l2logger logs produced.",
     )
     if require_curriculum:
         assert False

@@ -38,7 +38,7 @@ It takes 3 arguments, which are the same as :meth:`ContinualRLAgent.__init__()`:
 
     1. observation_space, which is a :class:`gym.Space`
     2. action_space, which is a :class:`gym.Space
-    3. num_envs, which is an integer indicating how many environments will be used
+    3. num_parallel_envs, which is an integer indicating how many environments will be run in parallel at the same time.
 
 A concrete subclass of :class:`ContinualRLAgent` can be used as an AgentFactory:
 
@@ -46,16 +46,16 @@ A concrete subclass of :class:`ContinualRLAgent` can be used as an AgentFactory:
         ...
 
     agent_factory: AgentFactory = MyAgent
-    agent = agent_factory(observation_space, action_space, num_envs)
+    agent = agent_factory(observation_space, action_space, num_parallel_envs)
 
 A function can also be used as an AgentFactory:
 
-    def my_factory(observation_space, action_space, num_envs):
+    def my_factory(observation_space, action_space, num_parallel_envs):
         ...
         return my_agent
 
     agent_factory: AgentFactory = my_factory
-    agent = agent_factory(observation_space, action_space, num_envs)
+    agent = agent_factory(observation_space, action_space, num_parallel_envs)
 """
 
 CurriculumFactory = typing.Callable[[], AbstractCurriculum[AbstractRLTaskVariant]]
@@ -88,7 +88,7 @@ def rl_experiment(
     agent_factory: AgentFactory,
     curriculum_factory: CurriculumFactory,
     num_lifetimes: int,
-    num_envs: int,
+    num_parallel_envs: int,
     log_dir: str,
 ) -> None:
     """
@@ -97,7 +97,7 @@ def rl_experiment(
     :param agent_factory: Function or class to produce agents.
     :param curriculum_factory: Function or class to produce curriculum.
     :param num_lifetimes: Number of times to call :func:`run()`.
-    :param num_envs: TODO
+    :param num_parallel_envs: TODO
     :param log_dir:TODO
     :return: None
     """
@@ -113,11 +113,11 @@ def rl_experiment(
         validate_curriculum(curriculum)
         logger.info("Validated curriculum")
 
-        agent = agent_factory(observation_space, action_space, num_envs)
+        agent = agent_factory(observation_space, action_space, num_parallel_envs)
         logger.info(f"Constructed agent {agent}")
 
         logger.info(f"Starting lifetime #{i_lifetime + 1}")
-        # FIXME: pass num_envs to run https://github.com/darpa-l2m/tella/issues/32
+        # FIXME: pass num_parallel_envs to run https://github.com/darpa-l2m/tella/issues/32
         # FIXME: pass log_dir to run https://github.com/darpa-l2m/tella/issues/12
         run(agent, curriculum)
 

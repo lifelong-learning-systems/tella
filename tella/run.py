@@ -26,7 +26,7 @@ def run(
                 # FIXME: how to provide task & variant info?
                 agent.task_variant_start(None, None)
                 if is_learning_allowed:
-                    metrics = agent.consume_task_variant(task_variant)
+                    metrics = agent.learn_task_variant(task_variant)
                 else:
                     metrics = agent.eval_task_variant(task_variant)
                 logger.info(f"TaskVariant produced metrics: {metrics}")

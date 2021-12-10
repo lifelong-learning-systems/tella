@@ -84,7 +84,7 @@ class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
         pass
 
     @abc.abstractmethod
-    def consume_task_variant(self, task_variant: TaskVariantType) -> Metrics:
+    def learn_task_variant(self, task_variant: TaskVariantType) -> Metrics:
         """
         Passes an object of type :class:`TaskVariantType` to the agent to consume for learning.
 

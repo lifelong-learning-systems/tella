@@ -31,7 +31,7 @@ class TorchVisionTaskVariant(
 
 
 class ContinualSupervisedLearningAgent(ContinualLearningAgent[TorchVisionTaskVariant]):
-    def consume_task_variant(self, task_variant: TorchVisionTaskVariant) -> Metrics:
+    def learn_task_variant(self, task_variant: TorchVisionTaskVariant) -> Metrics:
         metrics = {"Accuracy": 0.5}
         for batch in task_variant.generate(batch_size=10):
             x, label = batch

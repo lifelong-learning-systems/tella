@@ -146,11 +146,11 @@ class MinimalRlDqnAgent(ContinualRLAgent):
     def task_start(self, task_name: typing.Optional[str]) -> None:
         logger.info(f"\tAbout to start interacting with a new task. {task_name=}")
 
-    def consume_task_variant(self, task_variant: AbstractRLTaskVariant) -> Metrics:
+    def learn_task_variant(self, task_variant: AbstractRLTaskVariant) -> Metrics:
         logger.info("\tConsuming task variant")
-        return super().consume_task_variant(task_variant)
+        return super().learn_task_variant(task_variant)
 
-    def step_observe(
+    def choose_action(
         self, observations: typing.List[typing.Optional[Observation]]
     ) -> typing.List[typing.Optional[Action]]:
         logger.debug(f"\t\t\tReturn {len(observations)} actions")
@@ -163,7 +163,7 @@ class MinimalRlDqnAgent(ContinualRLAgent):
             for obs in observations
         ]
 
-    def step_transition(self, step: StepData):
+    def view_transition(self, step: StepData):
         s, a, r, done, s_prime = step
         self.memory.put((s, a, r / 100.0, s_prime, 0.0 if done else 1.0))
         logger.debug(f"\t\t\tReceived transition {done=}")

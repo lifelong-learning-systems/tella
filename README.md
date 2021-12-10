@@ -25,8 +25,8 @@ tella calls methods of the agent to run through training and evaluation blocks.
 The event handlers are
  * block_start() and block_end()
  * task_start() and task_end()
- * episode_start() and episode_end()
- * step_observe() and step_reward()
+ * task_variant_start() and task_variant_end()
+ * choose_action() and view_transition()
 
 A learning block or evaluation block consists of 1 or more tasks.
 The agent is notified of the start of the block and the start of each task.
@@ -35,9 +35,9 @@ The agent is also notified of the end of the block and the end of each task.
 
 A task consists of multiple episodes.
 The agent is notified of the start and end of the episode.
-During the episode the agent is called through step_observe() with an observation and must return an action.
-After the environment is updated with the action, the reward is passed to the agent by calling step_reward().
-The step_reward() method also received the previous observation and new observation.
+During the episode the agent is called through choose_action() with an observation and must return an action.
+After the environment is updated with the action, the reward is passed to the agent by calling view_transition().
+The view_transition() method also received the previous observation and new observation.
 These calls continue until the episode is complete.
 
 

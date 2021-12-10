@@ -62,7 +62,7 @@ and any recommendations for how this new feature should work.
 
 For Developers
 ----------------
-To install with development requirements in editable mode:
+To install tella in editable mode with our development requirements:
 ```
 pip install -e .[dev]
 ```
@@ -74,8 +74,10 @@ pytest
 
 To check for PEP8 compliance:
 ```
+black --check tella
 ```
 
 To autoformat for PEP8 compliance:
 ```
+black tella
 ```

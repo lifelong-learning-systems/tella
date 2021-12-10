@@ -52,15 +52,21 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
     def consume_task_variant(self, task_variant: AbstractRLTaskVariant) -> Metrics:
         """
         Passes :meth:`ContinualRLAgent.step_observe` to :meth:`RLTaskVariant.generate`
-        to generate the iterable of :class:`MDPTransition`.
-
-        If this is in a learning block (i.e. self.is_learning_allowed is True),
-        then each transition is passed to :meth:`ContinualRLAgent.step_transition`.
+        to generate the iterable of :class:`MDPTransition`, then each transition is
+        passed to :meth:`ContinualRLAgent.step_transition` for learning.
         """
         for transition in task_variant.generate(self.step_observe):
             self.metric.track(transition)
-            if self.is_learning_allowed:
-                self.step_transition(transition)
+            self.step_transition(transition)
+        return self.metric.calculate()
+
+    def eval_task_variant(self, task_variant: AbstractRLTaskVariant) -> Metrics:
+        """
+        Passes :meth:`ContinualRLAgent.step_observe` to :meth:`RLTaskVariant.generate`
+        to generate the iterable of :class:`MDPTransition`.
+        """
+        for transition in task_variant.generate(self.step_observe):
+            self.metric.track(transition)
         return self.metric.calculate()
 
     @abc.abstractmethod

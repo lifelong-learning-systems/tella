@@ -18,14 +18,17 @@ def run(
     """
     # TODO create l2logger here
     for i_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
-        agent.is_learning_allowed = block.is_learning_allowed()
-        agent.block_start(block.is_learning_allowed())
+        is_learning_allowed = agent.is_learning_allowed = block.is_learning_allowed()
+        agent.block_start(is_learning_allowed)
         for task_block in block.task_blocks():
             agent.task_start(None)
             for task_variant in task_block.task_variants():
                 # FIXME: how to provide task & variant info?
                 agent.task_variant_start(None, None)
-                metrics = agent.consume_task_variant(task_variant)
+                if is_learning_allowed:
+                    metrics = agent.consume_task_variant(task_variant)
+                else:
+                    metrics = agent.eval_task_variant(task_variant)
                 logger.info(f"TaskVariant produced metrics: {metrics}")
                 agent.task_variant_end(None, None)
             agent.task_end(None)

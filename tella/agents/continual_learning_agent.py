@@ -86,9 +86,20 @@ class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
     @abc.abstractmethod
     def consume_task_variant(self, task_variant: TaskVariantType) -> Metrics:
         """
-        Passes an object of type :class:`TaskVariantType` to the agent to consume.
+        Passes an object of type :class:`TaskVariantType` to the agent to consume for learning.
 
-        The next method called would be :meth:`ContinualLearningAgent.task_end()`.
+        The next method called would be :meth:`ContinualLearningAgent.task_variant_end()`.
+
+        :return: Dictionary with string keys, and float values. It represents
+            some generic metrics that were calculated across the experiences
+        """
+
+    @abc.abstractmethod
+    def eval_task_variant(self, task_variant: TaskVariantType) -> Metrics:
+        """
+        Passes an object of type :class:`TaskVariantType` to the agent to consume for evaluation.
+
+        The next method called would be :meth:`ContinualLearningAgent.task_variant_end()`.
 
         :return: Dictionary with string keys, and float values. It represents
             some generic metrics that were calculated across the experiences

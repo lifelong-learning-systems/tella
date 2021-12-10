@@ -47,11 +47,11 @@ class LoggingAgent(ContinualRLAgent):
             f"task_name={task_name} variant_name={variant_name}"
         )
 
-    def consume_task_variant(self, task_variant: AbstractRLTaskVariant):
+    def learn_task_variant(self, task_variant: AbstractRLTaskVariant):
         logger.info("\tConsuming task variant")
-        return super().consume_task_variant(task_variant)
+        return super().learn_task_variant(task_variant)
 
-    def step_observe(
+    def choose_action(
         self, observations: typing.List[typing.Optional[Observation]]
     ) -> typing.List[typing.Optional[Action]]:
         logger.info(f"\t\t\tReturn {len(observations)} random actions")
@@ -59,7 +59,7 @@ class LoggingAgent(ContinualRLAgent):
             None if obs is None else self.action_space.sample() for obs in observations
         ]
 
-    def step_transition(self, step: StepData) -> None:
+    def receive_transition(self, step: StepData) -> None:
         obs, action, reward, done, next_obs = step
         logger.info(f"\t\t\tReceived step done={done}")
 

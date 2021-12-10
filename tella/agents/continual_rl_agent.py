@@ -17,12 +17,14 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
     The base class for a continual reinforcement learning agent. This class
     consumes an experience of type :class:`AbstractRLTaskVariant`.
 
-    This class implements the :meth:`ContinualLearningAgent.consume_experience`,
-    and exposes two new required methods for subclasses to implement:
+    This class implements the :meth:`ContinualLearningAgent.learn_experience`
+    and the :meth:`ContinualLearningAgent.eval_experience`, and exposes two
+    new required methods for subclasses to implement:
 
-        1. step_observe, which :meth:`ContinualRLAgent.consume_experience`
-            passes to :meth:`RLTaskVariant.generate`.
-        2. step_transition, which :meth:`ContinualRLAgent.consume_experience`
+        1. choose_actions, which :meth:`ContinualRLAgent.learn_experience`
+            and :meth:`ContinualRLAgent.eval_experience` pass to
+            :meth:`RLTaskVariant.generate`.
+        2. receive_transitions, which :meth:`ContinualRLAgent.learn_experience`
             calls with the result of :meth:`RLTaskVariant.generate`.
 
     """
@@ -49,22 +51,28 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
         self.num_envs = num_envs
         self.metric = metric
 
-    def consume_task_variant(self, task_variant: AbstractRLTaskVariant) -> Metrics:
+    def learn_task_variant(self, task_variant: AbstractRLTaskVariant) -> Metrics:
         """
-        Passes :meth:`ContinualRLAgent.step_observe` to :meth:`RLTaskVariant.generate`
-        to generate the iterable of :class:`MDPTransition`.
-
-        If this is in a learning block (i.e. self.is_learning_allowed is True),
-        then each transition is passed to :meth:`ContinualRLAgent.step_transition`.
+        Passes :meth:`ContinualRLAgent.choose_action` to :meth:`RLTaskVariant.generate`
+        to generate the iterable of :class:`MDPTransition`, then each transition is
+        passed to :meth:`ContinualRLAgent.receive_transition` for learning.
         """
-        for transition in task_variant.generate(self.step_observe):
+        for transition in task_variant.generate(self.choose_action):
             self.metric.track(transition)
-            if self.is_learning_allowed:
-                self.step_transition(transition)
+            self.receive_transition(transition)
+        return self.metric.calculate()
+
+    def eval_task_variant(self, task_variant: AbstractRLTaskVariant) -> Metrics:
+        """
+        Passes :meth:`ContinualRLAgent.choose_action` to :meth:`RLTaskVariant.generate`
+        to generate the iterable of :class:`MDPTransition`.
+        """
+        for transition in task_variant.generate(self.choose_action):
+            self.metric.track(transition)
         return self.metric.calculate()
 
     @abc.abstractmethod
-    def step_observe(
+    def choose_action(
         self, observations: typing.List[typing.Optional[Observation]]
     ) -> typing.List[typing.Optional[Action]]:
         """
@@ -75,7 +83,7 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
         .. e.g.
 
             observations = vector_env.reset()
-            actions = agent.step_observe(observations)
+            actions = agent.choose_action(observations)
             ... = vector_env.step(actions)
 
         If there are environments that are done, but no more new steps can be taken
@@ -89,7 +97,7 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
 
             observations = ...
             observations[2] = None
-            actions = agent.step_observe(observations)
+            actions = agent.choose_action(observations)
             assert actions[2] is None
 
         :param observations: The observations from the environment.
@@ -98,7 +106,7 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
         pass
 
     @abc.abstractmethod
-    def step_transition(self, step_data: StepData) -> None:
+    def receive_transition(self, step_data: StepData) -> None:
         """
         Gives the transition that results from calling :meth:`gym.Env.step()` with a given action.
 
@@ -107,14 +115,14 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
             action = ...
             next_obs, reward, done, info = env.step(action)
             transition = (obs, action, reward, done, next_obs)
-            agent.step_transition(transition)
+            agent.receive_transition(transition)
 
-        NOTE: when using vectorized environments (i.e. when `Agent.step_observe`
+        NOTE: when using vectorized environments (i.e. when `Agent.choose_action`
         receives multiple observations, or when `self.num_envs > 1`),
         :meth:`Agent.step_transition` is called separately for each resulting
         transition. I.e. :meth:`Agent.step_transition` is called `self.num_envs` times.
 
-        The next method called would be :meth:`Agent.step_observe()` if done is False,
-        otherwise :meth:`Agent.episode_end()`.
+        The next method called would be :meth:`Agent.choose_action()` if done is False,
+        otherwise :meth:`Agent.task_variant_end()`.
         """
         pass

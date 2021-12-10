@@ -9,6 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
+import tella
 from tella.agents.continual_rl_agent import (
     ContinualRLAgent,
     Observation,
@@ -221,8 +222,4 @@ class ExampleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    env = gym.make("CartPole-v1")
-    agent = MinimalRlDqnAgent(env.observation_space, env.action_space, num_envs=1)
-    curriculum = ExampleCurriculum()
-
-    run(agent, curriculum)
+    tella.rl_cli(MinimalRlDqnAgent, ExampleCurriculum)

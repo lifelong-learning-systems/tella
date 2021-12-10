@@ -1,12 +1,11 @@
 import typing
 import gym
-import tella
 from tella.curriculum import AbstractCurriculum, AbstractLearnBlock, AbstractEvalBlock
 from tella.curriculum.rl_task_variant import AbstractRLTaskVariant, EpisodicTaskVariant
 from tella.curriculum.builders import simple_learn_block, simple_eval_block
 
 
-class ExampleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
+class SimpleRLCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
     def learn_blocks_and_eval_blocks(
         self,
     ) -> typing.Iterable[
@@ -21,12 +20,3 @@ class ExampleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
         yield simple_eval_block(
             [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=1)]
         )
-
-
-if __name__ == "__main__":
-    import logging
-    from rl_logging_agent import LoggingAgent
-
-    logging.basicConfig(level=logging.INFO)
-
-    tella.rl_cli(LoggingAgent, ExampleCurriculum)

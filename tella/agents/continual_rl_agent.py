@@ -24,7 +24,7 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
         1. choose_actions, which :meth:`ContinualRLAgent.learn_experience`
             and :meth:`ContinualRLAgent.eval_experience` pass to
             :meth:`RLTaskVariant.generate`.
-        2. view_transitions, which :meth:`ContinualRLAgent.learn_experience`
+        2. receive_transitions, which :meth:`ContinualRLAgent.learn_experience`
             calls with the result of :meth:`RLTaskVariant.generate`.
 
     """
@@ -55,11 +55,11 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
         """
         Passes :meth:`ContinualRLAgent.choose_action` to :meth:`RLTaskVariant.generate`
         to generate the iterable of :class:`MDPTransition`, then each transition is
-        passed to :meth:`ContinualRLAgent.view_transition` for learning.
+        passed to :meth:`ContinualRLAgent.receive_transition` for learning.
         """
         for transition in task_variant.generate(self.choose_action):
             self.metric.track(transition)
-            self.view_transition(transition)
+            self.receive_transition(transition)
         return self.metric.calculate()
 
     def eval_task_variant(self, task_variant: AbstractRLTaskVariant) -> Metrics:
@@ -106,7 +106,7 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
         pass
 
     @abc.abstractmethod
-    def view_transition(self, step_data: StepData) -> None:
+    def receive_transition(self, step_data: StepData) -> None:
         """
         Gives the transition that results from calling :meth:`gym.Env.step()` with a given action.
 
@@ -115,7 +115,7 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
             action = ...
             next_obs, reward, done, info = env.step(action)
             transition = (obs, action, reward, done, next_obs)
-            agent.view_transition(transition)
+            agent.receive_transition(transition)
 
         NOTE: when using vectorized environments (i.e. when `Agent.choose_action`
         receives multiple observations, or when `self.num_envs > 1`),

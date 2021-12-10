@@ -28,7 +28,7 @@ def main():
     while not done:
         action = list(agent.choose_action([obs]))[0]
         next_obs, reward, done, info = env.step(action)
-        agent.view_transition((obs, action, reward, done, next_obs))
+        agent.receive_transition((obs, action, reward, done, next_obs))
 
     agent.task_variant_end(task_name="CartPole", variant_name="Default")
 

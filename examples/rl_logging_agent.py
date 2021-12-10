@@ -55,7 +55,7 @@ class LoggingAgent(ContinualRLAgent):
             None if obs is None else self.action_space.sample() for obs in observations
         ]
 
-    def view_transition(self, step: StepData) -> None:
+    def receive_transition(self, step: StepData) -> None:
         obs, action, reward, done, next_obs = step
         logger.info(f"\t\t\tReceived step {done=}")
 

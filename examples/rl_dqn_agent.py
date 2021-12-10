@@ -163,7 +163,7 @@ class MinimalRlDqnAgent(ContinualRLAgent):
             for obs in observations
         ]
 
-    def view_transition(self, step: StepData):
+    def receive_transition(self, step: StepData):
         s, a, r, done, s_prime = step
         self.memory.put((s, a, r / 100.0, s_prime, 0.0 if done else 1.0))
         logger.debug(f"\t\t\tReceived transition {done=}")

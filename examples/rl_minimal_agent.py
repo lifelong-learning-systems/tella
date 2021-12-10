@@ -11,5 +11,5 @@ class MinimalRandomAgent(ContinualRLAgent):
             None if obs is None else self.action_space.sample() for obs in observations
         ]
 
-    def view_transition(self, step: StepData):
+    def receive_transition(self, step: StepData):
         pass

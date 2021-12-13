@@ -18,7 +18,8 @@ class LoggingAgent(ContinualRLAgent):
     ) -> None:
         super().__init__(observation_space, action_space, num_envs)
         logger.info(
-            f"Constructed with {observation_space=} {action_space=} {num_envs=}"
+            f"Constructed with observation_space={observation_space} "
+            f"action_space={action_space} num_envs={num_envs}"
         )
 
     def block_start(self, is_learning_allowed: bool) -> None:
@@ -32,7 +33,9 @@ class LoggingAgent(ContinualRLAgent):
         self,
         task_name: typing.Optional[str],
     ) -> None:
-        logger.info(f"\tAbout to start interacting with a new task. {task_name=}")
+        logger.info(
+            f"\tAbout to start interacting with a new task. task_name={task_name}"
+        )
 
     def task_variant_start(
         self,
@@ -40,14 +43,15 @@ class LoggingAgent(ContinualRLAgent):
         variant_name: typing.Optional[str],
     ) -> None:
         logger.info(
-            f"\tAbout to start interacting with a new task variant. {task_name=} {variant_name=}"
+            f"\tAbout to start interacting with a new task variant. "
+            f"task_name={task_name} variant_name={variant_name}"
         )
 
-    def consume_task_variant(self, task_variant: AbstractRLTaskVariant):
+    def learn_task_variant(self, task_variant: AbstractRLTaskVariant):
         logger.info("\tConsuming task variant")
-        return super().consume_task_variant(task_variant)
+        return super().learn_task_variant(task_variant)
 
-    def step_observe(
+    def choose_action(
         self, observations: typing.List[typing.Optional[Observation]]
     ) -> typing.List[typing.Optional[Action]]:
         logger.info(f"\t\t\tReturn {len(observations)} random actions")
@@ -55,15 +59,15 @@ class LoggingAgent(ContinualRLAgent):
             None if obs is None else self.action_space.sample() for obs in observations
         ]
 
-    def step_transition(self, step: StepData) -> None:
+    def receive_transition(self, step: StepData) -> None:
         obs, action, reward, done, next_obs = step
-        logger.info(f"\t\t\tReceived step {done=}")
+        logger.info(f"\t\t\tReceived step done={done}")
 
     def task_end(
         self,
         task_name: typing.Optional[str],
     ) -> None:
-        logger.info(f"\tDone interacting with task. {task_name=}")
+        logger.info(f"\tDone interacting with task. task_name={task_name}")
 
     def task_variant_end(
         self,
@@ -71,7 +75,8 @@ class LoggingAgent(ContinualRLAgent):
         variant_name: typing.Optional[str],
     ) -> None:
         logger.info(
-            f"\tDone interacting with task variant. {task_name=} {variant_name=}"
+            f"\tDone interacting with task variant. "
+            f"task_name={task_name} variant_name={variant_name}"
         )
 
     def block_end(self, is_learning_allowed: bool) -> None:

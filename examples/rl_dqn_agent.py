@@ -9,6 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
+import tella
 from tella.agents.continual_rl_agent import (
     ContinualRLAgent,
     Observation,
@@ -121,7 +122,8 @@ class MinimalRlDqnAgent(ContinualRLAgent):
             observation_space, action_space, num_envs, metric
         )
         logger.info(
-            f"Constructed with {observation_space=} {action_space=} {num_envs=}"
+            f"Constructed with observation_space={observation_space} "
+            f"action_space={action_space} num_envs={num_envs}"
         )
 
         self.q = Qnet()
@@ -144,13 +146,15 @@ class MinimalRlDqnAgent(ContinualRLAgent):
             self.training = False
 
     def task_start(self, task_name: typing.Optional[str]) -> None:
-        logger.info(f"\tAbout to start interacting with a new task. {task_name=}")
+        logger.info(
+            f"\tAbout to start interacting with a new task. task_name={task_name}"
+        )
 
-    def consume_task_variant(self, task_variant: AbstractRLTaskVariant) -> Metrics:
+    def learn_task_variant(self, task_variant: AbstractRLTaskVariant) -> Metrics:
         logger.info("\tConsuming task variant")
-        return super().consume_task_variant(task_variant)
+        return super().learn_task_variant(task_variant)
 
-    def step_observe(
+    def choose_action(
         self, observations: typing.List[typing.Optional[Observation]]
     ) -> typing.List[typing.Optional[Action]]:
         logger.debug(f"\t\t\tReturn {len(observations)} actions")
@@ -163,10 +167,10 @@ class MinimalRlDqnAgent(ContinualRLAgent):
             for obs in observations
         ]
 
-    def step_transition(self, step: StepData):
+    def receive_transition(self, step: StepData):
         s, a, r, done, s_prime = step
         self.memory.put((s, a, r / 100.0, s_prime, 0.0 if done else 1.0))
-        logger.debug(f"\t\t\tReceived transition {done=}")
+        logger.debug(f"\t\t\tReceived transition done={done}")
 
         # Handle end-of-episode matters: training, logging, and annealing
         if done:
@@ -193,7 +197,7 @@ class MinimalRlDqnAgent(ContinualRLAgent):
             )  # Linear annealing from 8% to 1%
 
     def task_end(self, task_name: typing.Optional[str]) -> None:
-        logger.info(f"\tDone interacting with task. {task_name=}")
+        logger.info(f"\tDone interacting with task. task_name={task_name}")
 
     def block_end(self, is_learning_allowed: bool) -> None:
         if is_learning_allowed:
@@ -221,8 +225,4 @@ class ExampleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    env = gym.make("CartPole-v1")
-    agent = MinimalRlDqnAgent(env.observation_space, env.action_space, num_envs=1)
-    curriculum = ExampleCurriculum()
-
-    run(agent, curriculum)
+    tella.rl_cli(MinimalRlDqnAgent, ExampleCurriculum)

@@ -66,12 +66,14 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
 
     def total_episodes(self):
         return self._num_episodes
-        
+
     def validate(self) -> None:
         return validate_params(self._task_cls, list(self._params.keys()))
 
     def _make_env(self) -> gym.Env:
-        #return self._task_cls(**self._params)
+        """
+        Initializes the gym environment object and wraps in the L2MEnv to log rewards
+        """
         return L2MEnv(self._task_cls(**self._params), self.data_logger,self.logger_info) 
 
     def set_logger_info(self, data_logger,block_num, block_type, exp_num):

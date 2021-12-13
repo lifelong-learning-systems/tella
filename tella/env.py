@@ -1,12 +1,20 @@
-from gym import Wrapper
+import typing
+import gym
 
-class L2MEnv(Wrapper):
-    def __init__(self, env, data_logger, logger_info):
+class L2MEnv(gym.Wrapper):
+    """
+    A wrapper around the gym environment to record the reward at each episode end
+    """
+    def __init__(self, env : gym.Env, data_logger, logger_info):
         self.data_logger = data_logger
         self.logger_info = logger_info
         super().__init__(env)
     
     def step(self, action):
+        """
+        Overwrites the default step function to record the rewards with L2Logger. 
+        Tracks exp_num via the done signal
+        """
         obs, reward, done, info = super().step(action)
         record = self.logger_info
         if done:

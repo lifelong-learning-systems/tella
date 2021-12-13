@@ -63,6 +63,8 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         self._num_episodes = num_episodes
         self._num_envs = num_envs
         self._env = None
+        self.data_logger = None
+        self.logger_info = None
 
     def total_episodes(self):
         return self._num_episodes
@@ -74,17 +76,23 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         """
         Initializes the gym environment object and wraps in the L2MEnv to log rewards
         """
-        return L2MEnv(self._task_cls(**self._params), self.data_logger,self.logger_info) 
+        if self.data_logger is not None:
+            return L2MEnv(
+                self._task_cls(**self._params), self.data_logger, self.logger_info
+            )
+        else:
+            # FIXME: remove this after #31. this is to support getting spaces without setting l2logger info
+            return self._task_cls(**self._params)
 
-    def set_logger_info(self, data_logger,block_num, block_type, exp_num):
+    def set_logger_info(self, data_logger, block_num: int, is_learning_allowed: bool, exp_num: int):
         self.data_logger = data_logger
         self.logger_info = {
-            'block_num': block_num,
-            'block_type': block_type,
-            'task_params': self._params,
-            'task_name' : self._task_cls.__name__,
-            'worker_id': 'dummy',
-            'exp_num':exp_num
+            "block_num": block_num,
+            "block_type": "train" if is_learning_allowed else "test",
+            "task_params": self._params,
+            "task_name": self._task_cls.__name__,
+            "worker_id": "worker-default",
+            "exp_num": exp_num,
         }
 
     def info(self) -> gym.Env:

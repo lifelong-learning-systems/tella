@@ -1,5 +1,6 @@
 import typing
 import gym
+from ..env import L2MEnv
 from .task_variant import AbstractTaskVariant
 from ..validation import validate_params
 
@@ -63,11 +64,26 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         self._num_envs = num_envs
         self._env = None
 
+    def total_episodes(self):
+        return self._num_episodes
+        
     def validate(self) -> None:
         return validate_params(self._task_cls, list(self._params.keys()))
 
     def _make_env(self) -> gym.Env:
-        return self._task_cls(**self._params)
+        #return self._task_cls(**self._params)
+        return L2MEnv(self._task_cls(**self._params), self.data_logger,self.logger_info) 
+
+    def set_logger_info(self, data_logger,block_num, block_type, exp_num):
+        self.data_logger = data_logger
+        self.logger_info = {
+            'block_num': block_num,
+            'block_type': block_type,
+            'task_params': self._params,
+            'task_name' : self._task_cls.__name__,
+            'worker_id': 'dummy',
+            'exp_num':exp_num
+        }
 
     def info(self) -> gym.Env:
         if self._env is None:

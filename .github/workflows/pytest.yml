@@ -22,7 +22,10 @@ jobs:
         run: |
           pwd
           ls -al .
-          cd ..
+          cd l2logger
+          pwd
+          ls -al
+          cd ../..
           pwd
           ls -al .
       - name: Install dependencies

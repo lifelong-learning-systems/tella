@@ -84,7 +84,9 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
             # FIXME: remove this after #31. this is to support getting spaces without setting l2logger info
             return self._task_cls(**self._params)
 
-    def set_logger_info(self, data_logger, block_num: int, is_learning_allowed: bool, exp_num: int):
+    def set_logger_info(
+        self, data_logger, block_num: int, is_learning_allowed: bool, exp_num: int
+    ):
         self.data_logger = data_logger
         self.logger_info = {
             "block_num": block_num,

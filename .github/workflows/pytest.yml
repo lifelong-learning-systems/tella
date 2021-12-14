@@ -13,10 +13,16 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+      - uses: actions/checkout@v2
+        with:
+          repository: darpa-l2m/l2logger
+          ref: release-20211207
+          token: ${{ secrets.L2LOGGER_KEY }}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pytest
+          pip install l2logger
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Test with pytest
         run: |

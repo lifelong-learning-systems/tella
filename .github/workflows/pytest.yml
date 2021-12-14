@@ -10,6 +10,7 @@ jobs:
     steps:
       - name: Checkout tella
         uses: actions/checkout@v2
+        with:
           path: tella
       - name: Checkout l2logger
         uses: actions/checkout@v2

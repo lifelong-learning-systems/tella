@@ -32,7 +32,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest wheel
           pip install ./l2logger
-          pip install ./tella
+          pip install ./tella --ignore-installed l2logger
       - name: Test with pytest
         run: |
           pytest tella

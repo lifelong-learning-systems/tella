@@ -2,12 +2,18 @@ import typing
 import gym
 from l2logger import l2logger
 
+
 class L2LoggerEnv(gym.Wrapper):
     """
     A wrapper around the gym environment to record the reward at each episode end
     """
 
-    def __init__(self, env: gym.Env, data_logger: l2logger, logger_info: typing.Dict[str, typing.Any]):
+    def __init__(
+        self,
+        env: gym.Env,
+        data_logger: l2logger,
+        logger_info: typing.Dict[str, typing.Any],
+    ):
         super().__init__(env)
         self.data_logger = data_logger
         self.logger_info = logger_info

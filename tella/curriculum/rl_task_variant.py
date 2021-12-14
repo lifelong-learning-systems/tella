@@ -1,6 +1,6 @@
 import typing
 import gym
-from ..env import L2MEnv
+from ..env import L2LoggerEnv
 from .task_variant import AbstractTaskVariant
 from ..validation import validate_params
 
@@ -77,7 +77,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         Initializes the gym environment object and wraps in the L2MEnv to log rewards
         """
         if self.data_logger is not None:
-            return L2MEnv(
+            return L2LoggerEnv(
                 self._task_cls(**self._params), self.data_logger, self.logger_info
             )
         else:

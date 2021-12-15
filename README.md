@@ -71,6 +71,10 @@ To run unit tests:
 ```
 pytest
 ```
+For running in conda environment:
+```
+conda run -n <env_name> pytest 
+```
 
 To check for PEP8 compliance:
 ```

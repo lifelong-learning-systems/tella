@@ -51,11 +51,17 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         num_episodes: int,
         num_envs: typing.Optional[int] = None,
         params: typing.Optional[typing.Dict] = None,
+        task_label: typing.Optional[str] = None,
+        variant_label: typing.Optional[str] = None,
     ) -> None:
         if num_envs is None:
             num_envs = 1
         if params is None:
             params = {}
+        if task_label is None:
+            task_label = task_cls.__name__
+        if variant_label is None:
+            variant_label = "Default"
         assert num_envs > 0
 
         self._task_cls = task_cls
@@ -63,11 +69,19 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         self._num_episodes = num_episodes
         self._num_envs = num_envs
         self._env = None
+        self._task_label = task_label
+        self._variant_label = variant_label
         self.data_logger = None
         self.logger_info = None
 
     def total_episodes(self):
         return self._num_episodes
+
+    def task_label(self) -> str:
+        return self._task_label
+
+    def variant_label(self) -> str:
+        return self._variant_label
 
     def validate(self) -> None:
         return validate_params(self._task_cls, list(self._params.keys()))
@@ -92,7 +106,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
             "block_num": block_num,
             "block_type": "train" if is_learning_allowed else "test",
             "task_params": self._params,
-            "task_name": self._task_cls.__name__,
+            "task_name": self.task_label() + "_" + self.variant_label(),
             "worker_id": "worker-default",
             "exp_num": exp_num,
         }

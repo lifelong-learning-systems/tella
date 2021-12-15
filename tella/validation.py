@@ -21,8 +21,8 @@ def validate_curriculum(curriculum: AbstractCurriculum[AbstractTaskVariant]):
             num_task_variants = 0
             variant_labels = set()
             for i_task_variant, task_variant in enumerate(task_block.task_variants()):
-                task_labels.add(task_variant.task_label())
-                variant_labels.add(task_variant.variant_label())
+                task_labels.add(task_variant.task_label)
+                variant_labels.add(task_variant.variant_label)
                 num_task_variants += 1
                 try:
                     task_variant.validate()

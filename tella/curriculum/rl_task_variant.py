@@ -77,9 +77,11 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
     def total_episodes(self):
         return self._num_episodes
 
+    @property
     def task_label(self) -> str:
         return self._task_label
 
+    @property
     def variant_label(self) -> str:
         return self._variant_label
 
@@ -106,7 +108,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
             "block_num": block_num,
             "block_type": "train" if is_learning_allowed else "test",
             "task_params": self._params,
-            "task_name": self.task_label() + "_" + self.variant_label(),
+            "task_name": self.task_label + "_" + self.variant_label,
             "worker_id": "worker-default",
             "exp_num": exp_num,
         }

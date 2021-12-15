@@ -48,6 +48,7 @@ class AbstractTaskVariant(abc.ABC, typing.Generic[InputType, ExperienceType, Inf
         :return: The data for the experience.
         """
 
+    @property
     @abc.abstractmethod
     def task_label(self) -> str:
         """
@@ -55,6 +56,7 @@ class AbstractTaskVariant(abc.ABC, typing.Generic[InputType, ExperienceType, Inf
             with the same task should have the same task label.
         """
 
+    @property
     @abc.abstractmethod
     def variant_label(self) -> str:
         """

@@ -29,6 +29,12 @@ class TorchVisionTaskVariant(
         for batch in dataloader:
             yield batch
 
+    def task_label(self) -> str:
+        return self.dataset.__class__.name
+
+    def variant_label(self) -> str:
+        return "Default"
+
 
 class ContinualSupervisedLearningAgent(ContinualLearningAgent[TorchVisionTaskVariant]):
     def learn_task_variant(self, task_variant: TorchVisionTaskVariant) -> Metrics:

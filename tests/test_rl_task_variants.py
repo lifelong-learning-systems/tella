@@ -48,6 +48,28 @@ def test_num_episodes(num_envs: int):
         )
 
 
+def test_labels():
+    task_variant = EpisodicTaskVariant(DummyEnv, num_episodes=1)
+    assert task_variant.task_label() == "DummyEnv"
+    assert task_variant.variant_label() == "Default"
+
+    task_variant = EpisodicTaskVariant(DummyEnv, num_episodes=1, task_label="TaskLabel")
+    assert task_variant.task_label() == "TaskLabel"
+    assert task_variant.variant_label() == "Default"
+
+    task_variant = EpisodicTaskVariant(
+        DummyEnv, num_episodes=1, variant_label="VariantLabel"
+    )
+    assert task_variant.task_label() == "DummyEnv"
+    assert task_variant.variant_label() == "VariantLabel"
+
+    task_variant = EpisodicTaskVariant(
+        DummyEnv, num_episodes=1, task_label="TaskLabel", variant_label="VariantLabel"
+    )
+    assert task_variant.task_label() == "TaskLabel"
+    assert task_variant.variant_label() == "VariantLabel"
+
+
 def test_validate():
     pass
 

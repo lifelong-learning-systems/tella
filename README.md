@@ -9,13 +9,22 @@ Requirements
 
 Install
 -------------
-Cython needs to be installed into your conda/virtual environment first:
+Create a conda/virtual environment.
+
+Then install [l2logge](https://github.com/darpa-l2m/l2logger).
+If you have ssh keys configured for Github, you can install like so:
 ```
-pip install cython
+pip install git+https://github.com/darpa-l2m/l2logger.git
 ```
+
 Then install the tella package and its dependencies:
 ```
 pip install .
+```
+
+To upgrade tella:
+```
+pip install -U .
 ```
 
 API

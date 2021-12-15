@@ -25,7 +25,7 @@ import gym
 
 from .metrics.rl import default_metrics, RLMetricAccumulator
 from ..curriculum.rl_task_variant import (
-    StepData,
+    Transition,
     Observation,
     Action,
     AbstractRLTaskVariant,
@@ -127,7 +127,7 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
         pass
 
     @abc.abstractmethod
-    def receive_transition(self, step_data: StepData) -> None:
+    def receive_transition(self, transition: Transition) -> None:
         """
         Gives the transition that results from calling :meth:`gym.Env.step()` with a given action.
 

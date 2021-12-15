@@ -19,7 +19,7 @@ from tella.agents.continual_rl_agent import (
 from tella.agents.metrics.rl import RLMetricAccumulator
 from tella.curriculum import *
 from tella.curriculum.rl_task_variant import (
-    StepData,
+    Transition,
     AbstractRLTaskVariant,
     EpisodicTaskVariant,
 )
@@ -167,8 +167,8 @@ class MinimalRlDqnAgent(ContinualRLAgent):
             for obs in observations
         ]
 
-    def receive_transition(self, step: StepData):
-        s, a, r, done, s_prime = step
+    def receive_transition(self, transition: Transition):
+        s, a, r, done, s_prime = transition
         self.memory.put((s, a, r / 100.0, s_prime, 0.0 if done else 1.0))
         logger.debug(f"\t\t\tReceived transition done={done}")
 

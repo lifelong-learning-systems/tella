@@ -21,12 +21,12 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import abc
 import typing
-from ...curriculum.rl_task_variant import StepData
+from ...curriculum.rl_task_variant import Transition
 
 
 class RLMetricAccumulator(abc.ABC):
     @abc.abstractmethod
-    def track(self, step: StepData) -> None:
+    def track(self, step: Transition) -> None:
         pass
 
     @abc.abstractmethod
@@ -40,7 +40,7 @@ class MeanEpisodeLength(RLMetricAccumulator):
         self.num_steps = 0
         self.num_episodes = 0
 
-    def track(self, step: StepData) -> None:
+    def track(self, step: Transition) -> None:
         _obs, _action, _reward, done, _next_obs = step
         self.num_steps += 1
         self.num_episodes += int(
@@ -65,7 +65,7 @@ class MeanEpisodeReward(RLMetricAccumulator):
         self.total_reward = 0
         self.num_episodes = 0
 
-    def track(self, step: StepData) -> None:
+    def track(self, step: Transition) -> None:
         _obs, _action, reward, done, _next_obs = step
         self.total_reward += reward
         self.num_episodes += int(
@@ -81,7 +81,7 @@ class Chain(RLMetricAccumulator):
         super().__init__()
         self.accumulators = accumulators
 
-    def track(self, step: StepData) -> None:
+    def track(self, step: Transition) -> None:
         for accumulator in self.accumulators:
             accumulator.track(step)
 

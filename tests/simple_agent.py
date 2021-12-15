@@ -1,6 +1,6 @@
 import typing
 import tella
-from tella.curriculum.rl_task_variant import StepData
+from tella.curriculum.rl_task_variant import Transition
 from tella.agents.continual_rl_agent import ContinualRLAgent, Observation, Action
 
 
@@ -12,5 +12,5 @@ class SimpleRLAgent(ContinualRLAgent):
             None if obs is None else self.action_space.sample() for obs in observations
         ]
 
-    def receive_transition(self, step: StepData):
+    def receive_transition(self, transition: Transition):
         pass

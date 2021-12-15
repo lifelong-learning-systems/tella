@@ -48,5 +48,19 @@ class AbstractTaskVariant(abc.ABC, typing.Generic[InputType, ExperienceType, Inf
         :return: The data for the experience.
         """
 
+    @abc.abstractmethod
+    def task_label(self) -> str:
+        """
+        :return: The task label associated with this task variant. All task variants
+            with the same task should have the same task label.
+        """
+
+    @abc.abstractmethod
+    def variant_label(self) -> str:
+        """
+        :return: The variant label associated with this task variant. All task variants
+            with the same extrinsic parameters should have the same variant label.
+        """
+
 
 TaskVariantType = typing.TypeVar("TaskVariantType", bound=AbstractTaskVariant)

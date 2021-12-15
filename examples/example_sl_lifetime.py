@@ -29,9 +29,11 @@ class TorchVisionTaskVariant(
         for batch in dataloader:
             yield batch
 
+    @property
     def task_label(self) -> str:
         return self.dataset.__class__.name
 
+    @property
     def variant_label(self) -> str:
         return "Default"
 

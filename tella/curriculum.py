@@ -264,30 +264,55 @@ class EvalBlock(AbstractEvalBlock):
         return self._task_blocks
 
 
+def split_task_blocks(
+    task_variants: typing.Iterable[TaskVariantType],
+) -> typing.Iterable[TaskBlock]:
+    """
+    Constucts a learn block with the task variants passed in. Task blocks are divided as needed.
+
+    :param task_variants: The iterable of TaskVariantType to include in the learn block.
+    :return: A list of one or more :class:`TaskBlock`s which contain the `task_variants` parameter.
+    """
+    current_task_label = None
+    task_blocks = []
+    variant_blocks = []
+    for task_variant in task_variants:
+        if task_variant.task_label == current_task_label:
+            variant_blocks.append(task_variant)
+        else:
+            if variant_blocks:
+                task_blocks.append(TaskBlock(variant_blocks))
+            variant_blocks = [task_variant]
+            current_task_label = task_variant.task_label
+    if variant_blocks:
+        task_blocks.append(TaskBlock(variant_blocks))
+    return task_blocks
+
+
 def simple_learn_block(
     task_variants: typing.Iterable[TaskVariantType],
 ) -> AbstractLearnBlock[TaskVariantType]:
     """
-    Constucts a learn block with a single task block with the variants passed in.
+    Constucts a learn block with the task variants passed in. Task blocks are divided as needed.
 
     :param task_variants: The iterable of TaskVariantType to include in the learn block.
-    :return: A :class:`LearnBlock` with a single :class:`TaskBlock` that
-        contains the `task_variants` parameter.
+    :return: A :class:`LearnBlock` with one or more :class:`TaskBlock`s which
+        contain the `task_variants` parameter.
     """
-    return LearnBlock([TaskBlock(task_variants)])
+    return LearnBlock(split_task_blocks(task_variants))
 
 
 def simple_eval_block(
     task_variants: typing.Iterable[TaskVariantType],
 ) -> AbstractEvalBlock[TaskVariantType]:
     """
-    Constucts a eval block with a single task block with the variants passed in.
+    Constucts an eval block with the task variants passed in. Task blocks are divided as needed.
 
-    :param task_variants: The iterable of TaskVariantType to include in the learn block.
-    :return: A :class:`EvalBlock` with a single :class:`TaskBlock` that
-        contains the `task_variants` parameter.
+    :param task_variants: The iterable of TaskVariantType to include in the eval block.
+    :return: A :class:`EvalBlock` with one or more :class:`TaskBlock`s which
+        contain the `task_variants` parameter.
     """
-    return EvalBlock([TaskBlock(task_variants)])
+    return EvalBlock(split_task_blocks(task_variants))
 
 
 Observation = typing.TypeVar("Observation")

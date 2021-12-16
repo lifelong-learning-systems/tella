@@ -384,10 +384,15 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         self._variant_label = variant_label
         self.data_logger = None
         self.logger_info = None
+        self.render = False
+    
+    def set_render(self, render):
+        self.render = render
 
+    @property
     def total_episodes(self):
         return self._num_episodes
-
+    
     @property
     def task_label(self) -> str:
         return self._task_label
@@ -434,7 +439,6 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
 
     def generate(self, action_fn: ActionFn) -> typing.Iterable[Transition]:
         env = self.info()
-
         num_episodes_finished = 0
 
         # data to keep track of which observations to mask out (set to None)
@@ -457,7 +461,8 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
 
             # step in the VectorEnv
             next_observations, rewards, dones, infos = env.step(unmasked_actions)
-
+            if self.render:
+                env.envs[0].render()
             # yield all the non masked transitions
             for i in range(self._num_envs):
                 if not mask[i]:

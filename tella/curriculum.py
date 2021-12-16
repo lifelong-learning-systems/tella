@@ -222,10 +222,10 @@ class TaskBlock(AbstractTaskBlock):
         # Task blocks must contain only one task type
         task_labels = {variant.task_label for variant in self._task_variants}
         num_unique_tasks = len(task_labels)
-        assert (
-            num_unique_tasks == 1
-        ), f"Task blocks must contain only one task type, not {num_unique_tasks}"
-        self._task_label = next(iter(self._task_variants)).task_label
+        if num_unique_tasks > 1:
+            self._task_label = "Invalid"
+        else:
+            self._task_label = next(iter(self._task_variants)).task_label
 
     def task_variants(self) -> typing.Iterable[TaskVariantType]:
         return self._task_variants

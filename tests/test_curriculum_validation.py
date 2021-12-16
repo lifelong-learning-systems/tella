@@ -1,10 +1,17 @@
 import pytest
 import typing
 import gym
-from tella.curriculum import AbstractCurriculum, AbstractLearnBlock, AbstractEvalBlock
-from tella.curriculum import AbstractRLTaskVariant, EpisodicTaskVariant
-from tella.curriculum import simple_learn_block, simple_eval_block
-from tella.curriculum import validate_curriculum
+from tella.curriculum import (
+    AbstractCurriculum,
+    AbstractLearnBlock,
+    AbstractEvalBlock,
+    AbstractRLTaskVariant,
+    EpisodicTaskVariant,
+    simple_learn_block,
+    simple_eval_block,
+    validate_curriculum,
+    TaskBlock,
+)
 
 
 class TestCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
@@ -56,9 +63,34 @@ def test_correct_curriculum():
     validate_curriculum(curriculum)
 
 
+def test_simple_block_task_split():
+    curriculum = TestCurriculum(
+        [
+            simple_learn_block(
+                [
+                    EpisodicTaskVariant(
+                        lambda: gym.make("CartPole-v1"),
+                        num_episodes=1,
+                        task_label="Task1",
+                    ),
+                    EpisodicTaskVariant(
+                        lambda: gym.make("CartPole-v1"),
+                        num_episodes=1,
+                        task_label="Task2",
+                    ),
+                ]
+            ),
+            simple_eval_block(
+                [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=1)]
+            ),
+        ]
+    )
+    validate_curriculum(curriculum)
+
+
 def test_error_on_diff_task_labels():
     with pytest.raises(AssertionError):
-        invalid_task_block = simple_learn_block(
+        invalid_task_block = TaskBlock(
             [
                 EpisodicTaskVariant(
                     lambda: gym.make("CartPole-v1"),

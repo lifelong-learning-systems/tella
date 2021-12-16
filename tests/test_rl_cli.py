@@ -10,7 +10,9 @@ from .simple_agent import SimpleRLAgent
 
 @patch(
     "argparse.ArgumentParser.parse_args",
-    return_value=argparse.Namespace(num_parallel_envs=1, num_lifetimes=1, log_dir="", render=False),
+    return_value=argparse.Namespace(
+        num_parallel_envs=1, num_lifetimes=1, log_dir="", render=False
+    ),
 )
 def test_no_args(p):
     # TODO what should this test other than being runnable?
@@ -19,7 +21,9 @@ def test_no_args(p):
 
 @patch(
     "argparse.ArgumentParser.parse_args",
-    return_value=argparse.Namespace(num_parallel_envs=1, num_lifetimes=2, log_dir="", render=False),
+    return_value=argparse.Namespace(
+        num_parallel_envs=1, num_lifetimes=2, log_dir="", render=False
+    ),
 )
 def test_num_lifetimes(p):
     # TODO what should this test other than being runnable?
@@ -28,7 +32,9 @@ def test_num_lifetimes(p):
 
 @patch(
     "argparse.ArgumentParser.parse_args",
-    return_value=argparse.Namespace(num_parallel_envs=2, num_lifetimes=1, log_dir="", render=False),
+    return_value=argparse.Namespace(
+        num_parallel_envs=2, num_lifetimes=1, log_dir="", render=False
+    ),
 )
 def test_num_parallel_envs(p):
     # TODO what should this test other than being runnable?

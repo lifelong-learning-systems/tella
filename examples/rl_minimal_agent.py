@@ -3,6 +3,7 @@ from tella.curriculum import Transition
 from tella.agents import ContinualRLAgent, Observation, Action
 import tella
 
+
 class MinimalRandomAgent(ContinualRLAgent):
     def choose_action(
         self, observations: typing.List[typing.Optional[Observation]]
@@ -13,7 +14,6 @@ class MinimalRandomAgent(ContinualRLAgent):
 
     def receive_transition(self, transition: Transition):
         pass
-
 
 
 if __name__ == "__main__":

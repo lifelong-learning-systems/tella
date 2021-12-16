@@ -360,14 +360,14 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         self.data_logger = None
         self.logger_info = None
         self.render = False
-    
+
     def set_render(self, render):
         self.render = render
 
     @property
     def total_episodes(self):
         return self._num_episodes
-    
+
     @property
     def task_label(self) -> str:
         return self._task_label

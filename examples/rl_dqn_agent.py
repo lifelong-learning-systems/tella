@@ -88,6 +88,8 @@ class Qnet(nn.Module):
             ]
         )
 
+        self.action_space = layer_sizes[-1]
+
     def forward(self, x):
         for ii, layer in enumerate(self.layers):
             if ii:  # Do not apply relu before the first layer
@@ -97,7 +99,7 @@ class Qnet(nn.Module):
 
     def sample_action(self, obs, epsilon):
         if random.random() < epsilon:
-            return random.randint(0, 1)
+            return random.randrange(self.action_space)
         else:
             return self.forward(obs).argmax().item()
 

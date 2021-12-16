@@ -37,7 +37,9 @@ def test_num_parallel_envs(p):
 
 @patch(
     "argparse.ArgumentParser.parse_args",
-    return_value=argparse.Namespace(num_parallel_envs=1, num_lifetimes=2, log_dir="", curriculum="invalid"),
+    return_value=argparse.Namespace(
+        num_parallel_envs=1, num_lifetimes=2, log_dir="", curriculum="invalid"
+    ),
 )
 def test_invalid_curriculum_name(p):
     with pytest.raises(RuntimeError):

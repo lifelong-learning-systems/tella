@@ -101,6 +101,7 @@ def _build_parser(require_curriculum: bool) -> argparse.ArgumentParser:
             "--curriculum",
             required=True,
             type=str,
+            choices=list(curriculum_registry.keys()),
             help="Curriculum name for registry.",
         )
     return parser

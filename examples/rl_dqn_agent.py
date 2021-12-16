@@ -169,6 +169,16 @@ class MinimalRlDqnAgent(ContinualRLAgent):
             f"\tAbout to start interacting with a new task. task_name={task_name}"
         )
 
+    def task_variant_start(
+        self,
+        task_name: typing.Optional[str],
+        variant_name: typing.Optional[str],
+    ) -> None:
+        logger.info(
+            f"\tAbout to start interacting with a new task variant. "
+            f"task_name={task_name} variant_name={variant_name}"
+        )
+
     def learn_task_variant(self, task_variant: AbstractRLTaskVariant) -> Metrics:
         logger.info("\tConsuming task variant")
         return super().learn_task_variant(task_variant)
@@ -217,6 +227,16 @@ class MinimalRlDqnAgent(ContinualRLAgent):
             self.epsilon = max(
                 0.01, 0.08 - 0.01 * (self.num_eps_done / 200)
             )  # Linear annealing from 8% to 1%
+
+    def task_variant_end(
+        self,
+        task_name: typing.Optional[str],
+        variant_name: typing.Optional[str],
+    ) -> None:
+        logger.info(
+            f"\tDone interacting with task variant. "
+            f"task_name={task_name} variant_name={variant_name}"
+        )
 
     def task_end(self, task_name: typing.Optional[str]) -> None:
         logger.info(f"\tDone interacting with task. task_name={task_name}")

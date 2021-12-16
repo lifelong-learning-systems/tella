@@ -91,7 +91,7 @@ def rl_experiment(
     num_lifetimes: int,
     num_parallel_envs: int,
     log_dir: str,
-    render:typing.Optional[bool] = False,
+    render: typing.Optional[bool] = False,
 ) -> None:
     """
     Run an experiment with an RL agent and an RL curriculum.
@@ -153,7 +153,7 @@ def _spaces(
 def run(
     agent: ContinualLearningAgent[AbstractTaskVariant],
     curriculum: AbstractCurriculum[AbstractTaskVariant],
-    render:typing.Optional[bool]
+    render: typing.Optional[bool],
 ):
     """
     Run an agent through an entire curriculum. This assumes that the agent

@@ -225,5 +225,5 @@ class ExampleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    curriculum_registry['cartpole'] = ExampleCurriculum
+    curriculum_registry["cartpole"] = ExampleCurriculum
     tella.rl_cli(MinimalRlDqnAgent)

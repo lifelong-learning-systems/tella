@@ -159,6 +159,14 @@ class AbstractTaskBlock(abc.ABC, typing.Generic[TaskVariantType]):
         :return: An Iterable of :class:`TaskVariantType`.
         """
 
+    @property
+    @abc.abstractmethod
+    def task_label(self) -> str:
+        """
+        :return: The task label associated with this task variant. All task variants
+            with the same task should have the same task label.
+        """
+
 
 class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
     """
@@ -211,8 +219,18 @@ class TaskBlock(AbstractTaskBlock):
         super().__init__()
         self._task_variants = task_variants
 
+        # Task blocks must contain only one task type
+        task_labels = {variant.task_label for variant in self._task_variants}
+        num_unique_tasks = len(task_labels)
+        assert num_unique_tasks == 1, f"Task blocks must contain only one task type, not {num_unique_tasks}"
+        self._task_label = next(iter(self._task_variants)).task_label
+
     def task_variants(self) -> typing.Iterable[TaskVariantType]:
         return self._task_variants
+
+    @property
+    def task_label(self) -> str:
+        return self._task_label
 
 
 class LearnBlock(AbstractLearnBlock):

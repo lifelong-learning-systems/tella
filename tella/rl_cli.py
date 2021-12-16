@@ -22,6 +22,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import argparse
 import logging
 import typing
+from .curriculum import curriculum_registry
 from .rl_experiment import rl_experiment, AgentFactory, CurriculumFactory
 
 
@@ -48,24 +49,19 @@ def rl_cli(
             tella.rl_cli(MyAgent)
 
     :param agent_factory: A function or class producing :class:`ContinualRLAgent`.
-    :param curriculum_factory: Optional curriculum factory to support only running
-        experiments with a set curriculum
+    :param curriculum_factory: Optional curriculum factory to support running
+        experiments with a fixed curriculum. Otherwise, curriculum specified on the
+        command line.
     :return: None
     """
-    # FIXME: remove after https://github.com/darpa-l2m/tella/issues/57
-    if curriculum_factory is None:
-        raise NotImplementedError(
-            "Loading curriculum from CLI is not supported in this release"
-        )
-
     parser = _build_parser(require_curriculum=curriculum_factory is None)
 
     args = parser.parse_args()
 
-    if curriculum_factory is None:
-        # FIXME: load in curriculum https://github.com/darpa-l2m/tella/issues/57
-        assert False
-        curriculum_factory = ...
+    if not curriculum_factory:
+        if args.curriculum not in curriculum_registry:
+            raise RuntimeError(f"Unknown curriculum {args.curriculum}")
+        curriculum_factory = curriculum_registry[args.curriculum]
 
     rl_experiment(
         agent_factory,
@@ -101,7 +97,11 @@ def _build_parser(require_curriculum: bool) -> argparse.ArgumentParser:
         help="The root directory for the l2logger logs produced.",
     )
     if require_curriculum:
-        assert False
-        # FIXME: argument to support loading curriculum https://github.com/darpa-l2m/tella/issues/57
-        parser.add_argument("curriculum_path", type=str, help="Path to curriculum fil")
+        parser.add_argument(
+            "--curriculum",
+            required=True,
+            type=str,
+            choices=list(curriculum_registry.keys()),
+            help="Curriculum name for registry.",
+        )
     return parser

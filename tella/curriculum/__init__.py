@@ -26,3 +26,7 @@ from .curriculum import (
     AbstractTaskBlock,
 )
 from .task_variant import AbstractTaskVariant, TaskVariantType
+
+# TODO add function that instantiates curriculums built into tella
+# key: curriculum name, value: AbstractCurriculum class object or factory
+curriculum_registry = {}

@@ -40,7 +40,6 @@ class L2LoggerEnv(gym.Wrapper):
         super().__init__(env)
         self.data_logger = data_logger
         self.logger_info = logger_info
-        self.logger_info["task_name"] = env.__class__.__name__
 
     def step(self, action):
         """

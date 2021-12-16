@@ -91,6 +91,7 @@ def rl_experiment(
     num_lifetimes: int,
     num_parallel_envs: int,
     log_dir: str,
+    render:typing.Optional[bool] = False,
 ) -> None:
     """
     Run an experiment with an RL agent and an RL curriculum.
@@ -120,7 +121,7 @@ def rl_experiment(
         logger.info(f"Starting lifetime #{i_lifetime + 1}")
         # FIXME: pass num_parallel_envs to run https://github.com/darpa-l2m/tella/issues/32
         # FIXME: pass log_dir to run https://github.com/darpa-l2m/tella/issues/12
-        run(agent, curriculum)
+        run(agent, curriculum, render=render)
 
 
 def _spaces(
@@ -152,6 +153,7 @@ def _spaces(
 def run(
     agent: ContinualLearningAgent[AbstractTaskVariant],
     curriculum: AbstractCurriculum[AbstractTaskVariant],
+    render:typing.Optional[bool]
 ):
     """
     Run an agent through an entire curriculum. This assumes that the agent
@@ -181,6 +183,7 @@ def run(
                 task_variant.set_logger_info(
                     data_logger, i_block, is_learning_allowed, total_episodes
                 )
+                task_variant.set_render(render)
                 agent.task_variant_start(
                     task_variant.task_label, task_variant.variant_label
                 )
@@ -192,6 +195,6 @@ def run(
                 agent.task_variant_end(
                     task_variant.task_label, task_variant.variant_label
                 )
-                total_episodes += task_variant.total_episodes()
+                total_episodes += task_variant.total_episodes
             agent.task_end(task_block.task_label)
         agent.block_end(block.is_learning_allowed())

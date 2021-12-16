@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from tella.rl_cli import rl_cli
+from tella.cli import rl_cli
 from .simple_curriculum import SimpleRLCurriculum
 from .simple_agent import SimpleRLAgent
 

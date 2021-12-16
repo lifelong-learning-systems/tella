@@ -1,5 +1,5 @@
 import csv
-from tella.rl_experiment import rl_experiment
+from tella.experiment import rl_experiment
 from .simple_agent import SimpleRLAgent
 from .simple_curriculum import SimpleRLCurriculum
 

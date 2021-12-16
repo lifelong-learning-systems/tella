@@ -1,9 +1,9 @@
 import typing
 
-from tella.agents.continual_learning_agent import ContinualLearningAgent, Metrics
+from tella.agents import ContinualLearningAgent, Metrics
 from tella.curriculum import *
-from tella.curriculum.builders import simple_learn_block, simple_eval_block
-from tella.run import run
+from tella.curriculum import simple_learn_block, simple_eval_block
+from tella.experiment import run
 import torch
 from torch.utils.data.dataset import TensorDataset
 from torch.utils.data import DataLoader

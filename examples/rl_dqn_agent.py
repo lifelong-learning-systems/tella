@@ -10,21 +10,20 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 import tella
-from tella.agents.continual_rl_agent import (
+from tella.agents import (
     ContinualRLAgent,
     Observation,
     Action,
     Metrics,
 )
-from tella.agents.metrics.rl import RLMetricAccumulator
+from tella.metrics import RLMetricAccumulator
 from tella.curriculum import *
-from tella.curriculum.rl_task_variant import (
+from tella.curriculum import (
     Transition,
     AbstractRLTaskVariant,
     EpisodicTaskVariant,
 )
-from tella.curriculum.builders import simple_eval_block, simple_learn_block
-from tella.run import run
+from tella.curriculum import simple_eval_block, simple_learn_block
 
 
 logger = logging.getLogger(__name__)

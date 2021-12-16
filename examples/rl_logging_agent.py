@@ -1,12 +1,12 @@
 import typing
 import gym
-from tella.curriculum.rl_task_variant import (
+from tella.curriculum import (
     Transition,
     Observation,
     Action,
     AbstractRLTaskVariant,
 )
-from tella.agents.continual_rl_agent import ContinualRLAgent
+from tella.agents import ContinualRLAgent
 import logging
 
 logger = logging.getLogger(__name__)

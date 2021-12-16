@@ -1,7 +1,7 @@
 import typing
 import tella
-from tella.curriculum.rl_task_variant import Transition
-from tella.agents.continual_rl_agent import ContinualRLAgent, Observation, Action
+from tella.curriculum import Transition
+from tella.agents import ContinualRLAgent, Observation, Action
 
 
 class SimpleRLAgent(ContinualRLAgent):

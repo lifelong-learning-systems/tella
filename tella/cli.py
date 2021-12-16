@@ -23,7 +23,7 @@ import argparse
 import logging
 import typing
 from .curriculum import curriculum_registry
-from .rl_experiment import rl_experiment, AgentFactory, CurriculumFactory
+from .experiment import rl_experiment, AgentFactory, CurriculumFactory
 
 
 logger = logging.getLogger(__name__)

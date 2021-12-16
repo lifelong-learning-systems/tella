@@ -21,7 +21,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import abc
 import typing
-from ...curriculum.rl_task_variant import Transition
+from .curriculum import Transition
 
 
 class RLMetricAccumulator(abc.ABC):

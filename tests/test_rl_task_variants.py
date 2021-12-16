@@ -1,7 +1,7 @@
 import pytest
 import typing
 import gym
-from tella.curriculum.rl_task_variant import EpisodicTaskVariant
+from tella.curriculum import EpisodicTaskVariant
 
 
 class DummyEnv(gym.Env):

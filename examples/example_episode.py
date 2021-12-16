@@ -1,6 +1,6 @@
 import gym
 import logging
-from tella.agents.continual_rl_agent import ContinualRLAgent
+from tella.agents import ContinualRLAgent
 from rl_logging_agent import LoggingAgent
 
 """

@@ -1,5 +1,5 @@
 import gym
-from tella.rl_experiment import rl_experiment, _spaces
+from tella.experiment import rl_experiment, _spaces
 from .simple_curriculum import SimpleRLCurriculum
 from .simple_agent import SimpleRLAgent
 

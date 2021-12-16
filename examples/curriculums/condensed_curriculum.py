@@ -1,11 +1,11 @@
 import typing
 from tella.curriculum import AbstractLearnBlock, AbstractEvalBlock
-from tella.curriculum.builders import (
+from tella.curriculum import (
     InterleavedEvalCurriculum,
     simple_learn_block,
     simple_eval_block,
 )
-from tella.curriculum.rl_task_variant import AbstractRLTaskVariant, EpisodicTaskVariant
+from tella.curriculum import AbstractRLTaskVariant, EpisodicTaskVariant
 from random_env import *
 
 

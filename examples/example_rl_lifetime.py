@@ -2,8 +2,8 @@ import typing
 import gym
 import tella
 from tella.curriculum import AbstractCurriculum, AbstractLearnBlock, AbstractEvalBlock
-from tella.curriculum.rl_task_variant import AbstractRLTaskVariant, EpisodicTaskVariant
-from tella.curriculum.builders import simple_learn_block, simple_eval_block
+from tella.curriculum import AbstractRLTaskVariant, EpisodicTaskVariant
+from tella.curriculum import simple_learn_block, simple_eval_block
 
 
 class ExampleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):

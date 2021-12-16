@@ -2,6 +2,8 @@ import collections
 import logging
 import random
 import typing
+from functools import reduce
+from operator import imul
 
 import gym
 import torch
@@ -72,25 +74,32 @@ class ReplayBuffer:
 
 
 class Qnet(nn.Module):
-    def __init__(self):
+    def __init__(self, layer_sizes: typing.Tuple[int, ...]):
         super(Qnet, self).__init__()
-        self.fc1 = nn.Linear(4, 128)
-        self.fc2 = nn.Linear(128, 128)
-        self.fc3 = nn.Linear(128, 2)
+
+        assert (
+            len(layer_sizes) >= 2
+        ), "Network needs at least 2 dimensions specified (input and output)"
+
+        self.layers = nn.ModuleList(
+            [
+                nn.Linear(layer_sizes[ii - 1], layer_sizes[ii])
+                for ii in range(1, len(layer_sizes))
+            ]
+        )
 
     def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
+        for ii, layer in enumerate(self.layers):
+            if ii:  # Do not apply relu before the first layer
+                x = F.relu(x)
+            x = layer(x)
         return x
 
     def sample_action(self, obs, epsilon):
-        out = self.forward(obs)
-        coin = random.random()
-        if coin < epsilon:
+        if random.random() < epsilon:
             return random.randint(0, 1)
         else:
-            return out.argmax().item()
+            return self.forward(obs).argmax().item()
 
 
 def train(q, q_target, memory, optimizer):
@@ -120,13 +129,24 @@ class MinimalRlDqnAgent(ContinualRLAgent):
         super(MinimalRlDqnAgent, self).__init__(
             observation_space, action_space, num_envs, metric
         )
+
+        # Check that this environment is compatible with DQN
+        assert isinstance(
+            action_space, gym.spaces.Discrete
+        ), "This DQN agent requires discrete action spaces"
+
         logger.info(
             f"Constructed with observation_space={observation_space} "
             f"action_space={action_space} num_envs={num_envs}"
         )
 
-        self.q = Qnet()
-        self.q_target = Qnet()
+        # Set the input and output dimensions based on observation and action spaces
+        input_dim = reduce(imul, observation_space.shape)
+        output_dim = action_space.n
+        layer_dims = (input_dim, 128, output_dim)
+
+        self.q = Qnet(layer_dims)
+        self.q_target = Qnet(layer_dims)
         self.q_target.load_state_dict(self.q.state_dict())
         self.memory = ReplayBuffer()
         self.optimizer = optim.Adam(self.q.parameters(), lr=learning_rate)
@@ -161,14 +181,17 @@ class MinimalRlDqnAgent(ContinualRLAgent):
             None
             if obs is None
             else self.q.sample_action(
-                torch.from_numpy(obs).float(), self.epsilon if self.training else 0.0
+                torch.from_numpy(obs).float().flatten(),
+                self.epsilon if self.training else 0.0,
             )
             for obs in observations
         ]
 
     def receive_transition(self, transition: Transition):
         s, a, r, done, s_prime = transition
-        self.memory.put((s, a, r / 100.0, s_prime, 0.0 if done else 1.0))
+        self.memory.put(
+            (s.flatten(), a, r / 100.0, s_prime.flatten(), 0.0 if done else 1.0)
+        )
         logger.debug(f"\t\t\tReceived transition done={done}")
 
         # Handle end-of-episode matters: training, logging, and annealing

@@ -1,3 +1,4 @@
+import typing
 import csv
 from tella.experiment import rl_experiment
 from .simple_agent import SimpleRLAgent
@@ -44,13 +45,21 @@ def test_l2logger_tsv_contents(tmpdir):
     block_1_tsv = block_1_dir.join("data-log.tsv")
 
     with open(block_0_tsv) as fp:
-        _verify_tsv(fp, expected_num_completes=1)
+        _verify_tsv(
+            fp,
+            expected_num_completes=2,
+            expected_task_names={"CartPoleEnv_Default", "CartPoleEnv_Variant1"},
+        )
 
     with open(block_1_tsv) as fp:
-        _verify_tsv(fp, expected_num_completes=1)
+        _verify_tsv(
+            fp,
+            expected_num_completes=1,
+            expected_task_names={"CartPoleEnv_Default"},
+        )
 
 
-def _verify_tsv(fp, expected_num_completes: int):
+def _verify_tsv(fp, expected_num_completes: int, expected_task_names: typing.Set[str]):
     reader = csv.reader(fp, delimiter="\t")
 
     header = next(reader)
@@ -67,8 +76,11 @@ def _verify_tsv(fp, expected_num_completes: int):
         "reward",
     ]
     num_completes = 0
+    task_names = set()
     for row in reader:
         assert len(row) == len(header)
         if row[header.index("exp_status")] == "complete":
             num_completes += 1
+        task_names.add(row[header.index("task_name")])
     assert num_completes == expected_num_completes
+    assert task_names == expected_task_names

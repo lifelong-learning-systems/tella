@@ -57,29 +57,21 @@ def test_correct_curriculum():
 
 
 def test_error_on_diff_task_labels():
-    curriculum = TestCurriculum(
-        [
-            simple_learn_block(
-                [
-                    EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
-                        num_episodes=1,
-                        task_label="Task1",
-                    ),
-                    EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
-                        num_episodes=1,
-                        task_label="Task2",
-                    ),
-                ]
-            ),
-            simple_eval_block(
-                [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=1)]
-            ),
-        ]
-    )
-    with pytest.raises(ValueError):
-        validate_curriculum(curriculum)
+    with pytest.raises(AssertionError):
+        invalid_task_block = simple_learn_block(
+            [
+                EpisodicTaskVariant(
+                    lambda: gym.make("CartPole-v1"),
+                    num_episodes=1,
+                    task_label="Task1",
+                ),
+                EpisodicTaskVariant(
+                    lambda: gym.make("CartPole-v1"),
+                    num_episodes=1,
+                    task_label="Task2",
+                ),
+            ]
+        )
 
 
 def test_warn_same_variant_labels():

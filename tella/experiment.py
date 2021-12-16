@@ -175,20 +175,23 @@ def run(
         is_learning_allowed = agent.is_learning_allowed = block.is_learning_allowed()
         agent.block_start(is_learning_allowed)
         for task_block in block.task_blocks():
-            agent.task_start(None)
+            agent.task_start(task_block.task_label)
             for task_variant in task_block.task_variants():
                 # NOTE: assuming taskvariant has params
                 task_variant.set_logger_info(
                     data_logger, i_block, is_learning_allowed, total_episodes
                 )
-                # FIXME: how to provide task & variant info?
-                agent.task_variant_start(None, None)
+                agent.task_variant_start(
+                    task_variant.task_label, task_variant.variant_label
+                )
                 if is_learning_allowed:
                     metrics = agent.learn_task_variant(task_variant)
                 else:
                     metrics = agent.eval_task_variant(task_variant)
                 logger.info(f"TaskVariant produced metrics: {metrics}")
-                agent.task_variant_end(None, None)
+                agent.task_variant_end(
+                    task_variant.task_label, task_variant.variant_label
+                )
                 total_episodes += task_variant.total_episodes()
-            agent.task_end(None)
+            agent.task_end(task_block.task_label)
         agent.block_end(block.is_learning_allowed())

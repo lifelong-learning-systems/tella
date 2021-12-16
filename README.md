@@ -11,7 +11,7 @@ Install
 -------------
 Create a conda/virtual environment.
 
-Then install [l2logge](https://github.com/darpa-l2m/l2logger).
+Then install [l2logger](https://github.com/darpa-l2m/l2logger).
 If you have ssh keys configured for Github, you can install like so:
 ```
 pip install git+https://github.com/darpa-l2m/l2logger.git

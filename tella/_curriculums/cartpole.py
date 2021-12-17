@@ -19,7 +19,13 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from gym.envs.classic_control import CartPoleEnv
+from gym.wrappers.time_limit import TimeLimit
 from tella.curriculum import *
+
+
+class _CartPoleV0(TimeLimit):
+    def __init__(self):
+        super().__init__(CartPoleEnv(), max_episode_steps=200)
 
 
 class SimpleCartPoleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
@@ -34,7 +40,7 @@ class SimpleCartPoleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
         yield simple_learn_block(
             [
                 EpisodicTaskVariant(
-                    CartPoleEnv,
+                    _CartPoleV0,
                     num_episodes=5,
                     task_label="CartPole",
                     variant_label="Default",
@@ -44,7 +50,7 @@ class SimpleCartPoleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
         yield simple_eval_block(
             [
                 EpisodicTaskVariant(
-                    CartPoleEnv,
+                    _CartPoleV0,
                     num_episodes=1,
                     task_label="CartPole",
                     variant_label="Default",

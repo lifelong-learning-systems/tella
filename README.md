@@ -23,7 +23,7 @@ Install
    Otherwise, clone the l2logger repository and install:
    ```
    git clone https://github.com/darpa-l2m/l2logger
-   pip install l2logger
+   pip install ./l2logger
    ```
 4. Clone this repository:
    ```
@@ -36,7 +36,7 @@ Install
 5. Install the tella package and its dependencies:
    ```
    cd tella
-   pip install .[minigrid]
+   pip install ./tella[minigrid]
    ```
 
 To update tella, pull the latest changes from the git repository and upgrade:

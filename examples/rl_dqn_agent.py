@@ -12,17 +12,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 import tella
-from tella.agents import (
-    Action,
-    ContinualRLAgent,
-    Observation,
-    Metrics,
-)
-from tella.metrics import RLMetricAccumulator
-from tella.curriculum import (
-    Transition,
-    AbstractRLTaskVariant,
-)
 
 
 logger = logging.getLogger("Example DQN Agent")
@@ -117,13 +106,13 @@ def train(q, q_target, memory, optimizer):
 
 
 # minimalRL writes DQN in a script, so translation here requires moving components into the agent class
-class MinimalRlDqnAgent(ContinualRLAgent):
+class MinimalRlDqnAgent(tella.ContinualRLAgent):
     def __init__(
         self,
         observation_space: gym.Space,
         action_space: gym.Space,
         num_envs: int,
-        metric: typing.Optional[RLMetricAccumulator] = None,
+        metric: typing.Optional[tella.RLMetricAccumulator] = None,
     ) -> None:
         super(MinimalRlDqnAgent, self).__init__(
             observation_space, action_space, num_envs, metric
@@ -178,13 +167,15 @@ class MinimalRlDqnAgent(ContinualRLAgent):
             f"task_name={task_name} variant_name={variant_name}"
         )
 
-    def learn_task_variant(self, task_variant: AbstractRLTaskVariant) -> Metrics:
+    def learn_task_variant(
+        self, task_variant: tella.AbstractRLTaskVariant
+    ) -> tella.Metrics:
         logger.info("\tConsuming task variant")
         return super().learn_task_variant(task_variant)
 
     def choose_action(
-        self, observations: typing.List[typing.Optional[Observation]]
-    ) -> typing.List[typing.Optional[Action]]:
+        self, observations: typing.List[typing.Optional[tella.Observation]]
+    ) -> typing.List[typing.Optional[tella.Action]]:
         logger.debug(f"\t\t\tReturn {len(observations)} actions")
         return [
             None
@@ -196,7 +187,7 @@ class MinimalRlDqnAgent(ContinualRLAgent):
             for obs in observations
         ]
 
-    def receive_transition(self, transition: Transition):
+    def receive_transition(self, transition: tella.Transition):
         s, a, r, done, s_prime = transition
         self.memory.put(
             (s.flatten(), a, r / 100.0, s_prime.flatten(), 0.0 if done else 1.0)

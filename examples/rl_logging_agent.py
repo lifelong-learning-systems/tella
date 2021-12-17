@@ -1,16 +1,17 @@
+import logging
 import typing
+
 import gym
+import tella
+from tella.agents import ContinualRLAgent
 from tella.curriculum import (
     Transition,
     Observation,
     Action,
     AbstractRLTaskVariant,
 )
-from tella.agents import ContinualRLAgent
-import tella
-import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("Example Logging Agent")
 
 
 class LoggingAgent(ContinualRLAgent):
@@ -88,5 +89,5 @@ class LoggingAgent(ContinualRLAgent):
 
 
 if __name__ == "__main__":
-
+    logging.basicConfig(level=logging.INFO)
     tella.rl_cli(LoggingAgent)

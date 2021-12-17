@@ -25,7 +25,7 @@ from tella.curriculum import (
 )
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("Example DQN Agent")
 
 
 # Adapting code from minimalRL repo: https://github.com/seungeunrho/minimalRL/blob/master/dqn.py
@@ -249,5 +249,4 @@ class MinimalRlDqnAgent(ContinualRLAgent):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-
     tella.rl_cli(MinimalRlDqnAgent)

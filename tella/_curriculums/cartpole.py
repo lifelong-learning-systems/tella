@@ -59,7 +59,7 @@ class SimpleCartPoleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
         )
 
 
-class InterleavedCartPoleCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
+class CartPole1000Curriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
     def learn_blocks(
         self,
     ) -> typing.Iterable[

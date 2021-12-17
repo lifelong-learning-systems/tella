@@ -19,7 +19,10 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
+from .agents import ContinualRLAgent, Metrics
 from .cli import rl_cli
+from .curriculum import AbstractRLTaskVariant, Action, Observation, Transition
+from .metrics import RLMetricAccumulator
 from ._curriculums import load_curriculum_registry
 
 load_curriculum_registry()  # NOTE: inserts things into curriculum_registry

@@ -116,6 +116,19 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
         :return: An Iterable of Learn Blocks and Eval Blocks.
         """
 
+    def summary(self):
+        summary = ""
+        for i_block, block in enumerate(self.learn_blocks_and_eval_blocks()):
+            summary += f"Block {i_block+1}: {'learning' if block.is_learning_allowed() else 'evaluation'}\n"
+            for i_task, task_block in enumerate(block.task_blocks()):
+                summary += f"\tTask {i_block+1}.{i_task+1}: {task_block.task_label}\n"
+                for i_variant, task_variant in enumerate(task_block.task_variants()):
+                    summary += f"\t\tTask variant {i_block+1}.{i_task+1}.{i_variant+1}: " \
+                               f"{task_variant.task_label} - {task_variant.variant_label}, " \
+                               f"{task_variant.total_episodes} episode" \
+                               f"{'s' if task_variant.total_episodes > 1 else ''}\n"
+        return summary
+
 
 class AbstractLearnBlock(abc.ABC, typing.Generic[TaskVariantType]):
     """

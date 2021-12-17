@@ -66,10 +66,53 @@ After the environment is updated with the action, the reward is passed to the ag
 The receive_transition() method also received the previous observation and new observation.
 These calls continue until the episode is complete.
 
+Here is a minimal agent that takes random agents:
+```python
+import tella
+
+
+class MinimalRandomAgent(tella.ContinualRLAgent):
+    def choose_action(self, observations):
+        """Loop over the environments' observations and select action"""
+        return [
+            None if obs is None else self.action_space.sample() for obs in observations
+        ]
+
+    def receive_transition(self, transition):
+        """Do nothing here since we are not learning"""
+        pass
+
+
+if __name__ == "__main__":
+    # rl_cli() is tella's command line interface function.
+    # It expects a constructor or factory function to create the agent.
+    tella.rl_cli(MinimalRandomAgent)
+    print("Done! Check logs for results.")
+```
+
 
 Run
 -------------
-To do
+Assuming your agent is defined in a file called `my_agent.py`,
+run it through a curriculum like so:
+```
+python my_agent.py --curriculum SimpleCartPole
+```
+
+To see all the command line options, run:
+```
+python my_agent.py --help
+```
+All the curriculums registered with tella are listed in the help.
+
+The l2logger output by default is stored in your current directory in `logs`.
+This can be set with the `--log-dir` argument.
+
+To view a rendering of the agent learning, set the `--render` flag.
+This will render the first environment in the list.
+
+Parallel environments is not currently implemented.
+
 
 Bug Reports and Feature Requests
 ---------------------------------
@@ -85,6 +128,7 @@ A bug report should contain:
 
 A feature request should describe what you want to do but cannot
 and any recommendations for how this new feature should work.
+
 
 For Developers
 ----------------

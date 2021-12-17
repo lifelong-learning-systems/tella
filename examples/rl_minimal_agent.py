@@ -1,7 +1,12 @@
+import logging
 import typing
+
+import tella
 from tella.curriculum import Transition
 from tella.agents import ContinualRLAgent, Observation, Action
-import tella
+
+
+logger = logging.getLogger("Example Random Agent")
 
 
 class MinimalRandomAgent(ContinualRLAgent):
@@ -17,4 +22,5 @@ class MinimalRandomAgent(ContinualRLAgent):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     tella.rl_cli(MinimalRandomAgent)

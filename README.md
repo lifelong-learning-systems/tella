@@ -9,20 +9,37 @@ Requirements
 
 Install
 -------------
-Create a conda/virtual environment.
+1. Create a conda or virtual environment and activate it
 
-Then install [l2logger](https://github.com/darpa-l2m/l2logger).
-If you have ssh keys configured for Github, you can install like so:
-```
-pip install git+https://github.com/darpa-l2m/l2logger.git
-```
+2. Update pip and wheel in your environment:
+  ```
+  pip install -U pip wheel
+  ```
+3. Install [l2logger](https://github.com/darpa-l2m/l2logger).
+   If you have ssh keys configured for GitHub, install like so:
+   ```
+   pip install git+ssh://git@github.com/darpa-l2m/l2logger.git
+   ```
+   Otherwise, clone the l2logger repository and install:
+   ```
+   git clone https://github.com/darpa-l2m/l2logger
+   pip install ./l2logger
+   ```
+4. Clone this repository:
+   ```
+   git clone git@github.com:darpa-l2m/tella.git
+   ```
+   or
+   ```
+   git clone https://github.com/darpa-l2m/tella.git
+   ```
+5. Install the tella package and its dependencies:
+   ```
+   cd tella
+   pip install ./tella[minigrid]
+   ```
 
-Then install the tella package and its dependencies:
-```
-pip install .
-```
-
-To upgrade tella:
+To update tella, pull the latest changes from the git repository and upgrade:
 ```
 pip install -U .
 ```
@@ -49,10 +66,53 @@ After the environment is updated with the action, the reward is passed to the ag
 The receive_transition() method also received the previous observation and new observation.
 These calls continue until the episode is complete.
 
+Here is a minimal agent that takes random agents:
+```python
+import tella
+
+
+class MinimalRandomAgent(tella.ContinualRLAgent):
+    def choose_action(self, observations):
+        """Loop over the environments' observations and select action"""
+        return [
+            None if obs is None else self.action_space.sample() for obs in observations
+        ]
+
+    def receive_transition(self, transition):
+        """Do nothing here since we are not learning"""
+        pass
+
+
+if __name__ == "__main__":
+    # rl_cli() is tella's command line interface function.
+    # It expects a constructor or factory function to create the agent.
+    tella.rl_cli(MinimalRandomAgent)
+    print("Done! Check logs for results.")
+```
+
 
 Run
 -------------
-To do
+Assuming your agent is defined in a file called `my_agent.py`,
+run it through a curriculum like so:
+```
+python my_agent.py --curriculum SimpleCartPole
+```
+
+To see all the command line options, run:
+```
+python my_agent.py --help
+```
+All the curriculums registered with tella are listed in the help.
+
+The l2logger output by default is stored in your current directory in `logs`.
+This can be set with the `--log-dir` argument.
+
+To view a rendering of the agent learning, set the `--render` flag.
+This will render the first environment in the list.
+
+Parallel environments is not currently implemented.
+
 
 Bug Reports and Feature Requests
 ---------------------------------
@@ -68,6 +128,7 @@ A bug report should contain:
 
 A feature request should describe what you want to do but cannot
 and any recommendations for how this new feature should work.
+
 
 For Developers
 ----------------

@@ -3,18 +3,11 @@ import typing
 
 import gym
 import tella
-from tella.agents import ContinualRLAgent
-from tella.curriculum import (
-    Transition,
-    Observation,
-    Action,
-    AbstractRLTaskVariant,
-)
 
 logger = logging.getLogger("Example Logging Agent")
 
 
-class LoggingAgent(ContinualRLAgent):
+class LoggingAgent(tella.ContinualRLAgent):
     def __init__(
         self, observation_space: gym.Space, action_space: gym.Space, num_envs: int
     ) -> None:
@@ -49,19 +42,19 @@ class LoggingAgent(ContinualRLAgent):
             f"task_name={task_name} variant_name={variant_name}"
         )
 
-    def learn_task_variant(self, task_variant: AbstractRLTaskVariant):
+    def learn_task_variant(self, task_variant: tella.AbstractRLTaskVariant):
         logger.info("\tConsuming task variant")
         return super().learn_task_variant(task_variant)
 
     def choose_action(
-        self, observations: typing.List[typing.Optional[Observation]]
-    ) -> typing.List[typing.Optional[Action]]:
+        self, observations: typing.List[typing.Optional[tella.Observation]]
+    ) -> typing.List[typing.Optional[tella.Action]]:
         logger.debug(f"\t\t\tReturn {len(observations)} random actions")
         return [
             None if obs is None else self.action_space.sample() for obs in observations
         ]
 
-    def receive_transition(self, transition: Transition) -> None:
+    def receive_transition(self, transition: tella.Transition) -> None:
         obs, action, reward, done, next_obs = transition
         logger.debug(f"\t\t\tReceived transition done={done}")
 

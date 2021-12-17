@@ -57,3 +57,37 @@ class SimpleCartPoleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
                 )
             ]
         )
+
+
+class InterleavedCartPoleCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[
+        typing.Union[
+            "AbstractLearnBlock[AbstractRLTaskVariant]",
+            "AbstractEvalBlock[AbstractRLTaskVariant]",
+        ]
+    ]:
+        for _ in range(10):
+            yield simple_learn_block(
+                [
+                    EpisodicTaskVariant(
+                        _CartPoleV0,
+                        num_episodes=100,
+                        task_label="CartPole",
+                        variant_label="Default",
+                    )
+                ]
+            )
+
+    def eval_block(self) -> AbstractEvalBlock[AbstractRLTaskVariant]:
+        return simple_eval_block(
+            [
+                EpisodicTaskVariant(
+                    _CartPoleV0,
+                    num_episodes=10,
+                    task_label="CartPole",
+                    variant_label="Default",
+                )
+            ]
+        )

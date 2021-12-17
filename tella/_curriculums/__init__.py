@@ -19,7 +19,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from ..curriculum import curriculum_registry
-from .cartpole import SimpleCartPoleCurriculum
+from .cartpole import SimpleCartPoleCurriculum, InterleavedCartPoleCurriculum
 
 
 def load_curriculum_registry():
@@ -28,6 +28,7 @@ def load_curriculum_registry():
     """
 
     curriculum_registry["SimpleCartPole"] = SimpleCartPoleCurriculum
+    curriculum_registry["CartPole-1000episodes"] = InterleavedCartPoleCurriculum
 
     try:
         from .minigrid import SimpleMiniGridCurriculum

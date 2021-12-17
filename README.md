@@ -9,20 +9,36 @@ Requirements
 
 Install
 -------------
-Create a conda/virtual environment.
+1. Create a conda or virtual environment and activate it
 
-Then install [l2logger](https://github.com/darpa-l2m/l2logger).
-If you have ssh keys configured for Github, you can install like so:
-```
-pip install git+https://github.com/darpa-l2m/l2logger.git
-```
+2. Update pip and wheel in your environment:
+  ```
+  pip install -U pip wheel
+  ```
+3. Install [l2logger](https://github.com/darpa-l2m/l2logger).
+   If you have ssh keys configured for GitHub, install like so:
+   ```
+   pip install git+https://github.com/darpa-l2m/l2logger.git
+   ```
+   Otherwise, clone the l2logger repository and install:
+   ```
+   git clone https://github.com/darpa-l2m/l2logger
+   pip install l2logger
+   ```
+4. Clone this repository:
+   ```
+   git clone git@github.com:darpa-l2m/tella.git
+   ```
+   or
+   ```
+   git clone https://github.com/darpa-l2m/tella.git
+   ```
+5. Install the tella package and its dependencies:
+   ```
+   pip install tella
+   ```
 
-Then install the tella package and its dependencies:
-```
-pip install .
-```
-
-To upgrade tella:
+To update tella, pull the latest changes from the git repository and upgrade:
 ```
 pip install -U .
 ```

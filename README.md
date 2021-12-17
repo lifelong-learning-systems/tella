@@ -18,7 +18,7 @@ Install
 3. Install [l2logger](https://github.com/darpa-l2m/l2logger).
    If you have ssh keys configured for GitHub, install like so:
    ```
-   pip install git+https://github.com/darpa-l2m/l2logger.git
+   pip install git+ssh://git@github.com/darpa-l2m/l2logger.git
    ```
    Otherwise, clone the l2logger repository and install:
    ```

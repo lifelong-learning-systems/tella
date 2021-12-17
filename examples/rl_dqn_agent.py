@@ -13,19 +13,16 @@ import torch.optim as optim
 
 import tella
 from tella.agents import (
+    Action,
     ContinualRLAgent,
     Observation,
-    Action,
     Metrics,
 )
 from tella.metrics import RLMetricAccumulator
-from tella.curriculum import *
 from tella.curriculum import (
     Transition,
     AbstractRLTaskVariant,
-    EpisodicTaskVariant,
 )
-from tella.curriculum import simple_eval_block, simple_learn_block
 
 
 logger = logging.getLogger(__name__)
@@ -250,24 +247,7 @@ class MinimalRlDqnAgent(ContinualRLAgent):
             logger.info("Done with evaluation block")
 
 
-class ExampleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
-    def learn_blocks_and_eval_blocks(
-        self,
-    ) -> typing.Iterable[
-        typing.Union[
-            "AbstractLearnBlock[TaskVariantType]", "AbstractEvalBlock[TaskVariantType]"
-        ]
-    ]:
-        yield simple_learn_block(
-            [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=1_000)]
-        )
-        yield simple_eval_block(
-            [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=100)]
-        )
-
-
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    curriculum_registry["cartpole"] = ExampleCurriculum
     tella.rl_cli(MinimalRlDqnAgent)

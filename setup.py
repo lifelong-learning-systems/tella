@@ -29,5 +29,8 @@ setuptools.setup(
     packages=setuptools.find_packages(exclude=["tests"]),
     include_package_data=True,
     install_requires=requirements,
-    extras_require={"dev": ["pytest", "black"]},
+    extras_require={
+        "dev": ["pytest", "black"],
+        "minigrid": ["gym_minigrid", "matplotlib"],
+    },
 )

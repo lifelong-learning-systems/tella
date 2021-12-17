@@ -56,14 +56,14 @@ class LoggingAgent(ContinualRLAgent):
     def choose_action(
         self, observations: typing.List[typing.Optional[Observation]]
     ) -> typing.List[typing.Optional[Action]]:
-        logger.info(f"\t\t\tReturn {len(observations)} random actions")
+        logger.debug(f"\t\t\tReturn {len(observations)} random actions")
         return [
             None if obs is None else self.action_space.sample() for obs in observations
         ]
 
     def receive_transition(self, transition: Transition) -> None:
         obs, action, reward, done, next_obs = transition
-        logger.info(f"\t\t\tReceived transition done={done}")
+        logger.debug(f"\t\t\tReceived transition done={done}")
 
     def task_end(
         self,

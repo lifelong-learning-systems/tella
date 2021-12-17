@@ -69,6 +69,7 @@ def rl_cli(
         num_lifetimes=args.num_lifetimes,
         num_parallel_envs=args.num_parallel_envs,
         log_dir=args.log_dir,
+        render=args.render,
     )
 
 
@@ -95,6 +96,9 @@ def _build_parser(require_curriculum: bool) -> argparse.ArgumentParser:
         default="./logs",
         type=str,
         help="The root directory for the l2logger logs produced.",
+    )
+    parser.add_argument(
+        "--render", action="store_true", help="Whether to render the environment"
     )
     if require_curriculum:
         parser.add_argument(

@@ -82,7 +82,7 @@ pytest
 ```
 For running in conda environment:
 ```
-conda run -n <env_name> pytest 
+python -m pytest 
 ```
 
 To check for PEP8 compliance:

@@ -7,6 +7,7 @@ from tella.curriculum import (
     AbstractRLTaskVariant,
 )
 from tella.agents import ContinualRLAgent
+import tella
 import logging
 
 logger = logging.getLogger(__name__)
@@ -84,3 +85,8 @@ class LoggingAgent(ContinualRLAgent):
             logger.info("Done with learning block")
         else:
             logger.info("Done with evaluation block")
+
+
+if __name__ == "__main__":
+
+    tella.rl_cli(LoggingAgent)

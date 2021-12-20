@@ -177,6 +177,9 @@ def test_validate_args():
             validate_params(fn, ["args"])
 
 
+"""
+NOTE: python 3.7 fails to parse this file if this is uncommented. Leaving here for later
+
 @pytest.mark.skipif(sys.version_info < (3, 8), reason="Position arguments require 3.8+")
 def test_validate_positional():
     def function_with_params(q, /, c):
@@ -191,6 +194,7 @@ def test_validate_positional():
             ValueError, match="Positional only arguments not allowed. Found q"
         ):
             validate_params(fn, ["q", "c"])
+"""
 
 
 def test_validate_default():

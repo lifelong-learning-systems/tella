@@ -1,3 +1,4 @@
+import sys
 import pytest
 import typing
 import gym
@@ -176,6 +177,7 @@ def test_validate_args():
             validate_params(fn, ["args"])
 
 
+@pytest.mark.skipif(sys.version_info < (3, 8), reason="Position arguments require 3.8+")
 def test_validate_positional():
     def function_with_params(q, /, c):
         pass

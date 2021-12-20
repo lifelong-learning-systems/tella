@@ -20,6 +20,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 import abc
+import collections
 import inspect
 import itertools
 import typing
@@ -116,18 +117,66 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
         :return: An Iterable of Learn Blocks and Eval Blocks.
         """
 
-    def summary(self):
-        summary = ""
+    def summary(self) -> str:
+        """
+        Generate a string summarizing the contents of this curriculum.
+
+        :return: A string that would print as a formatted outline of this curriculum's contents.
+        """
+
+        def maybe_plural(num: int, label: str):
+            return f"{num} {label}" + ("" if num == 1 else "s")
+
+        curriculum_counter = collections.Counter()
+
+        block_summaries = []
         for i_block, block in enumerate(self.learn_blocks_and_eval_blocks()):
-            summary += f"Block {i_block+1}: {'learning' if block.is_learning_allowed() else 'evaluation'}\n"
+            block_counter = collections.Counter({"block": 1})
+
+            task_summaries = []
             for i_task, task_block in enumerate(block.task_blocks()):
-                summary += f"\tTask {i_block+1}.{i_task+1}: {task_block.task_label}\n"
+                task_counter = collections.Counter({"task": 1})
+
+                variant_summaries = []
                 for i_variant, task_variant in enumerate(task_block.task_variants()):
-                    summary += f"\t\tTask variant {i_block+1}.{i_task+1}.{i_variant+1}: " \
-                               f"{task_variant.task_label} - {task_variant.variant_label}, " \
-                               f"{task_variant.total_episodes} episode" \
-                               f"{'s' if task_variant.total_episodes > 1 else ''}\n"
-        return summary
+                    variant_counter = collections.Counter({"variant": 1})
+                    variant_counter["episode"] = task_variant.total_episodes
+                    variant_summary = (
+                        f"\n\t\t\tTask variant {i_block+1}.{i_task+1}.{i_variant+1}: "
+                        f"{task_variant.task_label} - {task_variant.variant_label}, "
+                        f"{maybe_plural(variant_counter['episode'], 'episode')}."
+                    )
+                    variant_summaries.append(variant_summary)
+                    task_counter += variant_counter
+
+                task_summary = (
+                    f"\n\t\tTask {i_block+1}.{i_task+1}: {task_block.task_label}. "
+                    f"{maybe_plural(task_counter['variant'], 'variant')}, "
+                    f"{maybe_plural(task_counter['episode'], 'episode')}"
+                )
+                task_summaries.append(task_summary + "".join(variant_summaries))
+                block_counter += task_counter
+
+            block_summary = (
+                f"\n\n\tBlock {i_block+1}: "
+                f"{'learning' if block.is_learning_allowed() else 'evaluation'}. "
+                f"{maybe_plural(block_counter['task'], 'task')}, "
+                f"{maybe_plural(block_counter['variant'], 'variant')}, "
+                f"{maybe_plural(block_counter['episode'], 'episode')}"
+            )
+            block_summaries.append(block_summary + "".join(task_summaries))
+            curriculum_counter += block_counter
+
+        curriculum_summary = (
+            f"This curriculum has "
+            f"{maybe_plural(curriculum_counter['block'], 'block')}, "
+            f"{maybe_plural(curriculum_counter['task'], 'task')}, "
+            f"{maybe_plural(curriculum_counter['variant'], 'variant')}, "
+            f"{maybe_plural(curriculum_counter['episode'], 'episode')}"
+        )
+        curriculum_summary += "".join(block_summaries)
+
+        return curriculum_summary
 
 
 class AbstractLearnBlock(abc.ABC, typing.Generic[TaskVariantType]):

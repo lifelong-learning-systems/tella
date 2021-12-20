@@ -543,29 +543,52 @@ def validate_curriculum(curriculum: AbstractCurriculum[AbstractTaskVariant]):
                 )
 
 
-def validate_params(fn: typing.Any, param_names: typing.List[str]) -> None:
+def validate_params(fn: typing.Callable, param_names: typing.List[str]) -> None:
     """
-    Determines whether any of the parameters for the `task_experience` do not
-    match the signature of the `task_class` constructor using the `inspect` package.
+    Determines whether there are missing or invalid names in `param_names` to pass
+    to the function `fn`.
 
-    NOTE: this is not guaranteed to be correct, due to unknown behavior
-        with **kwargs. This will only catch typos in named parameters
+    NOTE: if `fn` has any **kwargs, then all arguments are valid and this method
+    won't be able to verify anything.
 
     :param fn: The callable that will accept the parameters.
     :param param_names: The names of the parameters to check.
 
-    Raises a ValueError if any of the parameters are incorrectly named.
+    :raises: a ValueError if any of `param_names` are not found in the signature, and there are no **kwargs
+    :raises: a ValueError if any of the parameters without defaults in `fn` are not present in `param_names`
+    :raises: a ValueError if any `*args` are found
+    :raises: a ValueError if any positional only arguments are found (i.e. using /)
     """
-    if len(param_names) == 0:
-        return
 
-    invalid_params = []
     fn_signature = inspect.signature(fn)
+
+    kwarg_found = False
+    expected_fn_names = []
+    for param_name, param in fn_signature.parameters.items():
+        if param.kind == param.VAR_POSITIONAL:
+            raise ValueError(f"*args not allowed. Found {param_name} in {fn_signature}")
+        if param.kind == param.POSITIONAL_ONLY:
+            raise ValueError(
+                f"Positional only arguments not allowed. Found {param_name} in {fn_signature}"
+            )
+        if param.kind == param.VAR_KEYWORD:
+            kwarg_found = True
+        elif param.default is param.empty:
+            expected_fn_names.append(param_name)
+
+    # NOTE: this is checking for presence of name in the fn_signature.
+    # NOTE: **kwargs absorb everything!
+    invalid_params = []
     for name in param_names:
         if name not in fn_signature.parameters:
             invalid_params.append(name)
-    if len(invalid_params) > 0:
-        raise ValueError(
-            f"Invalid parameters: {invalid_params}",
-            f"Function Signature {fn_signature}",
-        )
+    if len(invalid_params) > 0 and not kwarg_found:
+        raise ValueError(f"Parameters not accepted: {invalid_params} in {fn_signature}")
+
+    # NOTE: this is checking for parameters that don't have a default specified
+    missing_params = []
+    for name in expected_fn_names:
+        if name not in param_names:
+            missing_params.append(name)
+    if len(missing_params) > 0:
+        raise ValueError(f"Missing parameters: {missing_params} in {fn_signature}")

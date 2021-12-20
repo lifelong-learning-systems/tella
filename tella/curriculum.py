@@ -456,13 +456,14 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
             # yield all the non masked transitions
             for i in range(self._num_envs):
                 if not mask[i]:
-                    # FIXME: if done[i] == True, then we need to return info[i]["terminal_observation"]
                     yield (
                         observations[i],
                         actions[i],
                         rewards[i],
                         dones[i],
-                        next_observations[i],
+                        infos[i]["terminal_observation"]
+                        if dones[i]
+                        else next_observations[i],
                     )
 
                 # increment episode ids if episode ended

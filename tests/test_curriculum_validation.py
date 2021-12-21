@@ -134,47 +134,145 @@ def test_warn_same_variant_labels():
         validate_curriculum(curriculum)
 
 
-def test_validate_params():
-    def function_with_params(a: int, b: float, c: str):
+def test_validate_valid_params_function():
+    def example_function(a: int, b: float, c: str):
         pass
 
-    class ClassWithParams:
-        def __init__(self, a: int, b: float, c: str) -> None:
+    validate_params(example_function, ["a", "b", "c"])
+
+
+def test_validate_valid_params_class():
+    class ExampleClass:
+        def __init__(self, a: int, b: float, c: str):
             pass
 
-    for fn in [function_with_params, ClassWithParams]:
-        # all parameters there, no extra ones
-        validate_params(fn, ["a", "b", "c"])
-        fn(**{"a": 1, "b": 2, "c": 3})
-
-        # extra param that isn't present in function
-        with pytest.raises(ValueError, match="Parameters not accepted: \['d'\]"):
-            validate_params(fn, ["a", "b", "c", "d"])
-        with pytest.raises(TypeError):
-            fn(**{"a": 1, "b": 2, "c": 3, "d": 4})
-
-        # missing params
-        with pytest.raises(ValueError, match="Missing parameters: \['c'\]"):
-            validate_params(fn, ["a", "b"])
-        with pytest.raises(ValueError, match="Missing parameters: \['b', 'c'\]"):
-            validate_params(fn, ["a"])
-        with pytest.raises(ValueError, match="Missing parameters: \['a', 'b', 'c'\]"):
-            validate_params(fn, [])
-        with pytest.raises(TypeError):
-            fn(**{"a": 1, "b": 2})
+    validate_params(ExampleClass, ["a", "b", "c"])
 
 
-def test_validate_args():
-    def function_with_params(q, *args, a=2, b=3, c=4):
-        print(args, a, b, c)
+def test_validate_invalid_params_function():
+    def example_function(a: int):
+        pass
 
-    class ClassWithParams:
-        def __init__(self, q, *args, a=2, b=3, c=4) -> None:
+    with pytest.raises(ValueError) as err:
+        validate_params(example_function, ["a", "b"])
+
+    assert err.match("Parameters not accepted: \['b'\]")
+
+
+def test_validate_invalid_params_class():
+    class ExampleClass:
+        def __init__(self, a: int):
             pass
 
-    for fn in [function_with_params, ClassWithParams]:
-        with pytest.raises(ValueError, match="\*args not allowed"):
-            validate_params(fn, ["args"])
+    with pytest.raises(ValueError) as err:
+        validate_params(ExampleClass, ["a", "b"])
+
+    assert err.match("Parameters not accepted: \['b'\]")
+
+
+def test_validate_missing_params_function():
+    def example_function(a, b):
+        pass
+
+    with pytest.raises(ValueError) as err:
+        validate_params(example_function, [])
+
+    assert err.match("Missing parameters: \['a', 'b'\]")
+
+    with pytest.raises(ValueError) as err:
+        validate_params(example_function, ["a"])
+
+    assert err.match("Missing parameters: \['b'\]")
+
+
+def test_validate_missing_params_class():
+    class ExampleClass:
+        def __init__(self, a, b):
+            pass
+
+    with pytest.raises(ValueError) as err:
+        validate_params(ExampleClass, [])
+
+    assert err.match("Missing parameters: \['a', 'b'\]")
+
+    with pytest.raises(ValueError) as err:
+        validate_params(ExampleClass, ["a"])
+
+    assert err.match("Missing parameters: \['b'\]")
+
+
+def test_validate_args_function():
+    def example_function(*args):
+        pass
+
+    with pytest.raises(ValueError) as err:
+        validate_params(example_function, ["args"])
+
+    assert err.match("\*args not allowed")
+
+
+def test_validate_args_class():
+    class ExampleClass:
+        def __init__(self, *args):
+            pass
+
+    with pytest.raises(ValueError) as err:
+        validate_params(ExampleClass, ["args"])
+
+    assert err.match("\*args not allowed")
+
+
+def test_validate_default_function():
+    def example_function(d=10):
+        pass
+
+    validate_params(example_function, [])
+    validate_params(example_function, ["d"])
+
+
+def test_validate_default_class():
+    class ExampleClass:
+        def __init__(self, d=10):
+            pass
+
+    validate_params(ExampleClass, [])
+    validate_params(ExampleClass, ["d"])
+
+
+def test_validate_missing_not_default_function():
+    def example_function(a, d=10):
+        pass
+
+    with pytest.raises(ValueError) as err:
+        validate_params(example_function, [])
+
+    assert err.match("Missing parameters: \['a'\]")
+
+
+def test_validate_missing_not_default_class():
+    class ExampleClass:
+        def __init__(self, a, d=10):
+            pass
+
+    with pytest.raises(ValueError) as err:
+        validate_params(ExampleClass, [])
+
+    assert err.match("Missing parameters: \['a'\]")
+
+
+def test_validate_kwargs_function():
+    def example_function(a, **kwargs):
+        pass
+
+    validate_params(example_function, ["a", "b", "c", "test_kw"])
+
+
+def test_validate_kwargs_class():
+    class ExampleClass:
+        def __init__(self, a, **kwargs):
+            pass
+
+    validate_params(ExampleClass, ["a", "b", "c", "test_kw"])
 
 
 """
@@ -195,43 +293,3 @@ def test_validate_positional():
         ):
             validate_params(fn, ["q", "c"])
 """
-
-
-def test_validate_default():
-    def function_with_params(d=10):
-        pass
-
-    class ClassWithParams:
-        def __init__(self, d=10) -> None:
-            pass
-
-    for fn in [function_with_params, ClassWithParams]:
-        validate_params(fn, [])
-        validate_params(fn, ["d"])
-
-
-def test_validate_missing_not_default():
-    def function_with_params(a, d=10):
-        pass
-
-    class ClassWithParams:
-        def __init__(self, a, d=10) -> None:
-            pass
-
-    for fn in [function_with_params, ClassWithParams]:
-        with pytest.raises(ValueError, match="Missing parameters: \['a'\]"):
-            validate_params(fn, [])
-
-
-def test_validate_kwargs():
-    def function_with_params(a, b, c, d=10, **kwargs):
-        print(kwargs)
-
-    class ClassWithParams:
-        def __init__(self, a, b, c, d=10, **kwargs) -> None:
-            pass
-
-    for fn in [function_with_params, ClassWithParams]:
-        validate_params(fn, ["a", "b", "c", "d"])
-        validate_params(fn, ["a", "b", "c", "test_kw"])
-        validate_params(fn, ["a", "b", "c"])

@@ -159,13 +159,10 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
         # Then map unique tasks and variants to compact keys
         # TODO: review choice of legend keys
         legend = dict()
-        for n_task, task_label in enumerate(tasks_seen):
-            for n_variant, variant_label in enumerate(variants_seen[task_label]):
+        for task_label in tasks_seen:
+            for variant_label in variants_seen[task_label]:
                 # TODO: handle n_items > n_keys (and maybe give a warning)
-                key = (
-                        string.ascii_uppercase[n_task] +
-                        (string.ascii_lowercase[n_variant] if len(variants_seen[task_label]) > 1 else "")
-                )
+                key = string.ascii_uppercase[len(legend)]
                 legend[(task_label, variant_label)] = key
 
         # Iterate over blocks to write summaries

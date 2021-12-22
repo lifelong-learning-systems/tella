@@ -119,8 +119,13 @@ def test_error_on_diff_task_labels():
             ),
         ]
     )
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as err:
         validate_curriculum(curriculum)
+
+    assert err.match(
+        "Block #0, task block #0 had more than 1 task label "
+        "found across all task variants: {'Task2', 'Task1'}"
+    )
 
 
 def test_warn_same_variant_labels():

@@ -242,7 +242,7 @@ class MinimalRlDqnAgent(tella.ContinualRLAgent):
             logger.info("Done with evaluation block")
 
     def set_rng_seed(self, seed: int) -> None:
-        logger.info(f"RNG seed set to {seed}")
+        logger.info(f"RNG seed set to ({seed})")
         assert not self.has_trained, "RNG seed should only be set before training."
 
         # Seed the RNG for memory and networks

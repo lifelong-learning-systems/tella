@@ -18,6 +18,9 @@ class MinimalRandomAgent(tella.ContinualRLAgent):
     def receive_transition(self, transition: tella.Transition):
         pass
 
+    def set_rng_seed(self, seed: int) -> None:
+        self.action_space.seed(seed)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

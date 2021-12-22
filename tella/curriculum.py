@@ -22,6 +22,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import abc
 import inspect
 import itertools
+import string
 import typing
 import warnings
 
@@ -116,9 +117,78 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
         :return: An Iterable of Learn Blocks and Eval Blocks.
         """
 
-    def summary(self) -> str:
+    def summary(self, verbose: bool = False) -> str:
         """
         Generate a string summarizing the contents of this curriculum.
+
+        :param verbose: Boolean flag specifying longer/shorter summary format. Default False.
+        :return: A string that would print as a formatted outline of this curriculum's contents.
+        """
+        return self._detailed_summary() if verbose else self._compact_summary()
+
+    def _compact_summary(self) -> str:
+        """
+        Generate a compact string summarizing the contents of this curriculum.
+
+        :return: A string that would print as a formatted outline of this curriculum's contents.
+        """
+        tasks_seen = list()
+        variants_seen = dict()
+        block_signatures = list()
+
+        # First iterate over curriculum and collect block info
+        for block in self.learn_blocks_and_eval_blocks():
+            block_experiences = list()
+
+            for task_block in block.task_blocks():
+                if task_block.task_label not in tasks_seen:
+                    tasks_seen.append(task_block.task_label)
+                    variants_seen[task_block.task_label] = list()
+
+                for task_variant in task_block.task_variants():
+                    if task_variant.variant_label not in variants_seen[task_block.task_label]:
+                        variants_seen[task_block.task_label].append(task_variant.variant_label)
+                    # task_block.task_label should match task_variant.task_label, but not checked here
+                    block_experiences.append((task_block.task_label, task_variant.variant_label))
+
+            block_signatures.append((
+                block.is_learning_allowed(),
+                block_experiences
+            ))
+
+        # Then map unique tasks and variants to compact keys
+        # TODO: review choice of legend keys
+        legend = dict()
+        for n_task, task_label in enumerate(tasks_seen):
+            for n_variant, variant_label in enumerate(variants_seen[task_label]):
+                # TODO: handle n_items > n_keys (and maybe give a warning)
+                key = (
+                        string.ascii_uppercase[n_task] +
+                        (string.ascii_lowercase[n_variant] if len(variants_seen[task_label]) > 1 else "")
+                )
+                legend[(task_label, variant_label)] = key
+
+        # Iterate over blocks to write summaries
+        block_summaries = list()
+        for is_learning_allowed, tasks_and_variants in block_signatures:
+            block_summary = "".join(legend[key] for key in tasks_and_variants)
+            if not is_learning_allowed:
+                block_summary = "(" + block_summary + ")"
+            block_summaries.append(block_summary)
+
+        curriculum_summary = "Curriculum signature:\n" + ", ".join(block_summaries)
+
+        # And add the legend
+        curriculum_summary += "\n\tLearning blocks, (Evaluation blocks)"
+        for (task_label, variant_label), key in legend.items():
+            curriculum_summary += f"\n\t{legend[(task_label, variant_label)]} " \
+                                  f"= {task_label} - {variant_label}"
+
+        return curriculum_summary
+
+    def _detailed_summary(self) -> str:
+        """
+        Generate a detailed string summarizing the contents of this curriculum.
 
         :return: A string that would print as a formatted outline of this curriculum's contents.
         """

@@ -123,6 +123,7 @@ class AbstractLearnBlock(abc.ABC, typing.Generic[TaskVariantType]):
     data can be used for learning.
     """
 
+    @property
     def is_learning_allowed(self) -> bool:
         return True
 
@@ -139,6 +140,7 @@ class AbstractEvalBlock(abc.ABC, typing.Generic[TaskVariantType]):
     data can NOT be used for learning.
     """
 
+    @property
     def is_learning_allowed(self) -> bool:
         return False
 

@@ -123,8 +123,7 @@ def test_error_on_diff_task_labels():
         validate_curriculum(curriculum)
 
     assert err.match(
-        "Block #0, task block #0 had more than 1 task label "
-        "found across all task variants: {'Task2', 'Task1'}"
+        "Block #0, task block #0 had more than 1 task label found across all task variants: "
     )
 
 

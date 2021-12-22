@@ -1,8 +1,7 @@
 import itertools
-import sys
 import pytest
 import typing
-import gym
+from gym.envs.classic_control import CartPoleEnv
 from tella.curriculum import (
     AbstractCurriculum,
     AbstractLearnBlock,
@@ -48,19 +47,19 @@ def test_correct_curriculum():
             simple_learn_block(
                 [
                     EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
+                        CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant1",
                     ),
                     EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
+                        CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant2",
                     ),
                 ]
             ),
             simple_eval_block(
-                [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=1)]
+                [EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]
             ),
         ]
     )
@@ -73,19 +72,19 @@ def test_simple_block_task_split():
             simple_learn_block(
                 [
                     EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
+                        CartPoleEnv,
                         num_episodes=1,
                         task_label="Task1",
                     ),
                     EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
+                        CartPoleEnv,
                         num_episodes=1,
                         task_label="Task2",
                     ),
                 ]
             ),
             simple_eval_block(
-                [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=1)]
+                [EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]
             ),
         ]
     )
@@ -101,12 +100,12 @@ def test_error_on_diff_task_labels():
                         "Task1",
                         [
                             EpisodicTaskVariant(
-                                lambda: gym.make("CartPole-v1"),
+                                CartPoleEnv,
                                 num_episodes=1,
                                 task_label="Task1",
                             ),
                             EpisodicTaskVariant(
-                                lambda: gym.make("CartPole-v1"),
+                                CartPoleEnv,
                                 num_episodes=1,
                                 task_label="Task2",
                             ),
@@ -115,7 +114,7 @@ def test_error_on_diff_task_labels():
                 ]
             ),
             simple_eval_block(
-                [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=1)]
+                [EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]
             ),
         ]
     )
@@ -133,19 +132,19 @@ def test_warn_same_variant_labels():
             simple_learn_block(
                 [
                     EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
+                        CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant1",
                     ),
                     EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
+                        CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant1",
                     ),
                 ]
             ),
             simple_eval_block(
-                [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=1)]
+                [EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]
             ),
         ]
     )
@@ -157,7 +156,7 @@ def test_generator_curriculum():
     curriculum = TestCurriculum(
         simple_learn_block(
             EpisodicTaskVariant(
-                lambda: gym.make("CartPole-v1"),
+                CartPoleEnv,
                 num_episodes=1,
                 variant_label=variant_name,
             )

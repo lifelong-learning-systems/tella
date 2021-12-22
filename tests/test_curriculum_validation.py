@@ -171,6 +171,33 @@ def test_generator_curriculum():
     validate_curriculum(curriculum)
 
 
+def test_empty_curriculum():
+    curriculum = TestCurriculum([])
+
+    with pytest.raises(ValueError) as err:
+        validate_curriculum(curriculum)
+
+    assert err.match("This curriculum is empty.")
+
+
+def test_empty_block():
+    curriculum = TestCurriculum([LearnBlock([])])
+
+    with pytest.raises(ValueError) as err:
+        validate_curriculum(curriculum)
+
+    assert err.match("Block #0 is empty.")
+
+
+def test_empty_task():
+    curriculum = TestCurriculum([LearnBlock([TaskBlock("Task1", [])])])
+
+    with pytest.raises(ValueError) as err:
+        validate_curriculum(curriculum)
+
+    assert err.match("Block #0, task block #0 is empty.")
+
+
 def test_validate_valid_params_function():
     def example_function(a: int, b: float, c: str):
         pass

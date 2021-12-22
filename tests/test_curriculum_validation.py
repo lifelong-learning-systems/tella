@@ -1,3 +1,4 @@
+import itertools
 import sys
 import pytest
 import typing
@@ -12,6 +13,7 @@ from tella.curriculum import (
     simple_eval_block,
     validate_curriculum,
     TaskBlock,
+    LearnBlock,
     validate_params,
 )
 
@@ -36,8 +38,8 @@ class TestCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
             "AbstractEvalBlock[AbstractRLTaskVariant]",
         ]
     ]:
-        for block in self.blocks:
-            yield block
+        self.blocks, blocks = itertools.tee(self.blocks, 2)
+        return blocks
 
 
 def test_correct_curriculum():
@@ -91,21 +93,34 @@ def test_simple_block_task_split():
 
 
 def test_error_on_diff_task_labels():
-    with pytest.raises(AssertionError):
-        invalid_task_block = TaskBlock(
-            [
-                EpisodicTaskVariant(
-                    lambda: gym.make("CartPole-v1"),
-                    num_episodes=1,
-                    task_label="Task1",
-                ),
-                EpisodicTaskVariant(
-                    lambda: gym.make("CartPole-v1"),
-                    num_episodes=1,
-                    task_label="Task2",
-                ),
-            ]
-        )
+    curriculum = TestCurriculum(
+        [
+            LearnBlock(
+                [
+                    TaskBlock(
+                        "Task1",
+                        [
+                            EpisodicTaskVariant(
+                                lambda: gym.make("CartPole-v1"),
+                                num_episodes=1,
+                                task_label="Task1",
+                            ),
+                            EpisodicTaskVariant(
+                                lambda: gym.make("CartPole-v1"),
+                                num_episodes=1,
+                                task_label="Task2",
+                            ),
+                        ],
+                    )
+                ]
+            ),
+            simple_eval_block(
+                [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=1)]
+            ),
+        ]
+    )
+    with pytest.raises(ValueError):
+        validate_curriculum(curriculum)
 
 
 def test_warn_same_variant_labels():
@@ -132,6 +147,23 @@ def test_warn_same_variant_labels():
     )
     with pytest.warns(UserWarning):
         validate_curriculum(curriculum)
+
+
+def test_generator_curriculum():
+    curriculum = TestCurriculum(
+        simple_learn_block(
+            EpisodicTaskVariant(
+                lambda: gym.make("CartPole-v1"),
+                num_episodes=1,
+                variant_label=variant_name,
+            )
+            for variant_name in ("Variant1", "Variant2")
+        )
+        for _ in range(3)
+    )
+    validate_curriculum(curriculum)
+    # Validate twice to check if generators were exhausted
+    validate_curriculum(curriculum)
 
 
 def test_validate_valid_params_function():

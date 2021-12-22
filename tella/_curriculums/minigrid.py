@@ -73,32 +73,23 @@ class SimpleMiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant])
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        task_variants = [
+        yield simple_learn_block(
             EpisodicTaskVariant(
                 cls,
                 task_label=task_label,
                 variant_label=variant_label,
                 num_episodes=5,
             )
-            for cls, task_label, variant_label in TASKS.copy()
-        ]
-        self.rng.shuffle(task_variants)
-        for task_variant in task_variants:
-            yield simple_learn_block([task_variant])
+            for cls, task_label, variant_label in self.rng.permutation(TASKS)
+        )
 
     def eval_block(self) -> AbstractEvalBlock[AbstractRLTaskVariant]:
-        return EvalBlock(
-            [
-                TaskBlock(
-                    [
-                        EpisodicTaskVariant(
-                            cls,
-                            task_label=task_label,
-                            variant_label=variant_label,
-                            num_episodes=1,
-                        )
-                    ]
-                )
-                for cls, task_label, variant_label in TASKS.copy()
-            ]
+        return simple_eval_block(
+            EpisodicTaskVariant(
+                cls,
+                task_label=task_label,
+                variant_label=variant_label,
+                num_episodes=5,
+            )
+            for cls, task_label, variant_label in self.rng.permutation(TASKS)
         )

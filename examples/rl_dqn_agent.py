@@ -31,12 +31,13 @@ batch_size = 32
 class ReplayBuffer:
     def __init__(self):
         self.buffer = collections.deque(maxlen=buffer_limit)
+        self.rng = random.Random()
 
     def put(self, transition):
         self.buffer.append(transition)
 
     def sample(self, n):
-        mini_batch = random.sample(self.buffer, n)
+        mini_batch = self.rng.sample(self.buffer, n)
         s_lst, a_lst, r_lst, s_prime_lst, done_mask_lst = [], [], [], [], []
 
         for transition in mini_batch:
@@ -62,6 +63,7 @@ class ReplayBuffer:
 class Qnet(nn.Module):
     def __init__(self, layer_sizes: typing.Tuple[int, ...]):
         super(Qnet, self).__init__()
+        self.rng = random.Random()
 
         assert (
             len(layer_sizes) >= 2
@@ -84,8 +86,8 @@ class Qnet(nn.Module):
         return x
 
     def sample_action(self, obs, epsilon):
-        if random.random() < epsilon:
-            return random.randrange(self.action_space)
+        if self.rng.random() < epsilon:
+            return self.rng.randrange(self.action_space)
         else:
             return self.forward(obs).argmax().item()
 
@@ -139,6 +141,7 @@ class MinimalRlDqnAgent(tella.ContinualRLAgent):
         self.memory = ReplayBuffer()
         self.optimizer = optim.Adam(self.q.parameters(), lr=learning_rate)
         self.training = None
+        self.has_trained = False
         self.epsilon = 0.01
         self.num_eps_done = 0
         self.q_target_interval = 20
@@ -209,6 +212,7 @@ class MinimalRlDqnAgent(tella.ContinualRLAgent):
             if self.memory.size() > 100:  # was 2000 in minimalRL repo
                 logger.info(f"\t\tTraining Q network")
                 train(self.q, self.q_target, self.memory, self.optimizer)
+                self.has_trained = True  # To prevent later weight re-initialization
 
             if self.num_eps_done % self.q_target_interval == 0:
                 logger.info(f"\t\tUpdating target Q network")
@@ -236,6 +240,22 @@ class MinimalRlDqnAgent(tella.ContinualRLAgent):
             logger.info("Done with learning block")
         else:
             logger.info("Done with evaluation block")
+
+    def set_rng_seed(self, seed: int) -> None:
+        logger.info(f"RNG seed set to {seed}")
+        assert not self.has_trained, "RNG seed should only be set before training."
+
+        # Seed the RNG for memory and networks
+        self.memory.rng.seed(seed)
+        self.q.rng.seed(seed)
+        self.q_target.rng.seed(seed)
+
+        # Also need to initialize network weights repeatably
+        torch.manual_seed(seed)
+        for layer in self.q.layers:
+            layer.reset_parameters()
+        for layer in self.q_target.layers:
+            layer.reset_parameters()
 
 
 if __name__ == "__main__":

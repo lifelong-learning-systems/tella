@@ -127,6 +127,35 @@ def test_error_on_diff_task_labels():
     )
 
 
+def test_error_on_multiple_spaces():
+    curriculum = TestCurriculum(
+        [
+            simple_learn_block(
+                [
+                    EpisodicTaskVariant(
+                        lambda: gym.make("CartPole-v1"),
+                        num_episodes=1,
+                    ),
+                    EpisodicTaskVariant(
+                        lambda: gym.make("MountainCar-v0"),
+                        num_episodes=1,
+                    ),
+                ]
+            ),
+            simple_eval_block(
+                [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=1)]
+            ),
+        ]
+    )
+
+    with pytest.raises(ValueError) as err:
+        validate_curriculum(curriculum)
+
+    assert err.match(
+        "All environments in a curriculum must use the same observation and action spaces."
+    )
+
+
 def test_warn_same_variant_labels():
     curriculum = TestCurriculum(
         [

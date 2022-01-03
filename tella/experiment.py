@@ -100,7 +100,7 @@ def rl_experiment(
     :param curriculum_factory: Function or class to produce curriculum.
     :param num_lifetimes: Number of times to call :func:`run()`.
     :param num_parallel_envs: TODO
-    :param log_dir:TODO
+    :param log_dir: The root log directory for l2logger.
     :return: None
     """
     observation_space, action_space = _spaces(curriculum_factory)
@@ -121,7 +121,7 @@ def rl_experiment(
         logger.info(f"Starting lifetime #{i_lifetime + 1}")
         # FIXME: pass num_parallel_envs to run https://github.com/darpa-l2m/tella/issues/32
         # FIXME: pass log_dir to run https://github.com/darpa-l2m/tella/issues/12
-        run(agent, curriculum, render=render)
+        run(agent, curriculum, render=render, log_dir=log_dir)
 
 
 def _spaces(
@@ -154,6 +154,7 @@ def run(
     agent: ContinualLearningAgent[AbstractTaskVariant],
     curriculum: AbstractCurriculum[AbstractTaskVariant],
     render: typing.Optional[bool],
+    log_dir: str,
 ):
     """
     Run an agent through an entire curriculum. This assumes that the agent
@@ -170,8 +171,7 @@ def run(
         "scenario_type": "custom",
     }
     logger_info = {"metrics_columns": ["reward"], "log_format_version": "1.0"}
-    # TODO change logs
-    data_logger = l2logger.DataLogger("logs", scenario_dir, logger_info, scenario_info)
+    data_logger = l2logger.DataLogger(log_dir, scenario_dir, logger_info, scenario_info)
     total_episodes = 0
     for i_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
         is_learning_allowed = agent.is_learning_allowed = block.is_learning_allowed

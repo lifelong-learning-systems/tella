@@ -39,7 +39,7 @@ Install
    ```
 5. Install the tella package and its dependencies:
    ```
-   pip install ./tella[minigrid]
+   pip install "./tella[minigrid]"
    ```
 
 To update tella, pull the latest changes from the git repository and upgrade:

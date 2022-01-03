@@ -1,7 +1,7 @@
 import itertools
 import pytest
 import typing
-from gym.envs.classic_control import CartPoleEnv
+from gym.envs.classic_control import CartPoleEnv, MountainCarEnv
 from tella.curriculum import (
     AbstractCurriculum,
     AbstractLearnBlock,
@@ -117,6 +117,33 @@ def test_error_on_diff_task_labels():
 
     assert err.match(
         "Block #0, task block #0 had more than 1 task label found across all task variants: "
+    )
+
+
+def test_error_on_multiple_spaces():
+    curriculum = TestCurriculum(
+        [
+            simple_learn_block(
+                [
+                    EpisodicTaskVariant(
+                        CartPoleEnv,
+                        num_episodes=1,
+                    ),
+                    EpisodicTaskVariant(
+                        MountainCarEnv,
+                        num_episodes=1,
+                    ),
+                ]
+            ),
+            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
+        ]
+    )
+
+    with pytest.raises(ValueError) as err:
+        validate_curriculum(curriculum)
+
+    assert err.match(
+        "All environments in a curriculum must use the same observation and action spaces."
     )
 
 

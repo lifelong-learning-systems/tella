@@ -502,24 +502,32 @@ def validate_curriculum(curriculum: AbstractCurriculum[AbstractTaskVariant]):
     Uses :meth:`AbstractTaskVariant.validate()` to check task variants.
 
     Raises a :class:`ValueError` if an invalid parameter is detected.
+    Raises a :class:`ValueError` if the curriculum contains multiple observation or action spaces.
+    Raises a :class:`ValueError` if any task block contains multiple tasks.
+    Raises a :class:`ValueError` if the curriculum, or any block, or any task block is empty.
 
     :return: None
     """
+    warned_repeat_variants = False
+    obs_and_act_spaces = None  # placeholder
     empty_curriculum = True
     for i_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
         empty_curriculum = False
+
         empty_block = True
         for i_task_block, task_block in enumerate(block.task_blocks()):
             empty_block = False
             task_labels = set()
-            num_task_variants = 0
             variant_labels = set()
+
             empty_task = True
+            previous_variant = None
             for i_task_variant, task_variant in enumerate(task_block.task_variants()):
                 empty_task = False
                 task_labels.add(task_variant.task_label)
                 variant_labels.add(task_variant.variant_label)
-                num_task_variants += 1
+
+                # Validate this individual task variant instance
                 try:
                     task_variant.validate()
                 except Exception as e:
@@ -529,17 +537,46 @@ def validate_curriculum(curriculum: AbstractCurriculum[AbstractTaskVariant]):
                         f"task variant #{i_task_variant}.",
                         e,
                     )
+
+                # Warn once if any adjacent task variants are the same
+                if (
+                    not warned_repeat_variants
+                    and i_task_variant
+                    and task_variant.variant_label == previous_variant
+                ):
+                    warnings.warn(
+                        "Multiple task variants shared the same variant label."
+                        "Consider combining these task variants."
+                    )
+                    warned_repeat_variants = True
+                previous_variant = task_variant.variant_label
+
+                # Check that all environments use the same observation and action spaces
+                env = task_variant.info()
+                if isinstance(env, gym.vector.VectorEnv):
+                    observation_space = env.single_observation_space
+                    action_space = env.single_action_space
+                else:
+                    observation_space = env.observation_space
+                    action_space = env.action_space
+                env.close()
+                del env
+                if obs_and_act_spaces is None:
+                    obs_and_act_spaces = (observation_space, action_space)
+                else:
+                    if obs_and_act_spaces != (observation_space, action_space):
+                        raise ValueError(
+                            "All environments in a curriculum must use the same observation and action spaces."
+                        )
+
+            # Check that task blocks only contain one task
             if len(task_labels) > 1:
                 raise ValueError(
                     f"Block #{i_block}, task block #{i_task_block} had more than 1"
                     f" task label found across all task variants: {task_labels}"
                 )
-            if len(variant_labels) != num_task_variants:
-                # TODO: Isn't this valid when variants are repeated but not consecutively?
-                warnings.warn(
-                    "Multiple task variants shared the same variant label."
-                    "Consider combining these task variants."
-                )
+
+            # Check that no empty blocks are included
             if empty_task:
                 raise ValueError(
                     f"Block #{i_block}, task block #{i_task_block} is empty."

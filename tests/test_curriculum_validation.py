@@ -1,7 +1,7 @@
 import itertools
 import pytest
 import typing
-from gym.envs.classic_control import CartPoleEnv
+from gym.envs.classic_control import CartPoleEnv, MountainCarEnv
 from tella.curriculum import (
     AbstractCurriculum,
     AbstractLearnBlock,
@@ -126,18 +126,16 @@ def test_error_on_multiple_spaces():
             simple_learn_block(
                 [
                     EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
+                        CartPoleEnv,
                         num_episodes=1,
                     ),
                     EpisodicTaskVariant(
-                        lambda: gym.make("MountainCar-v0"),
+                        MountainCarEnv,
                         num_episodes=1,
                     ),
                 ]
             ),
-            simple_eval_block(
-                [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=1)]
-            ),
+            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
         ]
     )
 

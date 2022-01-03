@@ -1,7 +1,7 @@
-import sys
+import itertools
 import pytest
 import typing
-import gym
+from gym.envs.classic_control import CartPoleEnv, MountainCarEnv
 from tella.curriculum import (
     AbstractCurriculum,
     AbstractLearnBlock,
@@ -12,6 +12,7 @@ from tella.curriculum import (
     simple_eval_block,
     validate_curriculum,
     TaskBlock,
+    LearnBlock,
     validate_params,
 )
 
@@ -36,8 +37,8 @@ class TestCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
             "AbstractEvalBlock[AbstractRLTaskVariant]",
         ]
     ]:
-        for block in self.blocks:
-            yield block
+        self.blocks, blocks = itertools.tee(self.blocks, 2)
+        return blocks
 
 
 def test_correct_curriculum():
@@ -46,20 +47,18 @@ def test_correct_curriculum():
             simple_learn_block(
                 [
                     EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
+                        CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant1",
                     ),
                     EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
+                        CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant2",
                     ),
                 ]
             ),
-            simple_eval_block(
-                [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=1)]
-            ),
+            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
         ]
     )
     validate_curriculum(curriculum)
@@ -71,41 +70,81 @@ def test_simple_block_task_split():
             simple_learn_block(
                 [
                     EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
+                        CartPoleEnv,
                         num_episodes=1,
                         task_label="Task1",
                     ),
                     EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
+                        CartPoleEnv,
                         num_episodes=1,
                         task_label="Task2",
                     ),
                 ]
             ),
-            simple_eval_block(
-                [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=1)]
-            ),
+            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
         ]
     )
     validate_curriculum(curriculum)
 
 
 def test_error_on_diff_task_labels():
-    with pytest.raises(AssertionError):
-        invalid_task_block = TaskBlock(
-            [
-                EpisodicTaskVariant(
-                    lambda: gym.make("CartPole-v1"),
-                    num_episodes=1,
-                    task_label="Task1",
-                ),
-                EpisodicTaskVariant(
-                    lambda: gym.make("CartPole-v1"),
-                    num_episodes=1,
-                    task_label="Task2",
-                ),
-            ]
-        )
+    curriculum = TestCurriculum(
+        [
+            LearnBlock(
+                [
+                    TaskBlock(
+                        "Task1",
+                        [
+                            EpisodicTaskVariant(
+                                CartPoleEnv,
+                                num_episodes=1,
+                                task_label="Task1",
+                            ),
+                            EpisodicTaskVariant(
+                                CartPoleEnv,
+                                num_episodes=1,
+                                task_label="Task2",
+                            ),
+                        ],
+                    )
+                ]
+            ),
+            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
+        ]
+    )
+    with pytest.raises(ValueError) as err:
+        validate_curriculum(curriculum)
+
+    assert err.match(
+        "Block #0, task block #0 had more than 1 task label found across all task variants: "
+    )
+
+
+def test_error_on_multiple_spaces():
+    curriculum = TestCurriculum(
+        [
+            simple_learn_block(
+                [
+                    EpisodicTaskVariant(
+                        CartPoleEnv,
+                        num_episodes=1,
+                    ),
+                    EpisodicTaskVariant(
+                        MountainCarEnv,
+                        num_episodes=1,
+                    ),
+                ]
+            ),
+            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
+        ]
+    )
+
+    with pytest.raises(ValueError) as err:
+        validate_curriculum(curriculum)
+
+    assert err.match(
+        "All environments in a curriculum must use the same observation and action spaces."
+    )
 
 
 def test_warn_same_variant_labels():
@@ -114,24 +153,66 @@ def test_warn_same_variant_labels():
             simple_learn_block(
                 [
                     EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
+                        CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant1",
                     ),
                     EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
+                        CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant1",
                     ),
                 ]
             ),
-            simple_eval_block(
-                [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=1)]
-            ),
+            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
         ]
     )
     with pytest.warns(UserWarning):
         validate_curriculum(curriculum)
+
+
+def test_generator_curriculum():
+    curriculum = TestCurriculum(
+        simple_learn_block(
+            EpisodicTaskVariant(
+                CartPoleEnv,
+                num_episodes=1,
+                variant_label=variant_name,
+            )
+            for variant_name in ("Variant1", "Variant2")
+        )
+        for _ in range(3)
+    )
+    validate_curriculum(curriculum)
+    # Validate twice to check if generators were exhausted
+    validate_curriculum(curriculum)
+
+
+def test_empty_curriculum():
+    curriculum = TestCurriculum([])
+
+    with pytest.raises(ValueError) as err:
+        validate_curriculum(curriculum)
+
+    assert err.match("This curriculum is empty.")
+
+
+def test_empty_block():
+    curriculum = TestCurriculum([LearnBlock([])])
+
+    with pytest.raises(ValueError) as err:
+        validate_curriculum(curriculum)
+
+    assert err.match("Block #0 is empty.")
+
+
+def test_empty_task():
+    curriculum = TestCurriculum([LearnBlock([TaskBlock("Task1", [])])])
+
+    with pytest.raises(ValueError) as err:
+        validate_curriculum(curriculum)
+
+    assert err.match("Block #0, task block #0 is empty.")
 
 
 def test_validate_valid_params_function():

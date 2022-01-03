@@ -21,6 +21,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import abc
 import inspect
+import itertools
 import typing
 import warnings
 
@@ -215,21 +216,16 @@ class TaskBlock(AbstractTaskBlock):
     in the constructor.
     """
 
-    def __init__(self, task_variants: typing.Iterable[TaskVariantType]) -> None:
+    def __init__(
+        self, task_label: str, task_variants: typing.Iterable[TaskVariantType]
+    ) -> None:
         super().__init__()
+        self._task_label = task_label
         self._task_variants = task_variants
 
-        # Task blocks must contain only one task type
-        task_labels = {variant.task_label for variant in self._task_variants}
-        num_unique_tasks = len(task_labels)
-        assert num_unique_tasks == 1, (
-            f"Task blocks must contain only one task type; "
-            f"given {num_unique_tasks} ({task_labels})"
-        )
-        self._task_label = next(iter(self._task_variants)).task_label
-
     def task_variants(self) -> typing.Iterable[TaskVariantType]:
-        return self._task_variants
+        self._task_variants, task_variants = itertools.tee(self._task_variants, 2)
+        return task_variants
 
     @property
     def task_label(self) -> str:
@@ -247,7 +243,8 @@ class LearnBlock(AbstractLearnBlock):
         self._task_blocks = task_blocks
 
     def task_blocks(self) -> typing.Iterable["AbstractTaskBlock[TaskVariantType]"]:
-        return self._task_blocks
+        self._task_blocks, task_blocks = itertools.tee(self._task_blocks, 2)
+        return task_blocks
 
 
 class EvalBlock(AbstractEvalBlock):
@@ -261,7 +258,8 @@ class EvalBlock(AbstractEvalBlock):
         self._task_blocks = task_blocks
 
     def task_blocks(self) -> typing.Iterable["AbstractTaskBlock[TaskVariantType]"]:
-        return self._task_blocks
+        self._task_blocks, task_blocks = itertools.tee(self._task_blocks, 2)
+        return task_blocks
 
 
 def split_task_variants(
@@ -271,22 +269,12 @@ def split_task_variants(
     Divides task variants into one or more blocks of matching tasks
 
     :param task_variants: The iterable of TaskVariantType to be placed into task blocks.
-    :return: A list of one or more :class:`TaskBlock`s which contain the `task_variants` parameter.
+    :return: An iterable of one or more :class:`TaskBlock`s which contain the provided `task_variants`.
     """
-    current_task_label = None
-    task_blocks = []
-    variant_blocks = []
-    for task_variant in task_variants:
-        if task_variant.task_label == current_task_label:
-            variant_blocks.append(task_variant)
-        else:
-            if variant_blocks:
-                task_blocks.append(TaskBlock(variant_blocks))
-            variant_blocks = [task_variant]
-            current_task_label = task_variant.task_label
-    if variant_blocks:
-        task_blocks.append(TaskBlock(variant_blocks))
-    return task_blocks
+    for task_label, variants_in_block in itertools.groupby(
+        task_variants, key=lambda task: task.task_label
+    ):
+        yield TaskBlock(task_label, variants_in_block)
 
 
 def simple_learn_block(
@@ -512,35 +500,89 @@ def validate_curriculum(curriculum: AbstractCurriculum[AbstractTaskVariant]):
     Uses :meth:`AbstractTaskVariant.validate()` to check task variants.
 
     Raises a :class:`ValueError` if an invalid parameter is detected.
+    Raises a :class:`ValueError` if the curriculum contains multiple observation or action spaces.
+    Raises a :class:`ValueError` if any task block contains multiple tasks.
+    Raises a :class:`ValueError` if the curriculum, or any block, or any task block is empty.
 
     :return: None
     """
+    warned_repeat_variants = False
+    obs_and_act_spaces = None  # placeholder
+    empty_curriculum = True
     for i_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
+        empty_curriculum = False
+
+        empty_block = True
         for i_task_block, task_block in enumerate(block.task_blocks()):
+            empty_block = False
             task_labels = set()
-            num_task_variants = 0
             variant_labels = set()
+
+            empty_task = True
+            previous_variant = None
             for i_task_variant, task_variant in enumerate(task_block.task_variants()):
+                empty_task = False
                 task_labels.add(task_variant.task_label)
                 variant_labels.add(task_variant.variant_label)
-                num_task_variants += 1
+
+                # Validate this individual task variant instance
                 try:
                     task_variant.validate()
                 except Exception as e:
                     raise ValueError(
-                        f"Invalid task variant at block #{i_block}, task block #{i_task_block}, task variant #{i_task_variant}.",
+                        f"Invalid task variant at block #{i_block}, "
+                        f"task block #{i_task_block}, "
+                        f"task variant #{i_task_variant}.",
                         e,
                     )
-            if len(task_labels) != 1:
+
+                # Warn once if any adjacent task variants are the same
+                if (
+                    not warned_repeat_variants
+                    and i_task_variant
+                    and task_variant.variant_label == previous_variant
+                ):
+                    warnings.warn(
+                        "Multiple task variants shared the same variant label."
+                        "Consider combining these task variants."
+                    )
+                    warned_repeat_variants = True
+                previous_variant = task_variant.variant_label
+
+                # Check that all environments use the same observation and action spaces
+                env = task_variant.info()
+                if isinstance(env, gym.vector.VectorEnv):
+                    observation_space = env.single_observation_space
+                    action_space = env.single_action_space
+                else:
+                    observation_space = env.observation_space
+                    action_space = env.action_space
+                env.close()
+                del env
+                if obs_and_act_spaces is None:
+                    obs_and_act_spaces = (observation_space, action_space)
+                else:
+                    if obs_and_act_spaces != (observation_space, action_space):
+                        raise ValueError(
+                            "All environments in a curriculum must use the same observation and action spaces."
+                        )
+
+            # Check that task blocks only contain one task
+            if len(task_labels) > 1:
                 raise ValueError(
-                    f"Block #{i_block}, task block #{i_task_block} had more than 1 task label found across all task variants:"
-                    f"{task_labels}"
+                    f"Block #{i_block}, task block #{i_task_block} had more than 1"
+                    f" task label found across all task variants: {task_labels}"
                 )
-            if len(variant_labels) != num_task_variants:
-                warnings.warn(
-                    "Multiple task variants shared the same variant label."
-                    "Consider combining these task variants."
+
+            # Check that no empty blocks are included
+            if empty_task:
+                raise ValueError(
+                    f"Block #{i_block}, task block #{i_task_block} is empty."
                 )
+        if empty_block:
+            raise ValueError(f"Block #{i_block} is empty.")
+    if empty_curriculum:
+        raise ValueError(f"This curriculum is empty.")
 
 
 def validate_params(fn: typing.Callable, param_names: typing.List[str]) -> None:

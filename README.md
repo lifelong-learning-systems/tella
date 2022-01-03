@@ -137,7 +137,7 @@ For Developers
 ----------------
 To install tella in editable mode with our development requirements:
 ```
-pip install -e .[dev]
+pip install -e ".[dev]"
 ```
 
 To run unit tests:

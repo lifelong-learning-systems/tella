@@ -146,15 +146,19 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
                     variants_seen[task_block.task_label] = list()
 
                 for task_variant in task_block.task_variants():
-                    if task_variant.variant_label not in variants_seen[task_block.task_label]:
-                        variants_seen[task_block.task_label].append(task_variant.variant_label)
+                    if (
+                        task_variant.variant_label
+                        not in variants_seen[task_block.task_label]
+                    ):
+                        variants_seen[task_block.task_label].append(
+                            task_variant.variant_label
+                        )
                     # task_block.task_label should match task_variant.task_label, but not checked here
-                    block_experiences.append((task_block.task_label, task_variant.variant_label))
+                    block_experiences.append(
+                        (task_block.task_label, task_variant.variant_label)
+                    )
 
-            block_signatures.append((
-                block.is_learning_allowed(),
-                block_experiences
-            ))
+            block_signatures.append((block.is_learning_allowed(), block_experiences))
 
         # Then map unique tasks and variants to compact keys
         # TODO: review choice of legend keys
@@ -178,8 +182,10 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
         # And add the legend
         curriculum_summary += "\n\tLearning blocks, (Evaluation blocks)"
         for (task_label, variant_label), key in legend.items():
-            curriculum_summary += f"\n\t{legend[(task_label, variant_label)]} " \
-                                  f"= {task_label} - {variant_label}"
+            curriculum_summary += (
+                f"\n\t{legend[(task_label, variant_label)]} "
+                f"= {task_label} - {variant_label}"
+            )
 
         return curriculum_summary
 

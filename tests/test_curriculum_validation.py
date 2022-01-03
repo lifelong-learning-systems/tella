@@ -1,8 +1,7 @@
 import itertools
-import sys
 import pytest
 import typing
-import gym
+from gym.envs.classic_control import CartPoleEnv, MountainCarEnv
 from tella.curriculum import (
     AbstractCurriculum,
     AbstractLearnBlock,
@@ -48,20 +47,18 @@ def test_correct_curriculum():
             simple_learn_block(
                 [
                     EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
+                        CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant1",
                     ),
                     EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
+                        CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant2",
                     ),
                 ]
             ),
-            simple_eval_block(
-                [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=1)]
-            ),
+            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
         ]
     )
     validate_curriculum(curriculum)
@@ -73,20 +70,18 @@ def test_simple_block_task_split():
             simple_learn_block(
                 [
                     EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
+                        CartPoleEnv,
                         num_episodes=1,
                         task_label="Task1",
                     ),
                     EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
+                        CartPoleEnv,
                         num_episodes=1,
                         task_label="Task2",
                     ),
                 ]
             ),
-            simple_eval_block(
-                [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=1)]
-            ),
+            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
         ]
     )
     validate_curriculum(curriculum)
@@ -101,12 +96,12 @@ def test_error_on_diff_task_labels():
                         "Task1",
                         [
                             EpisodicTaskVariant(
-                                lambda: gym.make("CartPole-v1"),
+                                CartPoleEnv,
                                 num_episodes=1,
                                 task_label="Task1",
                             ),
                             EpisodicTaskVariant(
-                                lambda: gym.make("CartPole-v1"),
+                                CartPoleEnv,
                                 num_episodes=1,
                                 task_label="Task2",
                             ),
@@ -114,9 +109,7 @@ def test_error_on_diff_task_labels():
                     )
                 ]
             ),
-            simple_eval_block(
-                [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=1)]
-            ),
+            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
         ]
     )
     with pytest.raises(ValueError) as err:
@@ -127,26 +120,51 @@ def test_error_on_diff_task_labels():
     )
 
 
+def test_error_on_multiple_spaces():
+    curriculum = TestCurriculum(
+        [
+            simple_learn_block(
+                [
+                    EpisodicTaskVariant(
+                        CartPoleEnv,
+                        num_episodes=1,
+                    ),
+                    EpisodicTaskVariant(
+                        MountainCarEnv,
+                        num_episodes=1,
+                    ),
+                ]
+            ),
+            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
+        ]
+    )
+
+    with pytest.raises(ValueError) as err:
+        validate_curriculum(curriculum)
+
+    assert err.match(
+        "All environments in a curriculum must use the same observation and action spaces."
+    )
+
+
 def test_warn_same_variant_labels():
     curriculum = TestCurriculum(
         [
             simple_learn_block(
                 [
                     EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
+                        CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant1",
                     ),
                     EpisodicTaskVariant(
-                        lambda: gym.make("CartPole-v1"),
+                        CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant1",
                     ),
                 ]
             ),
-            simple_eval_block(
-                [EpisodicTaskVariant(lambda: gym.make("CartPole-v1"), num_episodes=1)]
-            ),
+            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
         ]
     )
     with pytest.warns(UserWarning):
@@ -157,7 +175,7 @@ def test_generator_curriculum():
     curriculum = TestCurriculum(
         simple_learn_block(
             EpisodicTaskVariant(
-                lambda: gym.make("CartPole-v1"),
+                CartPoleEnv,
                 num_episodes=1,
                 variant_label=variant_name,
             )

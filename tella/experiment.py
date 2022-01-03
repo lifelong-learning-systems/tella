@@ -174,7 +174,7 @@ def run(
     data_logger = l2logger.DataLogger("logs", scenario_dir, logger_info, scenario_info)
     total_episodes = 0
     for i_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
-        is_learning_allowed = agent.is_learning_allowed = block.is_learning_allowed()
+        is_learning_allowed = agent.is_learning_allowed = block.is_learning_allowed
         agent.block_start(is_learning_allowed)
         for task_block in block.task_blocks():
             agent.task_start(task_block.task_label)
@@ -197,4 +197,4 @@ def run(
                 )
                 total_episodes += task_variant.total_episodes
             agent.task_end(task_block.task_label)
-        agent.block_end(block.is_learning_allowed())
+        agent.block_end(block.is_learning_allowed)

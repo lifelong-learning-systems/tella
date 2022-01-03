@@ -58,9 +58,7 @@ def test_correct_curriculum():
                     ),
                 ]
             ),
-            simple_eval_block(
-                [EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]
-            ),
+            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
         ]
     )
     validate_curriculum(curriculum)
@@ -83,9 +81,7 @@ def test_simple_block_task_split():
                     ),
                 ]
             ),
-            simple_eval_block(
-                [EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]
-            ),
+            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
         ]
     )
     validate_curriculum(curriculum)
@@ -113,9 +109,7 @@ def test_error_on_diff_task_labels():
                     )
                 ]
             ),
-            simple_eval_block(
-                [EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]
-            ),
+            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
         ]
     )
     with pytest.raises(ValueError) as err:
@@ -143,9 +137,7 @@ def test_warn_same_variant_labels():
                     ),
                 ]
             ),
-            simple_eval_block(
-                [EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]
-            ),
+            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
         ]
     )
     with pytest.warns(UserWarning):

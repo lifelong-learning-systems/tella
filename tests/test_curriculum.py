@@ -107,4 +107,4 @@ def test_curriculum_summary():
         "\n\t\t\tTask variant 2, CartPoleEnv - Variant2: 1 episode."
     )
 
-    assert(summarize_curriculum(curriculum) == expected_summary)
+    assert summarize_curriculum(curriculum) == expected_summary

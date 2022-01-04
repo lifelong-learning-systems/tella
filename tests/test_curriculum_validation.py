@@ -64,29 +64,6 @@ def test_correct_curriculum():
     validate_curriculum(curriculum)
 
 
-def test_simple_block_task_split():
-    curriculum = TestCurriculum(
-        [
-            simple_learn_block(
-                [
-                    EpisodicTaskVariant(
-                        CartPoleEnv,
-                        num_episodes=1,
-                        task_label="Task1",
-                    ),
-                    EpisodicTaskVariant(
-                        CartPoleEnv,
-                        num_episodes=1,
-                        task_label="Task2",
-                    ),
-                ]
-            ),
-            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
-        ]
-    )
-    validate_curriculum(curriculum)
-
-
 def test_error_on_diff_task_labels():
     curriculum = TestCurriculum(
         [
@@ -169,23 +146,6 @@ def test_warn_same_variant_labels():
     )
     with pytest.warns(UserWarning):
         validate_curriculum(curriculum)
-
-
-def test_generator_curriculum():
-    curriculum = TestCurriculum(
-        simple_learn_block(
-            EpisodicTaskVariant(
-                CartPoleEnv,
-                num_episodes=1,
-                variant_label=variant_name,
-            )
-            for variant_name in ("Variant1", "Variant2")
-        )
-        for _ in range(3)
-    )
-    validate_curriculum(curriculum)
-    # Validate twice to check if generators were exhausted
-    validate_curriculum(curriculum)
 
 
 def test_empty_curriculum():

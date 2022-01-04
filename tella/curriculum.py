@@ -503,6 +503,7 @@ def summarize_curriculum(curriculum: AbstractCurriculum[AbstractTaskVariant]) ->
 
     # TODO: once curriculums have RNG seeded, this should record and reset the seed so that using
     #  this function (say, for logging) doesn't affect experiments
+    #  https://github.com/darpa-l2m/tella/issues/138
 
     def maybe_plural(num: int, label: str):
         return f"{num} {label}" + ("" if num == 1 else "s")

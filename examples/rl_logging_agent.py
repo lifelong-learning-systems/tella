@@ -80,6 +80,10 @@ class LoggingAgent(tella.ContinualRLAgent):
         else:
             logger.info("Done with evaluation block")
 
+    def set_rng_seed(self, seed: int) -> None:
+        logger.info(f"RNG seed set to ({seed})")
+        self.action_space.seed(seed)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

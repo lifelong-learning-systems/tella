@@ -1,6 +1,6 @@
 import itertools
 import typing
-from gym.envs.classic_control import CartPoleEnv
+from gym.envs.classic_control import CartPoleEnv, MountainCarEnv
 from tella.curriculum import (
     AbstractCurriculum,
     AbstractLearnBlock,
@@ -80,31 +80,39 @@ def test_generator_curriculum():
 
 def test_curriculum_summary():
     curriculum = TestCurriculum(
-        simple_learn_block(
-            EpisodicTaskVariant(
-                CartPoleEnv,
-                num_episodes=1,
-                variant_label=variant_name,
-            )
-            for variant_name in ("Variant1", "Variant2")
-        )
-        for _ in range(3)
+        [
+            simple_learn_block(
+                [
+                    EpisodicTaskVariant(
+                        CartPoleEnv,
+                        num_episodes=1,
+                    ),
+                    EpisodicTaskVariant(
+                        CartPoleEnv,
+                        num_episodes=1,
+                        variant_label="Variant",
+                    ),
+                    EpisodicTaskVariant(
+                        MountainCarEnv,
+                        num_episodes=1,
+                    ),
+                ]
+            ),
+            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
+        ]
     )
 
     expected_summary = (
-        "This curriculum has 3 blocks"
-        "\n\n\tBlock 1, learning: 1 task"
+        "This curriculum has 2 blocks"
+        "\n\n\tBlock 1, learning: 2 tasks"
         "\n\t\tTask 1, CartPoleEnv: 2 variants"
-        "\n\t\t\tTask variant 1, CartPoleEnv - Variant1: 1 episode."
-        "\n\t\t\tTask variant 2, CartPoleEnv - Variant2: 1 episode."
-        "\n\n\tBlock 2, learning: 1 task"
-        "\n\t\tTask 1, CartPoleEnv: 2 variants"
-        "\n\t\t\tTask variant 1, CartPoleEnv - Variant1: 1 episode."
-        "\n\t\t\tTask variant 2, CartPoleEnv - Variant2: 1 episode."
-        "\n\n\tBlock 3, learning: 1 task"
-        "\n\t\tTask 1, CartPoleEnv: 2 variants"
-        "\n\t\t\tTask variant 1, CartPoleEnv - Variant1: 1 episode."
-        "\n\t\t\tTask variant 2, CartPoleEnv - Variant2: 1 episode."
+        "\n\t\t\tTask variant 1, CartPoleEnv - Default: 1 episode."
+        "\n\t\t\tTask variant 2, CartPoleEnv - Variant: 1 episode."
+        "\n\t\tTask 2, MountainCarEnv: 1 variant"
+        "\n\t\t\tTask variant 1, MountainCarEnv - Default: 1 episode."
+        "\n\n\tBlock 2, evaluation: 1 task"
+        "\n\t\tTask 1, CartPoleEnv: 1 variant"
+        "\n\t\t\tTask variant 1, CartPoleEnv - Default: 1 episode."
     )
 
     assert summarize_curriculum(curriculum) == expected_summary

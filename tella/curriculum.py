@@ -194,7 +194,7 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
         rng_seed: int,
     ) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
         """
-        :param rng_seed: An optional seed integer to be used in setting random number generators.
+        :param rng_seed: A seed integer to be used in setting random number generators.
         :return: An iterable of :class:`LearnBlock`.
         """
 

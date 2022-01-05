@@ -10,13 +10,13 @@ from random_env import *
 
 
 class ExampleDispersed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
-    def __init__(self, num_repetitions: int, seed: int):
+    def __init__(self, num_repetitions: int):
         super().__init__()
-        self.rng = np.random.default_rng(seed)
         self.num_repetitions = num_repetitions
 
     def learn_blocks(
         self,
+        rng_seed: typing.Optional[int] = None,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
         task_variants = [
             EpisodicTaskVariant(Task1VariantA, num_episodes=10),
@@ -28,13 +28,17 @@ class ExampleDispersed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
             EpisodicTaskVariant(Task3Variant2, num_episodes=10, params={"c": 0.3}),
             EpisodicTaskVariant(Task4, num_episodes=10, params={"d": 0.4}),
         ]
+        rng = np.random.default_rng(rng_seed)
         for i_repetition in range(self.num_repetitions):
-            self.rng.shuffle(task_variants)
+            rng.shuffle(task_variants)
             for task_variant in task_variants:
                 # NOTE: only 1 experience in the learn block
                 yield simple_learn_block([task_variant])
 
-    def eval_block(self) -> AbstractEvalBlock[AbstractRLTaskVariant]:
+    def eval_block(
+        self,
+        rng_seed: typing.Optional[int] = None,
+    ) -> AbstractEvalBlock[AbstractRLTaskVariant]:
         return simple_eval_block(
             [
                 EpisodicTaskVariant(Task1VariantA, num_episodes=1),
@@ -50,10 +54,11 @@ class ExampleDispersed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
 
 
 if __name__ == "__main__":
-    curriculum = ExampleDispersed(num_repetitions=2, seed=0)
-    for i, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
+    curriculum = ExampleDispersed(num_repetitions=2)
+    for i, block in enumerate(curriculum.learn_blocks_and_eval_blocks(rng_seed=0)):
         for task_block in block.task_blocks():
             for task_variant in task_block.task_variants():
                 print(
-                    f"Block {i}, learning_allowed={block.is_learning_allowed}, task_variant={task_variant}, info={task_variant.info()}"
+                    f"Block {i}, learning_allowed={block.is_learning_allowed}, "
+                    f"task_variant={task_variant}, info={task_variant.info()}"
                 )

@@ -107,12 +107,14 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
     @abc.abstractmethod
     def learn_blocks_and_eval_blocks(
         self,
+        rng_seed: typing.Optional[int] = None,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[TaskVariantType]", "AbstractEvalBlock[TaskVariantType]"
         ]
     ]:
         """
+        :param rng_seed: An optional seed integer to be used in setting random number generators.
         :return: An Iterable of Learn Blocks and Eval Blocks.
         """
 
@@ -186,14 +188,22 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
     """
 
     @abc.abstractmethod
-    def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
+    def learn_blocks(
+        self,
+        rng_seed: typing.Optional[int] = None,
+    ) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
         """
+        :param rng_seed: An optional seed integer to be used in setting random number generators.
         :return: An iterable of :class:`LearnBlock`.
         """
 
     @abc.abstractmethod
-    def eval_block(self) -> AbstractEvalBlock[TaskVariantType]:
+    def eval_block(
+        self,
+        rng_seed: typing.Optional[int] = None,
+    ) -> AbstractEvalBlock[TaskVariantType]:
         """
+        :param rng_seed: An optional seed integer to be used in setting random number generators.
         :return: The single :class:`EvalBlock` to interleave between each
             individual :class:`LearnBlock` returned from
             :meth:`InterleavedEvalCurriculum.learn_blocks`.
@@ -201,15 +211,16 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
 
     def learn_blocks_and_eval_blocks(
         self,
+        rng_seed: typing.Optional[int] = None,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[TaskVariantType]", "AbstractEvalBlock[TaskVariantType]"
         ]
     ]:
-        yield self.eval_block()
-        for block in self.learn_blocks():
+        yield self.eval_block(rng_seed=rng_seed)
+        for block in self.learn_blocks(rng_seed=rng_seed):
             yield block
-            yield self.eval_block()
+            yield self.eval_block(rng_seed=rng_seed)
 
 
 class TaskBlock(AbstractTaskBlock):

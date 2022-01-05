@@ -1,5 +1,6 @@
 import itertools
 import typing
+import numpy as np
 from gym.envs.classic_control import CartPoleEnv, MountainCarEnv
 from tella.curriculum import (
     AbstractCurriculum,
@@ -117,3 +118,69 @@ def test_curriculum_summary():
     )
 
     assert summarize_curriculum(curriculum) == expected_summary
+
+
+class ShuffledCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
+    def learn_blocks_and_eval_blocks(
+        self,
+        rng_seed: typing.Optional[int] = None,
+    ) -> typing.Iterable[
+        typing.Union[
+            "AbstractLearnBlock[AbstractRLTaskVariant]",
+            "AbstractEvalBlock[AbstractRLTaskVariant]",
+        ]
+    ]:
+        rng = np.random.default_rng(rng_seed)
+        for n in rng.permutation(100):
+            yield simple_learn_block(
+                [
+                    EpisodicTaskVariant(
+                        CartPoleEnv, num_episodes=1, task_label=f"Task{n}"
+                    )
+                ]
+            )
+        yield simple_eval_block(
+            [EpisodicTaskVariant(CartPoleEnv, num_episodes=1, task_label=f"Task0")]
+        )
+
+
+def test_curriculum_no_rng_seed():
+    curriculum = ShuffledCurriculum()
+
+    first_call_tasks = [
+        (variant.task_label, variant.variant_label)
+        for block in curriculum.learn_blocks_and_eval_blocks()
+        for task in block.task_blocks()
+        for variant in task.task_variants()
+    ]
+
+    second_call_tasks = [
+        (variant.task_label, variant.variant_label)
+        for block in curriculum.learn_blocks_and_eval_blocks()
+        for task in block.task_blocks()
+        for variant in task.task_variants()
+    ]
+
+    assert first_call_tasks != second_call_tasks
+    # In theory these could randomly result in the same order, failing the test. The probability
+    #   of this is made negligible by giving ShuffledCurriculum 100 tasks (p = 1 / 100! = 1e-158).
+
+
+def test_curriculum_rng_seed():
+    curriculum = ShuffledCurriculum()
+
+    first_call_tasks = [
+        (variant.task_label, variant.variant_label)
+        for block in curriculum.learn_blocks_and_eval_blocks(rng_seed=0)
+        for task in block.task_blocks()
+        for variant in task.task_variants()
+    ]
+
+    second_call_tasks = [
+        (variant.task_label, variant.variant_label)
+        for block in curriculum.learn_blocks_and_eval_blocks(rng_seed=0)
+        for task in block.task_blocks()
+        for variant in task.task_variants()
+    ]
+
+    assert first_call_tasks == second_call_tasks

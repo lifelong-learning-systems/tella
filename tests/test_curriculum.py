@@ -137,9 +137,7 @@ class ShuffledCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
             yield simple_learn_block(
                 [
                     EpisodicTaskVariant(
-                        CartPoleEnv,
-                        num_episodes=1,
-                        task_label=f"Task{n}"
+                        CartPoleEnv, num_episodes=1, task_label=f"Task{n}"
                     )
                 ]
             )
@@ -205,9 +203,7 @@ class ShuffledInterleavedCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVari
             yield simple_learn_block(
                 [
                     EpisodicTaskVariant(
-                        CartPoleEnv,
-                        num_episodes=1,
-                        task_label=f"Task{n}"
+                        CartPoleEnv, num_episodes=1, task_label=f"Task{n}"
                     )
                 ]
             )
@@ -219,11 +215,7 @@ class ShuffledInterleavedCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVari
         rng = np.random.default_rng(rng_seed)
         return simple_eval_block(
             [
-                EpisodicTaskVariant(
-                    CartPoleEnv,
-                    num_episodes=1,
-                    task_label=f"Task{n}"
-                )
+                EpisodicTaskVariant(CartPoleEnv, num_episodes=1, task_label=f"Task{n}")
                 for n in rng.permutation(10)
             ]
         )

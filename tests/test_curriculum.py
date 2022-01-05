@@ -28,6 +28,7 @@ class TestCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
 
     def learn_blocks_and_eval_blocks(
         self,
+        rng_seed: typing.Optional[int] = None,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[AbstractRLTaskVariant]",

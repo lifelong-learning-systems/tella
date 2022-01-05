@@ -31,6 +31,7 @@ class _CartPoleV0(TimeLimit):
 class SimpleCartPoleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
     def learn_blocks_and_eval_blocks(
         self,
+        rng_seed: typing.Optional[int] = None,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[AbstractRLTaskVariant]",
@@ -62,6 +63,7 @@ class SimpleCartPoleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
 class CartPole1000Curriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
     def learn_blocks(
         self,
+        rng_seed: typing.Optional[int] = None,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[AbstractRLTaskVariant]",
@@ -80,7 +82,10 @@ class CartPole1000Curriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
                 ]
             )
 
-    def eval_block(self) -> AbstractEvalBlock[AbstractRLTaskVariant]:
+    def eval_block(
+        self,
+        rng_seed: typing.Optional[int] = None,
+    ) -> AbstractEvalBlock[AbstractRLTaskVariant]:
         return simple_eval_block(
             [
                 EpisodicTaskVariant(

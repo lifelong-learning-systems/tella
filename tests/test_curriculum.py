@@ -31,7 +31,7 @@ class TestCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
 
     def learn_blocks_and_eval_blocks(
         self,
-        rng_seed: typing.Optional[int] = None,
+        rng_seed: int,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[AbstractRLTaskVariant]",
@@ -62,7 +62,7 @@ def test_simple_block_task_split():
             simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
         ]
     )
-    validate_curriculum(curriculum)
+    validate_curriculum(curriculum, rng_seed=0)
 
 
 def test_generator_curriculum():
@@ -77,9 +77,9 @@ def test_generator_curriculum():
         )
         for _ in range(3)
     )
-    validate_curriculum(curriculum)
+    validate_curriculum(curriculum, rng_seed=0)
     # Validate twice to check if generators were exhausted
-    validate_curriculum(curriculum)
+    validate_curriculum(curriculum, rng_seed=0)
 
 
 def test_curriculum_summary():
@@ -119,13 +119,13 @@ def test_curriculum_summary():
         "\n\t\t\tTask variant 1, CartPoleEnv - Default: 1 episode."
     )
 
-    assert summarize_curriculum(curriculum) == expected_summary
+    assert summarize_curriculum(curriculum, rng_seed=0) == expected_summary
 
 
 class ShuffledCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
     def learn_blocks_and_eval_blocks(
         self,
-        rng_seed: typing.Optional[int] = None,
+        rng_seed: int,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[AbstractRLTaskVariant]",
@@ -146,19 +146,19 @@ class ShuffledCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
         )
 
 
-def test_curriculum_no_rng_seed():
+def test_curriculum_diff_rng_seed():
     curriculum = ShuffledCurriculum()
 
     first_call_tasks = [
         (variant.task_label, variant.variant_label)
-        for block in curriculum.learn_blocks_and_eval_blocks()
+        for block in curriculum.learn_blocks_and_eval_blocks(rng_seed=111111)
         for task in block.task_blocks()
         for variant in task.task_variants()
     ]
 
     second_call_tasks = [
         (variant.task_label, variant.variant_label)
-        for block in curriculum.learn_blocks_and_eval_blocks()
+        for block in curriculum.learn_blocks_and_eval_blocks(rng_seed=222222)
         for task in block.task_blocks()
         for variant in task.task_variants()
     ]
@@ -191,7 +191,7 @@ def test_curriculum_rng_seed():
 class ShuffledInterleavedCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
     def learn_blocks(
         self,
-        rng_seed: typing.Optional[int] = None,
+        rng_seed: int,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[AbstractRLTaskVariant]",
@@ -210,7 +210,7 @@ class ShuffledInterleavedCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVari
 
     def eval_block(
         self,
-        rng_seed: typing.Optional[int] = None,
+        rng_seed: int,
     ) -> AbstractEvalBlock[TaskVariantType]:
         rng = np.random.default_rng(rng_seed)
         return simple_eval_block(

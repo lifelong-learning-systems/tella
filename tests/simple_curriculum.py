@@ -8,7 +8,7 @@ from tella.curriculum import simple_learn_block, simple_eval_block
 class SimpleRLCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
     def learn_blocks_and_eval_blocks(
         self,
-        rng_seed: typing.Optional[int] = None,
+        rng_seed: int,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[AbstractRLTaskVariant]",

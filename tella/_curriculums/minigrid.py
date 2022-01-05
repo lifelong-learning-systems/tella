@@ -68,7 +68,7 @@ TASKS = [
 class SimpleMiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
     def learn_blocks(
         self,
-        rng_seed: typing.Optional[int] = None,
+        rng_seed: int,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
         rng = np.random.default_rng(rng_seed)
         for cls, task_label, variant_label in rng.permutation(TASKS):
@@ -90,7 +90,7 @@ class SimpleMiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant])
 
     def eval_block(
         self,
-        rng_seed: typing.Optional[int] = None,
+        rng_seed: int,
     ) -> AbstractEvalBlock[AbstractRLTaskVariant]:
         rng = np.random.default_rng(rng_seed)
         return simple_eval_block(

@@ -108,7 +108,7 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
     @abc.abstractmethod
     def learn_blocks_and_eval_blocks(
         self,
-        rng_seed: typing.Optional[int] = None,
+        rng_seed: int,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[TaskVariantType]", "AbstractEvalBlock[TaskVariantType]"
@@ -191,7 +191,7 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
     @abc.abstractmethod
     def learn_blocks(
         self,
-        rng_seed: typing.Optional[int] = None,
+        rng_seed: int,
     ) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
         """
         :param rng_seed: An optional seed integer to be used in setting random number generators.
@@ -201,7 +201,7 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
     @abc.abstractmethod
     def eval_block(
         self,
-        rng_seed: typing.Optional[int] = None,
+        rng_seed: int,
     ) -> AbstractEvalBlock[TaskVariantType]:
         """
         :param rng_seed: An optional seed integer to be used in setting random number generators.
@@ -212,7 +212,7 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
 
     def learn_blocks_and_eval_blocks(
         self,
-        rng_seed: typing.Optional[int] = None,
+        rng_seed: int,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[TaskVariantType]", "AbstractEvalBlock[TaskVariantType]"
@@ -509,22 +509,23 @@ def _where(
     ]
 
 
-def summarize_curriculum(curriculum: AbstractCurriculum[AbstractTaskVariant]) -> str:
+def summarize_curriculum(
+    curriculum: AbstractCurriculum[AbstractTaskVariant],
+    rng_seed: int,
+) -> str:
     """
     Generate a detailed string summarizing the contents of the curriculum.
 
     :return: A string that would print as a formatted outline of this curriculum's contents.
     """
 
-    # TODO: once curriculums have RNG seeded, this should record and reset the seed so that using
-    #  this function (say, for logging) doesn't affect experiments
-    #  https://github.com/darpa-l2m/tella/issues/138
-
     def maybe_plural(num: int, label: str):
         return f"{num} {label}" + ("" if num == 1 else "s")
 
     block_summaries = []
-    for i_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
+    for i_block, block in enumerate(
+        curriculum.learn_blocks_and_eval_blocks(rng_seed=rng_seed)
+    ):
 
         task_summaries = []
         for i_task, task_block in enumerate(block.task_blocks()):
@@ -559,7 +560,10 @@ def summarize_curriculum(curriculum: AbstractCurriculum[AbstractTaskVariant]) ->
     return curriculum_summary
 
 
-def validate_curriculum(curriculum: AbstractCurriculum[AbstractTaskVariant]):
+def validate_curriculum(
+    curriculum: AbstractCurriculum[AbstractTaskVariant],
+    rng_seed: int,
+):
     """
     Helper function to do a partial check that task variants are specified
     correctly in all of the blocks of the `curriculum`.
@@ -576,7 +580,9 @@ def validate_curriculum(curriculum: AbstractCurriculum[AbstractTaskVariant]):
     warned_repeat_variants = False
     obs_and_act_spaces = None  # placeholder
     empty_curriculum = True
-    for i_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
+    for i_block, block in enumerate(
+        curriculum.learn_blocks_and_eval_blocks(rng_seed=rng_seed)
+    ):
         empty_curriculum = False
 
         empty_block = True

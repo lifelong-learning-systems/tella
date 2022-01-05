@@ -50,7 +50,7 @@ class ContinualSupervisedLearningAgent(ContinualLearningAgent[TorchVisionTaskVar
 class ExampleCurriculum(AbstractCurriculum[TorchVisionTaskVariant]):
     def learn_blocks_and_eval_blocks(
         self,
-        rng_seed: typing.Optional[int] = None,
+        rng_seed: int,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[TaskVariantType]", "AbstractEvalBlock[TaskVariantType]"

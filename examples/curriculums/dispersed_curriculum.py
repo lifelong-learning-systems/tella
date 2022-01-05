@@ -16,7 +16,7 @@ class ExampleDispersed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
 
     def learn_blocks(
         self,
-        rng_seed: typing.Optional[int] = None,
+        rng_seed: int,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
         task_variants = [
             EpisodicTaskVariant(Task1VariantA, num_episodes=10),
@@ -37,7 +37,7 @@ class ExampleDispersed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
 
     def eval_block(
         self,
-        rng_seed: typing.Optional[int] = None,
+        rng_seed: int,
     ) -> AbstractEvalBlock[AbstractRLTaskVariant]:
         return simple_eval_block(
             [

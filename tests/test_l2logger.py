@@ -1,6 +1,9 @@
+import argparse
+from unittest.mock import patch
 import typing
 import csv
 from tella.experiment import rl_experiment
+from l2logger.validate import run
 from .simple_agent import SimpleRLAgent
 from .simple_curriculum import SimpleRLCurriculum
 
@@ -30,6 +33,18 @@ def test_l2logger_directory_structure(tmpdir):
     block_1_dir = worker_dir.join("1-test")
     assert len(block_1_dir.listdir()) == 1
     assert block_1_dir.join("data-log.tsv").check()
+
+
+def test_l2logger_validation(tmpdir):
+    tmpdir.chdir()
+
+    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs")
+
+    with patch(
+        "argparse.ArgumentParser.parse_args",
+        return_value=argparse.Namespace(log_dir=tmpdir.join("logs").listdir()[0]),
+    ):
+        run()
 
 
 def test_l2logger_tsv_contents(tmpdir):

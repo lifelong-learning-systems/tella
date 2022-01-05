@@ -204,7 +204,7 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
         rng_seed: int,
     ) -> AbstractEvalBlock[TaskVariantType]:
         """
-        :param rng_seed: An optional seed integer to be used in setting random number generators.
+        :param rng_seed: A seed integer to be used in setting random number generators.
         :return: The single :class:`EvalBlock` to interleave between each
             individual :class:`LearnBlock` returned from
             :meth:`InterleavedEvalCurriculum.learn_blocks`.

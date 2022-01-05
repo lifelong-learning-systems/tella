@@ -115,7 +115,7 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
         ]
     ]:
         """
-        :param rng_seed: An optional seed integer to be used in setting random number generators.
+        :param rng_seed: A seed integer to be used in setting random number generators.
         :return: An Iterable of Learn Blocks and Eval Blocks.
         """
 

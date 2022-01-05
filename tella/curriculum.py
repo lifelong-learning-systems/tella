@@ -123,6 +123,7 @@ class AbstractLearnBlock(abc.ABC, typing.Generic[TaskVariantType]):
     data can be used for learning.
     """
 
+    @property
     def is_learning_allowed(self) -> bool:
         return True
 
@@ -139,6 +140,7 @@ class AbstractEvalBlock(abc.ABC, typing.Generic[TaskVariantType]):
     data can NOT be used for learning.
     """
 
+    @property
     def is_learning_allowed(self) -> bool:
         return False
 
@@ -490,6 +492,56 @@ def _where(
         replace_value if condition[i] else original_list[i]
         for i in range(len(condition))
     ]
+
+
+def summarize_curriculum(curriculum: AbstractCurriculum[AbstractTaskVariant]) -> str:
+    """
+    Generate a detailed string summarizing the contents of the curriculum.
+
+    :return: A string that would print as a formatted outline of this curriculum's contents.
+    """
+
+    # TODO: once curriculums have RNG seeded, this should record and reset the seed so that using
+    #  this function (say, for logging) doesn't affect experiments
+    #  https://github.com/darpa-l2m/tella/issues/138
+
+    def maybe_plural(num: int, label: str):
+        return f"{num} {label}" + ("" if num == 1 else "s")
+
+    block_summaries = []
+    for i_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
+
+        task_summaries = []
+        for i_task, task_block in enumerate(block.task_blocks()):
+
+            variant_summaries = []
+            for i_variant, task_variant in enumerate(task_block.task_variants()):
+                variant_summary = (
+                    f"\n\t\t\tTask variant {i_variant+1}, "
+                    f"{task_variant.task_label} - {task_variant.variant_label}: "
+                    f"{maybe_plural(task_variant.total_episodes, 'episode')}."
+                )
+                variant_summaries.append(variant_summary)
+
+            task_summary = (
+                f"\n\t\tTask {i_task+1}, {task_block.task_label}: "
+                f"{maybe_plural(len(variant_summaries), 'variant')}"
+            )
+            task_summaries.append(task_summary + "".join(variant_summaries))
+
+        block_summary = (
+            f"\n\n\tBlock {i_block+1}, "
+            f"{'learning' if block.is_learning_allowed else 'evaluation'}: "
+            f"{maybe_plural(len(task_summaries), 'task')}"
+        )
+        block_summaries.append(block_summary + "".join(task_summaries))
+
+    curriculum_summary = (
+        f"This curriculum has {maybe_plural(len(block_summaries), 'block')}"
+        + "".join(block_summaries)
+    )
+
+    return curriculum_summary
 
 
 def validate_curriculum(curriculum: AbstractCurriculum[AbstractTaskVariant]):

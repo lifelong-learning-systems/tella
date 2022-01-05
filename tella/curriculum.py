@@ -22,6 +22,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import abc
 import inspect
 import itertools
+import random
 import typing
 import warnings
 
@@ -217,10 +218,13 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
             "AbstractLearnBlock[TaskVariantType]", "AbstractEvalBlock[TaskVariantType]"
         ]
     ]:
-        yield self.eval_block(rng_seed=rng_seed)
-        for block in self.learn_blocks(rng_seed=rng_seed):
+        # Create an internal RNG to generate unique but repeatable rng_seed arguments for the following methods
+        rng = random.Random(rng_seed)
+
+        yield self.eval_block(rng_seed=rng.getrandbits(32))
+        for block in self.learn_blocks(rng_seed=rng.getrandbits(32)):
             yield block
-            yield self.eval_block(rng_seed=rng_seed)
+            yield self.eval_block(rng_seed=rng.getrandbits(32))
 
 
 class TaskBlock(AbstractTaskBlock):

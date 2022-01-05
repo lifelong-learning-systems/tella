@@ -4,10 +4,12 @@ import numpy as np
 from gym.envs.classic_control import CartPoleEnv, MountainCarEnv
 from tella.curriculum import (
     AbstractCurriculum,
+    InterleavedEvalCurriculum,
     AbstractLearnBlock,
     AbstractEvalBlock,
     AbstractRLTaskVariant,
     EpisodicTaskVariant,
+    TaskVariantType,
     simple_learn_block,
     simple_eval_block,
     validate_curriculum,
@@ -135,12 +137,14 @@ class ShuffledCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
             yield simple_learn_block(
                 [
                     EpisodicTaskVariant(
-                        CartPoleEnv, num_episodes=1, task_label=f"Task{n}"
+                        CartPoleEnv,
+                        num_episodes=1,
+                        task_label=f"Task{n}"
                     )
                 ]
             )
         yield simple_eval_block(
-            [EpisodicTaskVariant(CartPoleEnv, num_episodes=1, task_label=f"Task0")]
+            [EpisodicTaskVariant(CartPoleEnv, num_episodes=1, task_label="Task0")]
         )
 
 
@@ -168,6 +172,65 @@ def test_curriculum_no_rng_seed():
 
 def test_curriculum_rng_seed():
     curriculum = ShuffledCurriculum()
+
+    first_call_tasks = [
+        (variant.task_label, variant.variant_label)
+        for block in curriculum.learn_blocks_and_eval_blocks(rng_seed=0)
+        for task in block.task_blocks()
+        for variant in task.task_variants()
+    ]
+
+    second_call_tasks = [
+        (variant.task_label, variant.variant_label)
+        for block in curriculum.learn_blocks_and_eval_blocks(rng_seed=0)
+        for task in block.task_blocks()
+        for variant in task.task_variants()
+    ]
+
+    assert first_call_tasks == second_call_tasks
+
+
+class ShuffledInterleavedCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
+    def learn_blocks(
+        self,
+        rng_seed: typing.Optional[int] = None,
+    ) -> typing.Iterable[
+        typing.Union[
+            "AbstractLearnBlock[AbstractRLTaskVariant]",
+            "AbstractEvalBlock[AbstractRLTaskVariant]",
+        ]
+    ]:
+        rng = np.random.default_rng(rng_seed)
+        for n in rng.permutation(10):
+            yield simple_learn_block(
+                [
+                    EpisodicTaskVariant(
+                        CartPoleEnv,
+                        num_episodes=1,
+                        task_label=f"Task{n}"
+                    )
+                ]
+            )
+
+    def eval_block(
+        self,
+        rng_seed: typing.Optional[int] = None,
+    ) -> AbstractEvalBlock[TaskVariantType]:
+        rng = np.random.default_rng(rng_seed)
+        return simple_eval_block(
+            [
+                EpisodicTaskVariant(
+                    CartPoleEnv,
+                    num_episodes=1,
+                    task_label=f"Task{n}"
+                )
+                for n in rng.permutation(10)
+            ]
+        )
+
+
+def test_interleaved_rng_seed():
+    curriculum = ShuffledInterleavedCurriculum()
 
     first_call_tasks = [
         (variant.task_label, variant.variant_label)

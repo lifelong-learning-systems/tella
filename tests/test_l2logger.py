@@ -1,9 +1,9 @@
-import os
 import argparse
 from unittest.mock import patch
 import typing
 import csv
 from tella.experiment import rl_experiment
+from l2logger.validate import run
 from .simple_agent import SimpleRLAgent
 from .simple_curriculum import SimpleRLCurriculum
 
@@ -39,8 +39,6 @@ def test_l2logger_validation(tmpdir):
     tmpdir.chdir()
 
     rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs")
-
-    from l2logger.validate import run
 
     with patch(
         "argparse.ArgumentParser.parse_args",

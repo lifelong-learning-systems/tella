@@ -30,5 +30,5 @@ class DynamicObstaclesRandomEnv8x8(DynamicObstaclesEnv):
 
 register(
     id='MiniGrid-Dynamic-Obstacles-Random-8x8-v0',
-    entry_point='tella_minigrid.envs:DynamicObstaclesRandomEnv8x8'
+    entry_point='tella._curriculums.minigrid.envs:DynamicObstaclesRandomEnv8x8'
 )

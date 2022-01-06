@@ -139,15 +139,15 @@ class CustomFetchEnv16x16T2N4(CustomFetchEnv):
 
 register(
     id='MiniGrid-CustomFetch-5x5-T1N2-v0',
-    entry_point='tella_minigrid.envs:CustomFetchEnv5x5T1N2'
+    entry_point='tella._curriculums.minigrid.envs:CustomFetchEnv5x5T1N2'
 )
 
 register(
     id='MiniGrid-CustomFetch-8x8-T1N2-v0',
-    entry_point='tella_minigrid.envs:CustomFetchEnv8x8T1N2'
+    entry_point='tella._curriculums.minigrid.envs:CustomFetchEnv8x8T1N2'
 )
 
 register(
     id='MiniGrid-CustomFetch-16x16-T2N4-v0',
-    entry_point='tella_minigrid.envs:CustomFetchEnv16x16T2N4'
+    entry_point='tella._curriculums.minigrid.envs:CustomFetchEnv16x16T2N4'
 )

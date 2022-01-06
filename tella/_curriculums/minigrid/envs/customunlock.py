@@ -93,30 +93,30 @@ class CustomUnlock16x16(CustomUnlock):
 
 register(
     id='MiniGrid-CustomUnlock-5x5-v0',
-    entry_point='tella_minigrid.envs:CustomUnlock5x5'
+    entry_point='tella._curriculums.minigrid.envs:CustomUnlock5x5'
 )
 
 register(
     id='MiniGrid-CustomUnlock-7x7-v0',
-    entry_point='tella_minigrid.envs:CustomUnlock7x7'
+    entry_point='tella._curriculums.minigrid.envs:CustomUnlock7x7'
 )
 
 register(
     id='MiniGrid-CustomUnlock-8x8-v0',
-    entry_point='tella_minigrid.envs:CustomUnlock8x8'
+    entry_point='tella._curriculums.minigrid.envs:CustomUnlock8x8'
 )
 
 register(
     id='MiniGrid-CustomUnlock-9x9-v0',
-    entry_point='tella_minigrid.envs:CustomUnlock9x9'
+    entry_point='tella._curriculums.minigrid.envs:CustomUnlock9x9'
 )
 
 register(
     id='MiniGrid-CustomUnlock-11x11-v0',
-    entry_point='tella_minigrid.envs:CustomUnlock11x11'
+    entry_point='tella._curriculums.minigrid.envs:CustomUnlock11x11'
 )
 
 register(
     id='MiniGrid-CustomUnlock-16x16-v0',
-    entry_point='tella_minigrid.envs:CustomUnlock16x16'
+    entry_point='tella._curriculums.minigrid.envs:CustomUnlock16x16'
 )

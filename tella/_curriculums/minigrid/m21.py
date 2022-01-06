@@ -28,6 +28,7 @@ from gym_minigrid.envs import (DistShift1, DistShift2, DoorKeyEnv,
                                DynamicObstaclesEnv, DynamicObstaclesEnv5x5,
                                DynamicObstaclesEnv6x6, SimpleCrossingEnv,
                                SimpleCrossingS9N2Env, SimpleCrossingS9N3Env)
+from gym_minigrid.wrappers import ImgObsWrapper
 from tella._curriculums.minigrid.envs import (CustomFetchEnv5x5T1N2,
                                               CustomFetchEnv8x8T1N2,
                                               CustomFetchEnv16x16T2N4,
@@ -87,6 +88,7 @@ class MiniGridLavaPenaltyWrapper(gym.Wrapper):
 class _MiniGridEnv(gym.Wrapper):
     def __init__(self, env_class: typing.Type[gym.Env]) -> None:
         env = env_class()
+        env = ImgObsWrapper(env)
         env = MiniGridReducedActionSpaceWrapper(env, num_actions=6)
         super().__init__(env)
 
@@ -94,6 +96,7 @@ class _MiniGridEnv(gym.Wrapper):
 class _MiniGridLavaEnv(gym.Wrapper):
     def __init__(self, env_class: typing.Type[gym.Env]) -> None:
         env = env_class()
+        env = ImgObsWrapper(env)
         env = MiniGridReducedActionSpaceWrapper(env, num_actions=6)
         env = MiniGridLavaPenaltyWrapper(env)
         super().__init__(env)
@@ -102,6 +105,7 @@ class _MiniGridLavaEnv(gym.Wrapper):
 class _MiniGridDynObsEnv(gym.Wrapper):
     def __init__(self, env_class: typing.Type[gym.Env]) -> None:
         env = env_class()
+        env = ImgObsWrapper(env)
         env = MiniGridReducedActionSpaceWrapper(env, num_actions=6)
         env = MiniGridMovementActionWrapper(env)
         super().__init__(env)

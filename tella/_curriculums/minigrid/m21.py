@@ -21,6 +21,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import argparse
 import typing
 
+import gym
 import numpy as np
 from gym_minigrid.envs import (DistShift1, DistShift2, DoorKeyEnv,
                                DoorKeyEnv5x5, DoorKeyEnv6x6,
@@ -34,25 +35,187 @@ from tella._curriculums.minigrid.envs import (CustomFetchEnv5x5T1N2,
                                               CustomUnlock9x9, DistShift3)
 from tella.curriculum import *
 
+
+class MiniGridReducedActionSpaceWrapper(gym.ActionWrapper):
+    """Reduce the action space in environment to help learning."""
+
+    def __init__(self, env: gym.Env, num_actions: int) -> None:
+        super().__init__(env)
+        assert isinstance(self.action_space, gym.spaces.Discrete)
+        self.action_space = gym.spaces.Discrete(num_actions)
+
+    def action(self, act):
+        if act >= self.action_space.n:
+            act = 0
+        return act
+
+
+class MiniGridMovementActionWrapper(gym.ActionWrapper):
+    """Remap pickup, drop, and toggle actions to movements."""
+
+    def __init__(self, env):
+        super().__init__(env)
+
+    def action(self, act):
+        return act % 3
+
+
+class MiniGridLavaPenaltyWrapper(gym.Wrapper):
+    """Penalize agent for stepping in lava."""
+
+    def __init__(self, env):
+        super().__init__(env)
+        self.env = env
+
+    def step(self, action):
+        # Check if there is lava in front of the agent
+        front_cell = self.env.grid.get(*self.env.front_pos)
+        not_clear = front_cell and front_cell.type == 'lava'
+
+        # Update the agent's position/direction
+        obs, reward, done, info = self.env.step(action)
+
+        # If the agent tried to walk over an obstacle or wall
+        if action == self.env.actions.forward and not_clear:
+            reward = -1
+            done = True
+            return obs, reward, done, info
+
+        return obs, reward, done, info
+
+
+class _MiniGridEnv(gym.Wrapper):
+    def __init__(self, env_class: typing.Type[gym.Env]) -> None:
+        env = env_class()
+        env = MiniGridReducedActionSpaceWrapper(env, num_actions=6)
+        super().__init__(env)
+
+
+class _MiniGridLavaEnv(gym.Wrapper):
+    def __init__(self, env_class: typing.Type[gym.Env]) -> None:
+        env = env_class()
+        env = MiniGridReducedActionSpaceWrapper(env, num_actions=6)
+        env = MiniGridLavaPenaltyWrapper(env)
+        super().__init__(env)
+
+
+class _MiniGridDynObsEnv(gym.Wrapper):
+    def __init__(self, env_class: typing.Type[gym.Env]) -> None:
+        env = env_class()
+        env = MiniGridReducedActionSpaceWrapper(env, num_actions=6)
+        env = MiniGridMovementActionWrapper(env)
+        super().__init__(env)
+
+
+class SimpleCrossingS9N1(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(SimpleCrossingEnv)
+
+
+class SimpleCrossingS9N2(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(SimpleCrossingS9N2Env)
+
+
+class SimpleCrossingS9N3(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(SimpleCrossingS9N3Env)
+
+
+class DistShift1(_MiniGridLavaEnv):
+    def __init__(self):
+        super().__init__(DistShift1)
+
+
+class DistShift2(_MiniGridLavaEnv):
+    def __init__(self):
+        super().__init__(DistShift2)
+
+
+class DistShift3(_MiniGridLavaEnv):
+    def __init__(self):
+        super().__init__(DistShift3)
+
+
+class DynObstaclesS5N2(_MiniGridDynObsEnv):
+    def __init__(self):
+        super().__init__(DynamicObstaclesEnv5x5)
+
+
+class DynObstaclesS6N3(_MiniGridDynObsEnv):
+    def __init__(self):
+        super().__init__(DynamicObstaclesEnv6x6)
+
+
+class DynObstaclesS8N4(_MiniGridDynObsEnv):
+    def __init__(self):
+        super().__init__(DynamicObstaclesEnv)
+
+
+class CustomFetchS5T1N2(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(CustomFetchEnv5x5T1N2)
+
+
+class CustomFetchS8T1N2(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(CustomFetchEnv8x8T1N2)
+
+
+class CustomFetchS16T2N4(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(CustomFetchEnv16x16T2N4)
+
+
+class CustomUnlockS5(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(CustomUnlock5x5)
+
+
+class CustomUnlockS7(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(CustomUnlock7x7)
+
+
+class CustomUnlockS9(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(CustomUnlock9x9)
+
+
+class DoorKeyS5(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(DoorKeyEnv5x5)
+
+
+class DoorKeyS6(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(DoorKeyEnv6x6)
+
+
+class DoorKeyS7(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(DoorKeyEnv)
+
+
 TASKS = [
-    (SimpleCrossingEnv, "SimpleCrossing", "S9N1"),
-    (SimpleCrossingS9N2Env, "SimpleCrossing", "S9N2"),
-    (SimpleCrossingS9N3Env, "SimpleCrossing", "S9N3"),
+    (SimpleCrossingS9N1, "SimpleCrossing", "S9N1"),
+    (SimpleCrossingS9N2, "SimpleCrossing", "S9N2"),
+    (SimpleCrossingS9N3, "SimpleCrossing", "S9N3"),
     (DistShift1, "DistShift", "1"),
     (DistShift2, "DistShift", "2"),
     (DistShift3, "DistShift", "3"),
-    (DynamicObstaclesEnv5x5, "DynamicObstacles", "S5N2"),
-    (DynamicObstaclesEnv6x6, "DynamicObstacles", "S6N3"),
-    (DynamicObstaclesEnv, "DynamicObstacles", "S8N4"),
-    (CustomFetchEnv5x5T1N2, "CustomFetch", "S5T1N2"),
-    (CustomFetchEnv8x8T1N2, "CustomFetch", "S8T1N2"),
-    (CustomFetchEnv16x16T2N4, "CustomFetch", "S16T2N4"),
-    (CustomUnlock5x5, "CustomUnlock", "S5"),
-    (CustomUnlock7x7, "CustomUnlock", "S7"),
-    (CustomUnlock9x9, "CustomUnlock", "S9"),
-    (DoorKeyEnv5x5, "DoorKey", "S5"),
-    (DoorKeyEnv6x6, "DoorKey", "S6"),
-    (DoorKeyEnv, "DoorKey", "S8"),
+    (DynObstaclesS5N2, "DynObstacles", "S5N2"),
+    (DynObstaclesS6N3, "DynObstacles", "S6N3"),
+    (DynObstaclesS8N4, "DynObstacles", "S8N4"),
+    (CustomFetchS5T1N2, "CustomFetch", "S5T1N2"),
+    (CustomFetchS8T1N2, "CustomFetch", "S8T1N2"),
+    (CustomFetchS16T2N4, "CustomFetch", "S16T2N4"),
+    (CustomUnlockS5, "CustomUnlock", "S5"),
+    (CustomUnlockS7, "CustomUnlock", "S7"),
+    (CustomUnlockS9, "CustomUnlock", "S9"),
+    (DoorKeyS5, "DoorKey", "S5"),
+    (DoorKeyS6, "DoorKey", "S6"),
+    (DoorKeyS7, "DoorKey", "S8"),
 ]
 
 class MiniGridCondensed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):

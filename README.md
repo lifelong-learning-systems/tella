@@ -39,7 +39,7 @@ Install
    ```
 5. Install the tella package and its dependencies:
    ```
-   pip install ./tella[minigrid]
+   pip install "./tella[minigrid]"
    ```
 
 To update tella, pull the latest changes from the git repository and upgrade:
@@ -137,7 +137,7 @@ For Developers
 ----------------
 To install tella in editable mode with our development requirements:
 ```
-pip install -e .[dev]
+pip install -e ".[dev]"
 ```
 
 To run unit tests:

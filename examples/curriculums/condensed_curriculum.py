@@ -52,5 +52,5 @@ if __name__ == "__main__":
         for task_block in block.task_blocks():
             for task_variant in task_block.task_variants():
                 print(
-                    f"Block {i}, learning_allowed={block.is_learning_allowed()}, task_variant={task_variant}, info={task_variant.info()}"
+                    f"Block {i}, learning_allowed={block.is_learning_allowed}, task_variant={task_variant}, info={task_variant.info()}"
                 )

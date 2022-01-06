@@ -196,7 +196,7 @@ class DoorKeyS6(_MiniGridEnv):
         super().__init__(DoorKeyEnv6x6)
 
 
-class DoorKeyS7(_MiniGridEnv):
+class DoorKeyS8(_MiniGridEnv):
     def __init__(self):
         super().__init__(DoorKeyEnv)
 
@@ -219,7 +219,7 @@ TASKS = [
     (CustomUnlockS9, "CustomUnlock", "S9"),
     (DoorKeyS5, "DoorKey", "S5"),
     (DoorKeyS6, "DoorKey", "S6"),
-    (DoorKeyS7, "DoorKey", "S8"),
+    (DoorKeyS8, "DoorKey", "S8"),
 ]
 
 class MiniGridCondensed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):

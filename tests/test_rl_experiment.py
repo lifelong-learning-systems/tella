@@ -3,8 +3,8 @@ from unittest.mock import patch
 import typing
 import csv
 import gym
-from tella.experiment import rl_experiment, _spaces
-from l2logger.validate import run
+from tella.experiment import rl_experiment, _spaces, run
+from l2logger.validate import run as l2logger_validate
 from .simple_curriculum import SimpleRLCurriculum
 from .simple_agent import SimpleRLAgent
 
@@ -20,6 +20,47 @@ def test_rl_experiment(tmpdir):
     # TODO what should this test other than being runnable?
     # TODO rl experiment isn't really unit testable since it doesn't have outputs...
     rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, tmpdir)
+
+
+def test_all_event_orders(tmpdir):
+    env = gym.make("CartPole-v1")
+    agent = SimpleRLAgent(env.observation_space, env.action_space, 1)
+    curriculum = SimpleRLCurriculum()
+
+    run(agent, curriculum, render=False, log_dir=tmpdir)
+
+    # fmt: off
+    assert agent.all_events == [
+        (agent.block_start, "learn"),
+            (agent.task_start, "CartPoleEnv"),
+                (agent.task_variant_start, "CartPoleEnv", "Default"),
+                    (agent.learn_task_variant, "CartPoleEnv", "Default"),
+                (agent.task_variant_end, "CartPoleEnv", "Default"),
+                (agent.task_variant_start, "CartPoleEnv", "Variant1"),
+                    (agent.learn_task_variant, "CartPoleEnv", "Variant1"),
+                (agent.task_variant_end, "CartPoleEnv", "Variant1"),
+            (agent.task_end, "CartPoleEnv"),
+        (agent.block_end, "learn"),
+        (agent.block_start, "eval"),
+            (agent.task_start, "CartPoleEnv"),
+                (agent.task_variant_start, "CartPoleEnv", "Default"),
+                    (agent.eval_task_variant, "CartPoleEnv", "Default"),
+                (agent.task_variant_end, "CartPoleEnv", "Default"),
+            (agent.task_end, "CartPoleEnv"),
+        (agent.block_end, "eval"),
+    ]
+    # fmt: on
+
+
+def test_run_l2logger_dir(tmpdir):
+    tmpdir.chdir()
+
+    env = gym.make("CartPole-v1")
+    agent = SimpleRLAgent(env.observation_space, env.action_space, 1)
+    curriculum = SimpleRLCurriculum()
+
+    run(agent, curriculum, render=False, log_dir="logs")
+    assert tmpdir.join("logs").check()
 
 
 def test_log_directory(tmpdir):
@@ -68,7 +109,7 @@ def test_l2logger_validation(tmpdir):
         "argparse.ArgumentParser.parse_args",
         return_value=argparse.Namespace(log_dir=tmpdir.join("logs").listdir()[0]),
     ):
-        run()
+        l2logger_validate()
 
 
 def test_l2logger_tsv_contents(tmpdir):

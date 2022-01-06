@@ -5,25 +5,40 @@ from tella.curriculum import EpisodicTaskVariant
 
 
 class DummyEnv(gym.Env):
-    def __init__(self, a: int, b: float, c: str) -> None:
+    def __init__(
+        self, a: int, b: float, c: str, observations=None, max_steps=5
+    ) -> None:
         super().__init__()
+        if observations is None:
+            observations = []
         self.a = a
         self.b = b
         self.c = c
         self.observation_space = gym.spaces.Discrete(5)
         self.action_space = gym.spaces.Discrete(2)
+        self.observations = observations
         self.i = 0
+        self.max_steps = max_steps
 
     def reset(self):
         self.i = 0
-        return self.observation_space.sample()
+        return (
+            self.observation_space.sample()
+            if len(self.observations) == 0
+            else self.observations.pop(0)
+        )
 
     def step(
         self, action: int
     ) -> typing.Tuple[int, float, bool, typing.Dict[str, typing.Any]]:
         self.i += 1
-        done = self.i >= 5
-        return self.observation_space.sample(), 0.0, done, {}
+        done = self.i >= self.max_steps
+        obs = (
+            self.observation_space.sample()
+            if len(self.observations) == 0
+            else self.observations.pop(0)
+        )
+        return obs, 0.0, done, {}
 
 
 def random_action(
@@ -75,4 +90,24 @@ def test_validate():
 
 
 def test_terminal_observations():
-    pass
+    task_variant = EpisodicTaskVariant(
+        DummyEnv,
+        num_episodes=1,
+        task_label="TaskLabel",
+        variant_label="VariantLabel",
+        params={
+            "observations": [0, 1, 2, 3, 4, 5],
+            "max_steps": 3,
+            "a": 1,
+            "b": 3.0,
+            "c": "a",
+        },
+    )
+    transitions = list(task_variant.generate(random_action))
+    assert len(transitions) == 3
+    assert transitions[0][0] == 0
+    assert transitions[0][-1] == 1
+    assert transitions[1][0] == 1
+    assert transitions[1][-1] == 2
+    assert transitions[2][0] == 2
+    assert transitions[2][-1] == 3

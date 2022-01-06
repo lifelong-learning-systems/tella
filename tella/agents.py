@@ -156,6 +156,18 @@ class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
         """
         pass
 
+    def set_rng_seed(self, seed: int) -> None:
+        """
+        Provides a seed integer to set all random number generators for agent repeatability.
+
+        For experiment repeatability, all agents with non-deterministic methods are expected
+        to seed their random number generators (RNG) based on the parameter provided here.
+        It is not strictly necessary to use this parameter as the RNG seed directly.
+
+        :param seed: The seed to be used in setting random number generators.
+        """
+        pass
+
 
 class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
     """

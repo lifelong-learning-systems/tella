@@ -585,9 +585,8 @@ def validate_curriculum(curriculum: AbstractCurriculum[AbstractTaskVariant]):
                     raise ValueError(
                         f"Invalid task variant at block #{i_block}, "
                         f"task block #{i_task_block}, "
-                        f"task variant #{i_task_variant}.",
-                        e,
-                    )
+                        f"task variant #{i_task_variant}."
+                    ) from e
 
                 # Warn once if any adjacent task variants are the same
                 if (

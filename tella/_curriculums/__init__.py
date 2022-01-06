@@ -31,8 +31,13 @@ def load_curriculum_registry():
     curriculum_registry["CartPole-1000"] = CartPole1000Curriculum
 
     try:
-        from .minigrid import SimpleMiniGridCurriculum
-
+        from .minigrid.simple import SimpleMiniGridCurriculum
         curriculum_registry["SimpleMiniGrid"] = SimpleMiniGridCurriculum
+
+        from .minigrid.m21 import MiniGridCondensed
+        curriculum_registry["MiniGridCondensed"] = MiniGridCondensed
+
+        from .minigrid.m21 import MiniGridDispersed
+        curriculum_registry["MiniGridDispersed"] = MiniGridDispersed
     except ImportError:
         pass

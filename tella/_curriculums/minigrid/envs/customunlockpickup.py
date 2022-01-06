@@ -33,8 +33,8 @@ class CustomUnlockPickup(RoomGrid):
             num_rows=1,
             num_cols=2,
             room_size=room_size,
-            max_steps=8*room_size**2,
-            seed=seed
+            max_steps=8 * room_size ** 2,
+            seed=seed,
         )
 
     def _gen_grid(self, width, height):
@@ -45,7 +45,7 @@ class CustomUnlockPickup(RoomGrid):
         # Make sure the two rooms are directly connected by a locked door
         door, _ = self.add_door(0, 0, 0, locked=True)
         # Add a key to unlock the door
-        self.add_object(0, 0, 'key', door.color)
+        self.add_object(0, 0, "key", door.color)
 
         self.place_agent(0, 0)
 
@@ -79,16 +79,16 @@ class CustomUnlockPickup16x16(CustomUnlockPickup):
 
 
 register(
-    id='MiniGrid-CustomUnlockPickup-5x5-v0',
-    entry_point='tella._curriculums.minigrid.envs:CustomUnlockPickup5x5'
+    id="MiniGrid-CustomUnlockPickup-5x5-v0",
+    entry_point="tella._curriculums.minigrid.envs:CustomUnlockPickup5x5",
 )
 
 register(
-    id='MiniGrid-CustomUnlockPickup-8x8-v0',
-    entry_point='tella._curriculums.minigrid.envs:CustomUnlockPickup8x8'
+    id="MiniGrid-CustomUnlockPickup-8x8-v0",
+    entry_point="tella._curriculums.minigrid.envs:CustomUnlockPickup8x8",
 )
 
 register(
-    id='MiniGrid-CustomUnlockPickup-16x16-v0',
-    entry_point='tella._curriculums.minigrid.envs:CustomUnlockPickup16x16'
+    id="MiniGrid-CustomUnlockPickup-16x16-v0",
+    entry_point="tella._curriculums.minigrid.envs:CustomUnlockPickup16x16",
 )

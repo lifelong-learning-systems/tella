@@ -32,12 +32,15 @@ def load_curriculum_registry():
 
     try:
         from .minigrid.simple import SimpleMiniGridCurriculum
+
         curriculum_registry["SimpleMiniGrid"] = SimpleMiniGridCurriculum
 
         from .minigrid.m21 import MiniGridCondensed
+
         curriculum_registry["MiniGridCondensed"] = MiniGridCondensed
 
         from .minigrid.m21 import MiniGridDispersed
+
         curriculum_registry["MiniGridDispersed"] = MiniGridDispersed
     except ImportError:
         pass

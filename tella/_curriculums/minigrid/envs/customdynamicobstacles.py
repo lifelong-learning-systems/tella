@@ -28,7 +28,8 @@ class DynamicObstaclesRandomEnv8x8(DynamicObstaclesEnv):
     def __init__(self):
         super().__init__(size=8, agent_start_pos=None, n_obstacles=4)
 
+
 register(
-    id='MiniGrid-Dynamic-Obstacles-Random-8x8-v0',
-    entry_point='tella._curriculums.minigrid.envs:DynamicObstaclesRandomEnv8x8'
+    id="MiniGrid-Dynamic-Obstacles-Random-8x8-v0",
+    entry_point="tella._curriculums.minigrid.envs:DynamicObstaclesRandomEnv8x8",
 )

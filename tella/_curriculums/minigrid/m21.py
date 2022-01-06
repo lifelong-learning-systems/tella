@@ -322,7 +322,7 @@ def main():
         for task_block in block.task_blocks():
             for task_variant in task_block.task_variants():
                 print(
-                    f"Block {i}, learning_allowed={block.is_learning_allowed()}, "
+                    f"Block {i}, learning_allowed={block.is_learning_allowed}, "
                     f"task_variant={task_variant.task_label}_{task_variant.variant_label}, "
                     f"num_episodes={task_variant.total_episodes}"
                 )

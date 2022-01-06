@@ -122,17 +122,17 @@ class SimpleCrossingS9N3(_MiniGridEnv):
         super().__init__(SimpleCrossingS9N3Env)
 
 
-class DistShift1(_MiniGridLavaEnv):
+class DistShiftR2(_MiniGridLavaEnv):
     def __init__(self):
         super().__init__(DistShift1)
 
 
-class DistShift2(_MiniGridLavaEnv):
+class DistShiftR5(_MiniGridLavaEnv):
     def __init__(self):
         super().__init__(DistShift2)
 
 
-class DistShift3(_MiniGridLavaEnv):
+class DistShiftR3(_MiniGridLavaEnv):
     def __init__(self):
         super().__init__(DistShift3)
 
@@ -201,9 +201,9 @@ TASKS = [
     (SimpleCrossingS9N1, "SimpleCrossing", "S9N1"),
     (SimpleCrossingS9N2, "SimpleCrossing", "S9N2"),
     (SimpleCrossingS9N3, "SimpleCrossing", "S9N3"),
-    (DistShift1, "DistShift", "1"),
-    (DistShift2, "DistShift", "2"),
-    (DistShift3, "DistShift", "3"),
+    (DistShiftR2, "DistShift", "R2"),
+    (DistShiftR5, "DistShift", "R5"),
+    (DistShiftR3, "DistShift", "R3"),
     (DynObstaclesS5N2, "DynObstacles", "S5N2"),
     (DynObstaclesS6N3, "DynObstacles", "S6N3"),
     (DynObstaclesS8N4, "DynObstacles", "S8N4"),

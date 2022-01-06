@@ -33,8 +33,8 @@ class CustomUnlock(RoomGrid):
             num_rows=num_rows,
             num_cols=num_cols,
             room_size=room_size,
-            max_steps=8*room_size**2,
-            seed=seed
+            max_steps=8 * room_size ** 2,
+            seed=seed,
         )
 
     def _gen_grid(self, width, height):
@@ -43,7 +43,7 @@ class CustomUnlock(RoomGrid):
         # Make sure the two rooms are directly connected by a locked door
         door, _ = self.add_door(0, 0, 0, locked=True)
         # Add a key to unlock the door
-        self.add_object(0, 0, 'key', door.color)
+        self.add_object(0, 0, "key", door.color)
 
         self.place_agent(0, 0)
 
@@ -92,31 +92,31 @@ class CustomUnlock16x16(CustomUnlock):
 
 
 register(
-    id='MiniGrid-CustomUnlock-5x5-v0',
-    entry_point='tella._curriculums.minigrid.envs:CustomUnlock5x5'
+    id="MiniGrid-CustomUnlock-5x5-v0",
+    entry_point="tella._curriculums.minigrid.envs:CustomUnlock5x5",
 )
 
 register(
-    id='MiniGrid-CustomUnlock-7x7-v0',
-    entry_point='tella._curriculums.minigrid.envs:CustomUnlock7x7'
+    id="MiniGrid-CustomUnlock-7x7-v0",
+    entry_point="tella._curriculums.minigrid.envs:CustomUnlock7x7",
 )
 
 register(
-    id='MiniGrid-CustomUnlock-8x8-v0',
-    entry_point='tella._curriculums.minigrid.envs:CustomUnlock8x8'
+    id="MiniGrid-CustomUnlock-8x8-v0",
+    entry_point="tella._curriculums.minigrid.envs:CustomUnlock8x8",
 )
 
 register(
-    id='MiniGrid-CustomUnlock-9x9-v0',
-    entry_point='tella._curriculums.minigrid.envs:CustomUnlock9x9'
+    id="MiniGrid-CustomUnlock-9x9-v0",
+    entry_point="tella._curriculums.minigrid.envs:CustomUnlock9x9",
 )
 
 register(
-    id='MiniGrid-CustomUnlock-11x11-v0',
-    entry_point='tella._curriculums.minigrid.envs:CustomUnlock11x11'
+    id="MiniGrid-CustomUnlock-11x11-v0",
+    entry_point="tella._curriculums.minigrid.envs:CustomUnlock11x11",
 )
 
 register(
-    id='MiniGrid-CustomUnlock-16x16-v0',
-    entry_point='tella._curriculums.minigrid.envs:CustomUnlock16x16'
+    id="MiniGrid-CustomUnlock-16x16-v0",
+    entry_point="tella._curriculums.minigrid.envs:CustomUnlock16x16",
 )

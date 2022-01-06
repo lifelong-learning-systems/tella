@@ -23,17 +23,29 @@ import typing
 
 import gym
 import numpy as np
-from gym_minigrid.envs import (DistShift1, DistShift2, DoorKeyEnv,
-                               DoorKeyEnv5x5, DoorKeyEnv6x6,
-                               DynamicObstaclesEnv, DynamicObstaclesEnv5x5,
-                               DynamicObstaclesEnv6x6, SimpleCrossingEnv,
-                               SimpleCrossingS9N2Env, SimpleCrossingS9N3Env)
+from gym_minigrid.envs import (
+    DistShift1,
+    DistShift2,
+    DoorKeyEnv,
+    DoorKeyEnv5x5,
+    DoorKeyEnv6x6,
+    DynamicObstaclesEnv,
+    DynamicObstaclesEnv5x5,
+    DynamicObstaclesEnv6x6,
+    SimpleCrossingEnv,
+    SimpleCrossingS9N2Env,
+    SimpleCrossingS9N3Env,
+)
 from gym_minigrid.wrappers import ImgObsWrapper
-from tella._curriculums.minigrid.envs import (CustomFetchEnv5x5T1N2,
-                                              CustomFetchEnv8x8T1N2,
-                                              CustomFetchEnv16x16T2N4,
-                                              CustomUnlock5x5, CustomUnlock7x7,
-                                              CustomUnlock9x9, DistShift3)
+from tella._curriculums.minigrid.envs import (
+    CustomFetchEnv5x5T1N2,
+    CustomFetchEnv8x8T1N2,
+    CustomFetchEnv16x16T2N4,
+    CustomUnlock5x5,
+    CustomUnlock7x7,
+    CustomUnlock9x9,
+    DistShift3,
+)
 from tella.curriculum import *
 
 
@@ -71,7 +83,7 @@ class MiniGridLavaPenaltyWrapper(gym.Wrapper):
     def step(self, action):
         # Check if there is lava in front of the agent
         front_cell = self.env.grid.get(*self.env.front_pos)
-        not_clear = front_cell and front_cell.type == 'lava'
+        not_clear = front_cell and front_cell.type == "lava"
 
         # Update the agent's position/direction
         obs, reward, done, info = self.env.step(action)
@@ -222,12 +234,15 @@ TASKS = [
     (DoorKeyS8, "DoorKey", "S8"),
 ]
 
+
 class MiniGridCondensed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
     def __init__(self, seed: int = 0):
         super().__init__()
         self.rng = np.random.default_rng(seed)
 
-    def learn_blocks(self,) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
         for cls, task_label, variant_label in self.rng.permutation(TASKS):
             yield LearnBlock(
                 [
@@ -266,7 +281,7 @@ class MiniGridDispersed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        
+
         for _ in range(self.num_repetitions):
             for cls, task_label, variant_label in self.rng.permutation(TASKS):
                 yield LearnBlock(
@@ -278,7 +293,7 @@ class MiniGridDispersed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
                                     cls,
                                     task_label=task_label,
                                     variant_label=variant_label,
-                                    num_episodes=1000//self.num_repetitions,
+                                    num_episodes=1000 // self.num_repetitions,
                                 )
                             ],
                         )
@@ -300,12 +315,29 @@ class MiniGridDispersed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
 def main():
     parser = argparse.ArgumentParser(description="M21 curriculum parser")
 
-    parser.add_argument("-c", "--curriculum", required=True, default=None, type=str, choices=[
-                        "MiniGridCondensed", "MiniGridDispersed"], help="Curriculum name. Defaults to None.")
-    parser.add_argument("-s", "--seed", default=0, type=int,
-                        help="Seed value for task sequence. Defaults to 0.")
-    parser.add_argument("-n", "--num-repetitions", default=3, type=int,
-                        help="Number of reptitions for dispersed curriculum. Defaults to 3.")
+    parser.add_argument(
+        "-c",
+        "--curriculum",
+        required=True,
+        default=None,
+        type=str,
+        choices=["MiniGridCondensed", "MiniGridDispersed"],
+        help="Curriculum name. Defaults to None.",
+    )
+    parser.add_argument(
+        "-s",
+        "--seed",
+        default=0,
+        type=int,
+        help="Seed value for task sequence. Defaults to 0.",
+    )
+    parser.add_argument(
+        "-n",
+        "--num-repetitions",
+        default=3,
+        type=int,
+        help="Number of reptitions for dispersed curriculum. Defaults to 3.",
+    )
 
     args = parser.parse_args()
 
@@ -313,7 +345,8 @@ def main():
         curriculum = MiniGridCondensed(seed=args.seed)
     elif args.curriculum == "MiniGridDispersed":
         curriculum = MiniGridDispersed(
-            seed=args.seed, num_repetitions=args.num_repetitions)
+            seed=args.seed, num_repetitions=args.num_repetitions
+        )
     else:
         print(f"Invalid curriculum name: {args.curriculum}")
         return

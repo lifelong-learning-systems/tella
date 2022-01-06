@@ -80,15 +80,15 @@ class CustomUnlockPickup16x16(CustomUnlockPickup):
 
 register(
     id='MiniGrid-CustomUnlockPickup-5x5-v0',
-    entry_point='tella_minigrid.envs:CustomUnlockPickup5x5'
+    entry_point='tella._curriculums.minigrid.envs:CustomUnlockPickup5x5'
 )
 
 register(
     id='MiniGrid-CustomUnlockPickup-8x8-v0',
-    entry_point='tella_minigrid.envs:CustomUnlockPickup8x8'
+    entry_point='tella._curriculums.minigrid.envs:CustomUnlockPickup8x8'
 )
 
 register(
     id='MiniGrid-CustomUnlockPickup-16x16-v0',
-    entry_point='tella_minigrid.envs:CustomUnlockPickup16x16'
+    entry_point='tella._curriculums.minigrid.envs:CustomUnlockPickup16x16'
 )

@@ -31,5 +31,5 @@ class DistShift3(DistShiftEnv):
 
 register(
     id='MiniGrid-DistShift3-v0',
-    entry_point='tella_minigrid.envs:DistShift3'
+    entry_point='tella._curriculums.minigrid.envs:DistShift3'
 )

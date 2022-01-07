@@ -9,7 +9,6 @@ from tella.curriculum import simple_learn_block, simple_eval_block
 class ExampleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
     def learn_blocks_and_eval_blocks(
         self,
-        rng_seed: int,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[AbstractRLTaskVariant]",

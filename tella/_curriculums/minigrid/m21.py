@@ -236,9 +236,9 @@ TASKS = [
 
 
 class MiniGridCondensed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
-    def __init__(self, seed: int = 0):
-        super().__init__()
-        self.rng = np.random.default_rng(seed)
+    def __init__(self, rng_seed: int = 0):
+        super().__init__(rng_seed)
+        self.rng = np.random.default_rng(rng_seed)
 
     def learn_blocks(
         self,
@@ -273,9 +273,9 @@ class MiniGridCondensed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
 
 
 class MiniGridDispersed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
-    def __init__(self, num_repetitions: int = 3, seed: int = 0):
-        super().__init__()
-        self.rng = np.random.default_rng(seed)
+    def __init__(self, rng_seed: int = 0, num_repetitions: int = 3):
+        super().__init__(rng_seed)
+        self.rng = np.random.default_rng(rng_seed)
         self.num_repetitions = num_repetitions
 
     def learn_blocks(
@@ -342,10 +342,10 @@ def main():
     args = parser.parse_args()
 
     if args.curriculum == "MiniGridCondensed":
-        curriculum = MiniGridCondensed(seed=args.seed)
+        curriculum = MiniGridCondensed(rng_seed=args.seed)
     elif args.curriculum == "MiniGridDispersed":
         curriculum = MiniGridDispersed(
-            seed=args.seed, num_repetitions=args.num_repetitions
+            rng_seed=args.seed, num_repetitions=args.num_repetitions
         )
     else:
         print(f"Invalid curriculum name: {args.curriculum}")

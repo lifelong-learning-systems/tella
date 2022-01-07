@@ -31,7 +31,7 @@ from .curriculum import AbstractCurriculum, AbstractTaskVariant, validate_curric
 
 logger = logging.getLogger(__name__)
 
-AgentFactory = typing.Callable[[gym.Space, gym.Space, int], ContinualRLAgent]
+AgentFactory = typing.Callable[[int, gym.Space, gym.Space, int], ContinualRLAgent]
 """
 AgentFactory is a function or class that returns a :class:`ContinualRLAgent`.
 
@@ -59,7 +59,7 @@ A function can also be used as an AgentFactory:
     agent = agent_factory(observation_space, action_space, num_parallel_envs)
 """
 
-CurriculumFactory = typing.Callable[[], AbstractCurriculum[AbstractRLTaskVariant]]
+CurriculumFactory = typing.Callable[[int], AbstractCurriculum[AbstractRLTaskVariant]]
 """
 CurriculumFactory is a type alias for a function or class that returns a
 :class:`AbstractCurriculum`.
@@ -107,15 +107,16 @@ def rl_experiment(
 
     # FIXME: multiprocessing https://github.com/darpa-l2m/tella/issues/44
     for i_lifetime in range(num_lifetimes):
-        curriculum = curriculum_factory()
+        curriculum = curriculum_factory(rng_seed=0)
         logger.info(f"Constructed curriculum {curriculum}")
         # FIXME: seed the curriculum https://github.com/darpa-l2m/tella/issues/54
 
         # FIXME: check for RL task variant https://github.com/darpa-l2m/tella/issues/53
-        validate_curriculum(curriculum, rng_seed=0)
+        validate_curriculum(curriculum)
         logger.info("Validated curriculum")
 
-        agent = agent_factory(observation_space, action_space, num_parallel_envs)
+        # FIXME: set the agent seed https://github.com/darpa-l2m/tella/issues/63
+        agent = agent_factory(0, observation_space, action_space, num_parallel_envs)
         logger.info(f"Constructed agent {agent}")
 
         logger.info(f"Starting lifetime #{i_lifetime + 1}")
@@ -134,8 +135,8 @@ def _spaces(
     :return: A tuple of (observation_space, action_space).
     """
     # FIXME: extract spaces based on solution in https://github.com/darpa-l2m/tella/issues/31
-    curriculum_obj = curriculum_factory()
-    for block in curriculum_obj.learn_blocks_and_eval_blocks(rng_seed=0):
+    curriculum_obj = curriculum_factory(rng_seed=0)
+    for block in curriculum_obj.learn_blocks_and_eval_blocks():
         for task_block in block.task_blocks():
             for task_variant in task_block.task_variants():
                 env = task_variant.info()
@@ -174,9 +175,7 @@ def run(
     data_logger = l2logger.DataLogger(log_dir, scenario_dir, logger_info, scenario_info)
     total_episodes = 0
     # TODO: set rng seed. https://github.com/darpa-l2m/tella/issues/63
-    for i_block, block in enumerate(
-        curriculum.learn_blocks_and_eval_blocks(rng_seed=0)
-    ):
+    for i_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
         is_learning_allowed = agent.is_learning_allowed = block.is_learning_allowed
         agent.block_start(is_learning_allowed)
         for task_block in block.task_blocks():

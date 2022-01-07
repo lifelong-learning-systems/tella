@@ -29,9 +29,9 @@ batch_size = 32
 
 
 class ReplayBuffer:
-    def __init__(self):
+    def __init__(self, rng_seed: int):
         self.buffer = collections.deque(maxlen=buffer_limit)
-        self.rng = random.Random()
+        self.rng = random.Random(rng_seed)
 
     def put(self, transition):
         self.buffer.append(transition)
@@ -61,9 +61,9 @@ class ReplayBuffer:
 
 
 class Qnet(nn.Module):
-    def __init__(self, layer_sizes: typing.Tuple[int, ...]):
+    def __init__(self, layer_sizes: typing.Tuple[int, ...], rng_seed: int):
         super(Qnet, self).__init__()
-        self.rng = random.Random()
+        self.rng = random.Random(rng_seed)
 
         assert (
             len(layer_sizes) >= 2
@@ -111,13 +111,14 @@ def train(q, q_target, memory, optimizer):
 class MinimalRlDqnAgent(tella.ContinualRLAgent):
     def __init__(
         self,
+        rng_seed: int,
         observation_space: gym.Space,
         action_space: gym.Space,
         num_envs: int,
         metric: typing.Optional[tella.RLMetricAccumulator] = None,
     ) -> None:
         super(MinimalRlDqnAgent, self).__init__(
-            observation_space, action_space, num_envs, metric
+            rng_seed, observation_space, action_space, num_envs, metric
         )
 
         # Check that this environment is compatible with DQN
@@ -130,18 +131,20 @@ class MinimalRlDqnAgent(tella.ContinualRLAgent):
             f"action_space={action_space} num_envs={num_envs}"
         )
 
+        logger.info(f"RNG seed provided: {rng_seed}")
+        torch.manual_seed(rng_seed)
+
         # Set the input and output dimensions based on observation and action spaces
         input_dim = reduce(imul, observation_space.shape)
         output_dim = action_space.n
         layer_dims = (input_dim, 128, output_dim)
 
-        self.q = Qnet(layer_dims)
-        self.q_target = Qnet(layer_dims)
+        self.q = Qnet(layer_dims, rng_seed)
+        self.q_target = Qnet(layer_dims, rng_seed)
         self.q_target.load_state_dict(self.q.state_dict())
-        self.memory = ReplayBuffer()
+        self.memory = ReplayBuffer(rng_seed)
         self.optimizer = optim.Adam(self.q.parameters(), lr=learning_rate)
         self.training = None
-        self.has_trained = False
         self.epsilon = 0.01
         self.num_eps_done = 0
         self.q_target_interval = 20
@@ -212,7 +215,6 @@ class MinimalRlDqnAgent(tella.ContinualRLAgent):
             if self.memory.size() > 100:  # was 2000 in minimalRL repo
                 logger.info(f"\t\tTraining Q network")
                 train(self.q, self.q_target, self.memory, self.optimizer)
-                self.has_trained = True  # To prevent later weight re-initialization
 
             if self.num_eps_done % self.q_target_interval == 0:
                 logger.info(f"\t\tUpdating target Q network")
@@ -240,22 +242,6 @@ class MinimalRlDqnAgent(tella.ContinualRLAgent):
             logger.info("Done with learning block")
         else:
             logger.info("Done with evaluation block")
-
-    def set_rng_seed(self, seed: int) -> None:
-        logger.info(f"RNG seed set to ({seed})")
-        assert not self.has_trained, "RNG seed should only be set before training."
-
-        # Seed the RNG for memory and networks
-        self.memory.rng.seed(seed)
-        self.q.rng.seed(seed)
-        self.q_target.rng.seed(seed)
-
-        # Also need to initialize network weights repeatably
-        torch.manual_seed(seed)
-        for layer in self.q.layers:
-            layer.reset_parameters()
-        for layer in self.q_target.layers:
-            layer.reset_parameters()
 
 
 if __name__ == "__main__":

@@ -27,11 +27,11 @@ class TestCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
             ]
         ],
     ) -> None:
+        super(TestCurriculum, self).__init__(rng_seed=0)
         self.blocks = blocks
 
     def learn_blocks_and_eval_blocks(
         self,
-        rng_seed: int,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[AbstractRLTaskVariant]",
@@ -62,7 +62,7 @@ def test_simple_block_task_split():
             simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
         ]
     )
-    validate_curriculum(curriculum, rng_seed=0)
+    validate_curriculum(curriculum)
 
 
 def test_generator_curriculum():
@@ -77,9 +77,9 @@ def test_generator_curriculum():
         )
         for _ in range(3)
     )
-    validate_curriculum(curriculum, rng_seed=0)
+    validate_curriculum(curriculum)
     # Validate twice to check if generators were exhausted
-    validate_curriculum(curriculum, rng_seed=0)
+    validate_curriculum(curriculum)
 
 
 def test_curriculum_summary():
@@ -119,20 +119,19 @@ def test_curriculum_summary():
         "\n\t\t\tTask variant 1, CartPoleEnv - Default: 1 episode."
     )
 
-    assert summarize_curriculum(curriculum, rng_seed=0) == expected_summary
+    assert summarize_curriculum(curriculum) == expected_summary
 
 
 class ShuffledCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
     def learn_blocks_and_eval_blocks(
         self,
-        rng_seed: int,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[AbstractRLTaskVariant]",
             "AbstractEvalBlock[AbstractRLTaskVariant]",
         ]
     ]:
-        rng = np.random.default_rng(rng_seed)
+        rng = np.random.default_rng(self.rng_seed)
         for n in rng.permutation(100):
             yield simple_learn_block(
                 [
@@ -147,18 +146,18 @@ class ShuffledCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
 
 
 def test_curriculum_diff_rng_seed():
-    curriculum = ShuffledCurriculum()
-
+    curriculum = ShuffledCurriculum(rng_seed=111111)
     first_call_tasks = [
         (variant.task_label, variant.variant_label)
-        for block in curriculum.learn_blocks_and_eval_blocks(rng_seed=111111)
+        for block in curriculum.learn_blocks_and_eval_blocks()
         for task in block.task_blocks()
         for variant in task.task_variants()
     ]
 
+    curriculum = ShuffledCurriculum(rng_seed=222222)
     second_call_tasks = [
         (variant.task_label, variant.variant_label)
-        for block in curriculum.learn_blocks_and_eval_blocks(rng_seed=222222)
+        for block in curriculum.learn_blocks_and_eval_blocks()
         for task in block.task_blocks()
         for variant in task.task_variants()
     ]
@@ -169,18 +168,18 @@ def test_curriculum_diff_rng_seed():
 
 
 def test_curriculum_rng_seed():
-    curriculum = ShuffledCurriculum()
+    curriculum = ShuffledCurriculum(rng_seed=0)
 
     first_call_tasks = [
         (variant.task_label, variant.variant_label)
-        for block in curriculum.learn_blocks_and_eval_blocks(rng_seed=0)
+        for block in curriculum.learn_blocks_and_eval_blocks()
         for task in block.task_blocks()
         for variant in task.task_variants()
     ]
 
     second_call_tasks = [
         (variant.task_label, variant.variant_label)
-        for block in curriculum.learn_blocks_and_eval_blocks(rng_seed=0)
+        for block in curriculum.learn_blocks_and_eval_blocks()
         for task in block.task_blocks()
         for variant in task.task_variants()
     ]
@@ -191,14 +190,13 @@ def test_curriculum_rng_seed():
 class ShuffledInterleavedCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
     def learn_blocks(
         self,
-        rng_seed: int,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[AbstractRLTaskVariant]",
             "AbstractEvalBlock[AbstractRLTaskVariant]",
         ]
     ]:
-        rng = np.random.default_rng(rng_seed)
+        rng = np.random.default_rng(self.rng_seed)
         for n in rng.permutation(10):
             yield simple_learn_block(
                 [
@@ -208,11 +206,8 @@ class ShuffledInterleavedCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVari
                 ]
             )
 
-    def eval_block(
-        self,
-        rng_seed: int,
-    ) -> AbstractEvalBlock[TaskVariantType]:
-        rng = np.random.default_rng(rng_seed)
+    def eval_block(self) -> AbstractEvalBlock[TaskVariantType]:
+        rng = np.random.default_rng(self.rng_seed)
         return simple_eval_block(
             [
                 EpisodicTaskVariant(CartPoleEnv, num_episodes=1, task_label=f"Task{n}")
@@ -222,18 +217,18 @@ class ShuffledInterleavedCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVari
 
 
 def test_interleaved_rng_seed():
-    curriculum = ShuffledInterleavedCurriculum()
+    curriculum = ShuffledInterleavedCurriculum(rng_seed=0)
 
     first_call_tasks = [
         (variant.task_label, variant.variant_label)
-        for block in curriculum.learn_blocks_and_eval_blocks(rng_seed=0)
+        for block in curriculum.learn_blocks_and_eval_blocks()
         for task in block.task_blocks()
         for variant in task.task_variants()
     ]
 
     second_call_tasks = [
         (variant.task_label, variant.variant_label)
-        for block in curriculum.learn_blocks_and_eval_blocks(rng_seed=0)
+        for block in curriculum.learn_blocks_and_eval_blocks()
         for task in block.task_blocks()
         for variant in task.task_variants()
     ]
@@ -242,9 +237,7 @@ def test_interleaved_rng_seed():
 
 
 class TestInterleaved(InterleavedEvalCurriculum):
-    def learn_blocks(
-        self, rng_seed: int
-    ) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
+    def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
         yield simple_learn_block(
             [
                 EpisodicTaskVariant(
@@ -273,7 +266,7 @@ class TestInterleaved(InterleavedEvalCurriculum):
             ]
         )
 
-    def eval_block(self, rng_seed: int) -> AbstractEvalBlock[TaskVariantType]:
+    def eval_block(self) -> AbstractEvalBlock[TaskVariantType]:
         return simple_eval_block(
             [
                 EpisodicTaskVariant(
@@ -291,8 +284,8 @@ class TestInterleaved(InterleavedEvalCurriculum):
 
 
 def test_interleaved_structure():
-    curriculum = TestInterleaved()
-    blocks = list(curriculum.learn_blocks_and_eval_blocks(rng_seed=0))
+    curriculum = TestInterleaved(rng_seed=0)
+    blocks = list(curriculum.learn_blocks_and_eval_blocks())
 
     assert len(blocks) == 7
     assert isinstance(blocks[0], AbstractEvalBlock)

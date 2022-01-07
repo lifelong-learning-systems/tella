@@ -9,9 +9,13 @@ logger = logging.getLogger("Example Logging Agent")
 
 class LoggingAgent(tella.ContinualRLAgent):
     def __init__(
-        self, observation_space: gym.Space, action_space: gym.Space, num_envs: int
+        self,
+        rng_seed: int,
+        observation_space: gym.Space,
+        action_space: gym.Space,
+        num_envs: int,
     ) -> None:
-        super().__init__(observation_space, action_space, num_envs)
+        super().__init__(rng_seed, observation_space, action_space, num_envs)
         logger.info(
             f"Constructed with observation_space={observation_space} "
             f"action_space={action_space} num_envs={num_envs}"
@@ -79,10 +83,6 @@ class LoggingAgent(tella.ContinualRLAgent):
             logger.info("Done with learning block")
         else:
             logger.info("Done with evaluation block")
-
-    def set_rng_seed(self, seed: int) -> None:
-        logger.info(f"RNG seed set to ({seed})")
-        self.action_space.seed(seed)
 
 
 if __name__ == "__main__":

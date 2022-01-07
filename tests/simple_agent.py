@@ -8,11 +8,14 @@ from tella.agents import ContinualRLAgent, Observation, Action
 class SimpleRLAgent(ContinualRLAgent):
     def __init__(
         self,
+        rng_seed: int,
         observation_space: gym.Space,
         action_space: gym.Space,
         num_envs: int,
     ) -> None:
-        super().__init__(observation_space, action_space, num_envs, metric=None)
+        super().__init__(
+            rng_seed, observation_space, action_space, num_envs, metric=None
+        )
         self.all_events = []
 
     def block_start(self, is_learning_allowed: bool) -> None:

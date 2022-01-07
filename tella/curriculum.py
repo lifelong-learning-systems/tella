@@ -105,17 +105,21 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
     a sequence of :class:`AbstractLearnBlock`s and :class:`AbstractEvalBlock`s.
     """
 
+    def __init__(self, rng_seed: int):
+        """
+        :param rng_seed: The seed to be used in setting random number generators.
+        """
+        self.rng_seed = rng_seed
+
     @abc.abstractmethod
     def learn_blocks_and_eval_blocks(
         self,
-        rng_seed: int,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[TaskVariantType]", "AbstractEvalBlock[TaskVariantType]"
         ]
     ]:
         """
-        :param rng_seed: A seed integer to be used in setting random number generators.
         :return: An Iterable of Learn Blocks and Eval Blocks.
         """
 
@@ -189,22 +193,14 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
     """
 
     @abc.abstractmethod
-    def learn_blocks(
-        self,
-        rng_seed: int,
-    ) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
+    def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
         """
-        :param rng_seed: A seed integer to be used in setting random number generators.
         :return: An iterable of :class:`LearnBlock`.
         """
 
     @abc.abstractmethod
-    def eval_block(
-        self,
-        rng_seed: int,
-    ) -> AbstractEvalBlock[TaskVariantType]:
+    def eval_block(self) -> AbstractEvalBlock[TaskVariantType]:
         """
-        :param rng_seed: A seed integer to be used in setting random number generators.
         :return: The single :class:`EvalBlock` to interleave between each
             individual :class:`LearnBlock` returned from
             :meth:`InterleavedEvalCurriculum.learn_blocks`.
@@ -212,19 +208,17 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
 
     def learn_blocks_and_eval_blocks(
         self,
-        rng_seed: int,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[TaskVariantType]", "AbstractEvalBlock[TaskVariantType]"
         ]
     ]:
-        # Create an internal RNG to generate unique but repeatable rng_seed arguments for the following methods
-        rng = random.Random(rng_seed)
-
-        yield self.eval_block(rng_seed=rng.getrandbits(32))
-        for block in self.learn_blocks(rng_seed=rng.getrandbits(32)):
+        # TODO: Create an internal RNG to generate unique but repeatable
+        #  rng_seed arguments for the following methods
+        yield self.eval_block()
+        for block in self.learn_blocks():
             yield block
-            yield self.eval_block(rng_seed=rng.getrandbits(32))
+            yield self.eval_block()
 
 
 class TaskBlock(AbstractTaskBlock):
@@ -512,7 +506,6 @@ def _where(
 
 def summarize_curriculum(
     curriculum: AbstractCurriculum[AbstractTaskVariant],
-    rng_seed: int,
 ) -> str:
     """
     Generate a detailed string summarizing the contents of the curriculum.
@@ -524,9 +517,7 @@ def summarize_curriculum(
         return f"{num} {label}" + ("" if num == 1 else "s")
 
     block_summaries = []
-    for i_block, block in enumerate(
-        curriculum.learn_blocks_and_eval_blocks(rng_seed=rng_seed)
-    ):
+    for i_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
 
         task_summaries = []
         for i_task, task_block in enumerate(block.task_blocks()):
@@ -563,7 +554,6 @@ def summarize_curriculum(
 
 def validate_curriculum(
     curriculum: AbstractCurriculum[AbstractTaskVariant],
-    rng_seed: int,
 ):
     """
     Helper function to do a partial check that task variants are specified
@@ -581,9 +571,7 @@ def validate_curriculum(
     warned_repeat_variants = False
     obs_and_act_spaces = None  # placeholder
     empty_curriculum = True
-    for i_block, block in enumerate(
-        curriculum.learn_blocks_and_eval_blocks(rng_seed=rng_seed)
-    ):
+    for i_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
         empty_curriculum = False
 
         empty_block = True

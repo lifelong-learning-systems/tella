@@ -27,11 +27,11 @@ class TestCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
             ]
         ],
     ) -> None:
+        super(TestCurriculum, self).__init__(rng_seed=0)
         self.blocks = blocks
 
     def learn_blocks_and_eval_blocks(
         self,
-        rng_seed: int,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[AbstractRLTaskVariant]",
@@ -62,7 +62,7 @@ def test_correct_curriculum():
             simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
         ]
     )
-    validate_curriculum(curriculum, rng_seed=0)
+    validate_curriculum(curriculum)
 
 
 def test_error_on_diff_task_labels():
@@ -91,7 +91,7 @@ def test_error_on_diff_task_labels():
         ]
     )
     with pytest.raises(ValueError) as err:
-        validate_curriculum(curriculum, rng_seed=0)
+        validate_curriculum(curriculum)
 
     assert err.match(
         "Block #0, task block #0 had more than 1 task label found across all task variants: "
@@ -118,7 +118,7 @@ def test_error_on_multiple_spaces():
     )
 
     with pytest.raises(ValueError) as err:
-        validate_curriculum(curriculum, rng_seed=0)
+        validate_curriculum(curriculum)
 
     assert err.match(
         "All environments in a curriculum must use the same observation and action spaces."
@@ -146,14 +146,14 @@ def test_warn_same_variant_labels():
         ]
     )
     with pytest.warns(UserWarning):
-        validate_curriculum(curriculum, rng_seed=0)
+        validate_curriculum(curriculum)
 
 
 def test_empty_curriculum():
     curriculum = TestCurriculum([])
 
     with pytest.raises(ValueError) as err:
-        validate_curriculum(curriculum, rng_seed=0)
+        validate_curriculum(curriculum)
 
     assert err.match("This curriculum is empty.")
 
@@ -162,7 +162,7 @@ def test_empty_block():
     curriculum = TestCurriculum([LearnBlock([])])
 
     with pytest.raises(ValueError) as err:
-        validate_curriculum(curriculum, rng_seed=0)
+        validate_curriculum(curriculum)
 
     assert err.match("Block #0 is empty.")
 
@@ -171,7 +171,7 @@ def test_empty_task():
     curriculum = TestCurriculum([LearnBlock([TaskBlock("Task1", [])])])
 
     with pytest.raises(ValueError) as err:
-        validate_curriculum(curriculum, rng_seed=0)
+        validate_curriculum(curriculum)
 
     assert err.match("Block #0, task block #0 is empty.")
 
@@ -186,7 +186,7 @@ def test_invalid_task_params():
     )
 
     with pytest.raises(ValueError) as err:
-        validate_curriculum(curriculum, rng_seed=0)
+        validate_curriculum(curriculum)
 
     assert err.match(
         "Invalid task variant at block #0, task block #0, task variant #0."

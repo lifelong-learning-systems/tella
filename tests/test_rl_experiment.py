@@ -24,8 +24,8 @@ def test_rl_experiment(tmpdir):
 
 def test_all_event_orders(tmpdir):
     env = gym.make("CartPole-v1")
-    agent = SimpleRLAgent(env.observation_space, env.action_space, 1)
-    curriculum = SimpleRLCurriculum()
+    agent = SimpleRLAgent(0, env.observation_space, env.action_space, 1)
+    curriculum = SimpleRLCurriculum(rng_seed=0)
 
     run(agent, curriculum, render=False, log_dir=tmpdir)
 
@@ -56,8 +56,8 @@ def test_run_l2logger_dir(tmpdir):
     tmpdir.chdir()
 
     env = gym.make("CartPole-v1")
-    agent = SimpleRLAgent(env.observation_space, env.action_space, 1)
-    curriculum = SimpleRLCurriculum()
+    agent = SimpleRLAgent(0, env.observation_space, env.action_space, 1)
+    curriculum = SimpleRLCurriculum(rng_seed=0)
 
     run(agent, curriculum, render=False, log_dir="logs")
     assert tmpdir.join("logs").check()

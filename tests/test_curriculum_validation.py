@@ -186,7 +186,7 @@ def test_invalid_task_params():
     )
 
     with pytest.raises(ValueError) as err:
-        validate_curriculum(curriculum)
+        validate_curriculum(curriculum, rng_seed=0)
 
     assert err.match(
         "Invalid task variant at block #0, task block #0, task variant #0."

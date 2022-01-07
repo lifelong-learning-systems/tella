@@ -29,12 +29,17 @@ class CustomFetchEnv(MiniGridEnv):
     """
 
     def __init__(
-        self, size=8, targetType="key", targetColor="yellow", numTargets=1, numObjs=2
+        self,
+        size=8,
+        target_type="key",
+        target_color="yellow",
+        num_targets=1,
+        num_objs=2,
     ):
-        self.targetType = targetType
-        self.targetColor = targetColor
-        self.numTargets = numTargets
-        self.numObjs = numObjs
+        self.target_type = target_type
+        self.target_color = target_color
+        self.num_targets = num_targets
+        self.num_objs = num_objs
 
         super().__init__(
             grid_size=size,
@@ -56,24 +61,24 @@ class CustomFetchEnv(MiniGridEnv):
         types = ["key", "ball", "box"]
 
         # Remove target type from list of distractor objects
-        types.remove(self.targetType)
+        types.remove(self.target_type)
 
         objs = []
 
         # For each key to be generated
-        for _ in range(self.numTargets):
-            if self.targetType == "key":
-                obj = Key(self.targetColor)
-            elif self.targetType == "ball":
-                obj = Ball(self.targetColor)
-            elif self.targetType == "box":
-                obj = Box(self.targetColor)
+        for _ in range(self.num_targets):
+            if self.target_type == "key":
+                obj = Key(self.target_color)
+            elif self.target_type == "ball":
+                obj = Ball(self.target_color)
+            elif self.target_type == "box":
+                obj = Box(self.target_color)
 
             self.place_obj(obj)
             objs.append(obj)
 
         # For each distractor object to be generated
-        for _ in range(self.numObjs):
+        for _ in range(self.num_objs):
             objType = self._rand_elem(types)
             objColor = self._rand_elem(COLOR_NAMES)
 
@@ -90,7 +95,7 @@ class CustomFetchEnv(MiniGridEnv):
         # Randomize the player start position and orientation
         self.place_agent()
 
-        descStr = "%s %s" % (self.targetColor, self.targetType)
+        descStr = "%s %s" % (self.target_color, self.target_type)
 
         # Generate the mission string
         idx = self._rand_int(0, 5)
@@ -111,8 +116,8 @@ class CustomFetchEnv(MiniGridEnv):
 
         if self.carrying:
             if (
-                self.carrying.color == self.targetColor
-                and self.carrying.type == self.targetType
+                self.carrying.color == self.target_color
+                and self.carrying.type == self.target_type
             ):
                 reward = self._reward()
                 done = True
@@ -125,17 +130,17 @@ class CustomFetchEnv(MiniGridEnv):
 
 class CustomFetchEnv5x5T1N2(CustomFetchEnv):
     def __init__(self):
-        super().__init__(size=5, numTargets=1, numObjs=2)
+        super().__init__(size=5, num_targets=1, num_objs=2)
 
 
 class CustomFetchEnv8x8T1N2(CustomFetchEnv):
     def __init__(self):
-        super().__init__(size=8, numTargets=1, numObjs=2)
+        super().__init__(size=8, num_targets=1, num_objs=2)
 
 
 class CustomFetchEnv16x16T2N4(CustomFetchEnv):
     def __init__(self):
-        super().__init__(size=16, numTargets=2, numObjs=4)
+        super().__init__(size=16, num_targets=2, num_objs=4)
 
 
 register(

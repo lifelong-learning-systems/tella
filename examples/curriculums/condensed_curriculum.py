@@ -12,7 +12,6 @@ from random_env import *
 class ExampleCondensed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
     def learn_blocks(
         self,
-        rng_seed: int,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
         task_variants = [
             EpisodicTaskVariant(Task1VariantA, num_episodes=10),
@@ -24,15 +23,12 @@ class ExampleCondensed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
             EpisodicTaskVariant(Task3Variant2, num_episodes=10, params={"c": 0.3}),
             EpisodicTaskVariant(Task4, num_episodes=10, params={"d": 0.4}),
         ]
-        rng = np.random.default_rng(rng_seed)
+        rng = np.random.default_rng(self.rng_seed)
         rng.shuffle(task_variants)
         for task_variant in task_variants:
             yield simple_learn_block([task_variant])
 
-    def eval_block(
-        self,
-        rng_seed: int,
-    ) -> AbstractEvalBlock[AbstractRLTaskVariant]:
+    def eval_block(self) -> AbstractEvalBlock[AbstractRLTaskVariant]:
         return simple_eval_block(
             [
                 EpisodicTaskVariant(Task1VariantA, num_episodes=1),
@@ -48,8 +44,8 @@ class ExampleCondensed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
 
 
 if __name__ == "__main__":
-    curriculum = ExampleCondensed()
-    for i, block in enumerate(curriculum.learn_blocks_and_eval_blocks(rng_seed=0)):
+    curriculum = ExampleCondensed(0)
+    for i, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
         for task_block in block.task_blocks():
             for task_variant in task_block.task_variants():
                 print(

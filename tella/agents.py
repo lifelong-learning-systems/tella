@@ -45,8 +45,17 @@ class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
     which takes an object of type :class:`TaskVariantType`.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, rng_seed: int) -> None:
+        """
+        Agent constructor.
+
+        For experiment repeatability, all agents with non-deterministic methods are expected
+        to seed their random number generators (RNG) based on the parameter provided here.
+
+        :param rng_seed: The seed to be used in setting random number generators.
+        """
         super().__init__()
+        self.rng_seed = rng_seed
         self.is_learning_allowed: bool = False
 
     def block_start(self, is_learning_allowed: bool) -> None:
@@ -156,18 +165,6 @@ class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
         """
         pass
 
-    def set_rng_seed(self, seed: int) -> None:
-        """
-        Provides a seed integer to set all random number generators for agent repeatability.
-
-        For experiment repeatability, all agents with non-deterministic methods are expected
-        to seed their random number generators (RNG) based on the parameter provided here.
-        It is not strictly necessary to use this parameter as the RNG seed directly.
-
-        :param seed: The seed to be used in setting random number generators.
-        """
-        pass
-
 
 class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
     """
@@ -188,6 +185,7 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
 
     def __init__(
         self,
+        rng_seed: int,
         observation_space: gym.Space,
         action_space: gym.Space,
         num_envs: int,
@@ -200,13 +198,17 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
         :param action_space: The action space from the :class:`gym.Env`.
         :param num_envs: The number of environments that will be used for :class:`gym.vector.VectorEnv`.
         """
-        super().__init__()
+        super().__init__(rng_seed)
         if metric is None:
             metric = default_metrics()
         self.observation_space = observation_space
         self.action_space = action_space
         self.num_envs = num_envs
         self.metric = metric
+
+        # Set RNG seeds on observation and action spaces for .sample() method
+        self.observation_space.seed(self.rng_seed)
+        self.action_space.seed(self.rng_seed)
 
     def learn_task_variant(self, task_variant: AbstractRLTaskVariant) -> Metrics:
         """

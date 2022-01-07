@@ -31,15 +31,16 @@ from .curriculum import AbstractCurriculum, AbstractTaskVariant, validate_curric
 
 logger = logging.getLogger(__name__)
 
-AgentFactory = typing.Callable[[gym.Space, gym.Space, int], ContinualRLAgent]
+AgentFactory = typing.Callable[[int, gym.Space, gym.Space, int], ContinualRLAgent]
 """
 AgentFactory is a function or class that returns a :class:`ContinualRLAgent`.
 
-It takes 3 arguments, which are the same as :meth:`ContinualRLAgent.__init__()`:
+It takes 4 arguments, which are the same as :meth:`ContinualRLAgent.__init__()`:
 
-    1. observation_space, which is a :class:`gym.Space`
-    2. action_space, which is a :class:`gym.Space
-    3. num_parallel_envs, which is an integer indicating how many environments will be run in parallel at the same time.
+    1. rng_seed, which is an integer to be used for repeatable random number generation
+    2. observation_space, which is a :class:`gym.Space`
+    3. action_space, which is a :class:`gym.Space
+    4. num_parallel_envs, which is an integer indicating how many environments will be run in parallel at the same time.
 
 A concrete subclass of :class:`ContinualRLAgent` can be used as an AgentFactory:
 
@@ -47,24 +48,24 @@ A concrete subclass of :class:`ContinualRLAgent` can be used as an AgentFactory:
         ...
 
     agent_factory: AgentFactory = MyAgent
-    agent = agent_factory(observation_space, action_space, num_parallel_envs)
+    agent = agent_factory(rng_seed, observation_space, action_space, num_parallel_envs)
 
 A function can also be used as an AgentFactory:
 
-    def my_factory(observation_space, action_space, num_parallel_envs):
+    def my_factory(rng_seed, observation_space, action_space, num_parallel_envs):
         ...
         return my_agent
 
     agent_factory: AgentFactory = my_factory
-    agent = agent_factory(observation_space, action_space, num_parallel_envs)
+    agent = agent_factory(rng_seed, observation_space, action_space, num_parallel_envs)
 """
 
-CurriculumFactory = typing.Callable[[], AbstractCurriculum[AbstractRLTaskVariant]]
+CurriculumFactory = typing.Callable[[int], AbstractCurriculum[AbstractRLTaskVariant]]
 """
 CurriculumFactory is a type alias for a function or class that returns a
 :class:`AbstractCurriculum`.
 
-It takes 0 arguments.
+It takes 1 argument, an integer which is to be used for repeatable random number generation.
 
 A concrete subclass of :class:`AbstractCurriculum` can be used as an CurriculumFactory:
 
@@ -72,16 +73,16 @@ A concrete subclass of :class:`AbstractCurriculum` can be used as an CurriculumF
         ...
 
     curriculum_factory: CurriculumFactory = MyCurriculum
-    curriculum = curriculum_factory()
+    curriculum = curriculum_factory(rng_seed)
 
 A function can also be used as an CurriculumFactory:
 
-    def my_factory():
+    def my_factory(rng_seed):
         ...
         return my_curriculum
 
     curriculum_factory: CurriculumFactory = my_factory
-    curriculum = curriculum_factory()
+    curriculum = curriculum_factory(rng_seed)
 """
 
 
@@ -107,15 +108,16 @@ def rl_experiment(
 
     # FIXME: multiprocessing https://github.com/darpa-l2m/tella/issues/44
     for i_lifetime in range(num_lifetimes):
-        curriculum = curriculum_factory()
+        curriculum = curriculum_factory(0)
         logger.info(f"Constructed curriculum {curriculum}")
         # FIXME: seed the curriculum https://github.com/darpa-l2m/tella/issues/54
 
         # FIXME: check for RL task variant https://github.com/darpa-l2m/tella/issues/53
-        validate_curriculum(curriculum, rng_seed=0)
+        validate_curriculum(curriculum)
         logger.info("Validated curriculum")
 
-        agent = agent_factory(observation_space, action_space, num_parallel_envs)
+        # FIXME: set the agent seed https://github.com/darpa-l2m/tella/issues/63
+        agent = agent_factory(0, observation_space, action_space, num_parallel_envs)
         logger.info(f"Constructed agent {agent}")
 
         logger.info(f"Starting lifetime #{i_lifetime + 1}")
@@ -134,8 +136,8 @@ def _spaces(
     :return: A tuple of (observation_space, action_space).
     """
     # FIXME: extract spaces based on solution in https://github.com/darpa-l2m/tella/issues/31
-    curriculum_obj = curriculum_factory()
-    for block in curriculum_obj.learn_blocks_and_eval_blocks(rng_seed=0):
+    curriculum_obj = curriculum_factory(0)
+    for block in curriculum_obj.learn_blocks_and_eval_blocks():
         for task_block in block.task_blocks():
             for task_variant in task_block.task_variants():
                 env = task_variant.info()
@@ -174,9 +176,7 @@ def run(
     data_logger = l2logger.DataLogger(log_dir, scenario_dir, logger_info, scenario_info)
     total_episodes = 0
     # TODO: set rng seed. https://github.com/darpa-l2m/tella/issues/63
-    for i_block, block in enumerate(
-        curriculum.learn_blocks_and_eval_blocks(rng_seed=0)
-    ):
+    for i_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
         is_learning_allowed = agent.is_learning_allowed = block.is_learning_allowed
         agent.block_start(is_learning_allowed)
         for task_block in block.task_blocks():

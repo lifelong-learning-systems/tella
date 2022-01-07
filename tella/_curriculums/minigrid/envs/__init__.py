@@ -19,8 +19,8 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-from tella._curriculums.minigrid.envs.customdistshift import *
-from tella._curriculums.minigrid.envs.customdynamicobstacles import *
-from tella._curriculums.minigrid.envs.customfetch import *
-from tella._curriculums.minigrid.envs.customunlock import *
-from tella._curriculums.minigrid.envs.customunlockpickup import *
+from tella._curriculums.minigrid.envs.custom_dist_shift import *
+from tella._curriculums.minigrid.envs.custom_dynamic_obstacles import *
+from tella._curriculums.minigrid.envs.custom_fetch import *
+from tella._curriculums.minigrid.envs.custom_unlock import *
+from tella._curriculums.minigrid.envs.custom_unlock_pickup import *

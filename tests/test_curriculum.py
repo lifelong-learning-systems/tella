@@ -239,3 +239,66 @@ def test_interleaved_rng_seed():
     ]
 
     assert first_call_tasks == second_call_tasks
+
+
+class TestInterleaved(InterleavedEvalCurriculum):
+    def learn_blocks(
+        self, rng_seed: int
+    ) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
+        yield simple_learn_block(
+            [
+                EpisodicTaskVariant(
+                    CartPoleEnv,
+                    num_episodes=1,
+                    task_label="Task1",
+                ),
+            ]
+        )
+        yield simple_learn_block(
+            [
+                EpisodicTaskVariant(
+                    CartPoleEnv,
+                    num_episodes=1,
+                    task_label="Task2",
+                ),
+            ]
+        )
+        yield simple_learn_block(
+            [
+                EpisodicTaskVariant(
+                    CartPoleEnv,
+                    num_episodes=1,
+                    task_label="Task3",
+                )
+            ]
+        )
+
+    def eval_block(self, rng_seed: int) -> AbstractEvalBlock[TaskVariantType]:
+        return simple_eval_block(
+            [
+                EpisodicTaskVariant(
+                    CartPoleEnv,
+                    num_episodes=1,
+                    task_label="Task1",
+                ),
+                EpisodicTaskVariant(
+                    CartPoleEnv,
+                    num_episodes=1,
+                    task_label="Task1",
+                ),
+            ]
+        )
+
+
+def test_interleaved_structure():
+    curriculum = TestInterleaved()
+    blocks = list(curriculum.learn_blocks_and_eval_blocks(rng_seed=0))
+
+    assert len(blocks) == 7
+    assert isinstance(blocks[0], AbstractEvalBlock)
+    for i in range(len(blocks)):
+        if i % 2 == 0:
+            assert isinstance(blocks[i], AbstractEvalBlock)
+        else:
+            assert isinstance(blocks[i], AbstractLearnBlock)
+    assert isinstance(blocks[-1], AbstractEvalBlock)

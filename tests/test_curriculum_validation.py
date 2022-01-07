@@ -176,6 +176,27 @@ def test_empty_task():
     assert err.match("Block #0, task block #0 is empty.")
 
 
+def test_invalid_task_params():
+    curriculum = TestCurriculum(
+        [
+            simple_eval_block(
+                [EpisodicTaskVariant(CartPoleEnv, num_episodes=1, params={"a": 1})]
+            ),
+        ]
+    )
+
+    with pytest.raises(ValueError) as err:
+        validate_curriculum(curriculum)
+
+    assert err.match(
+        "Invalid task variant at block #0, task block #0, task variant #0."
+    )
+    assert (
+        err.getrepr().chain[0][1].message
+        == "ValueError: Parameters not accepted: ['a'] in ()"
+    )
+
+
 def test_validate_valid_params_function():
     def example_function(a: int, b: float, c: str):
         pass

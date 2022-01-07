@@ -103,6 +103,7 @@ def _build_parser(require_curriculum: bool) -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--seed",
+        dest="rng_seed",
         default=0,
         type=int,
         help="The rng seed to use for reproducibility. "

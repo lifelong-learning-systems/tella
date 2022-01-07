@@ -21,7 +21,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import logging
 import typing
-
+import numpy as np
 import gym
 from l2logger import l2logger
 
@@ -92,6 +92,7 @@ def rl_experiment(
     num_lifetimes: int,
     num_parallel_envs: int,
     log_dir: str,
+    rng_seed: int,
     render: typing.Optional[bool] = False,
 ) -> None:
     """
@@ -101,28 +102,34 @@ def rl_experiment(
     :param curriculum_factory: Function or class to produce curriculum.
     :param num_lifetimes: Number of times to call :func:`run()`.
     :param num_parallel_envs: TODO
+    :param rng_seed: The seed for the RNG for this experiment.
+        The agent and curriculum will be seeded with new seeds for every lifetime.
     :param log_dir: The root log directory for l2logger.
     :return: None
     """
     observation_space, action_space = _spaces(curriculum_factory)
 
+    rng = np.random.default_rng(rng_seed)
+
     # FIXME: multiprocessing https://github.com/darpa-l2m/tella/issues/44
     for i_lifetime in range(num_lifetimes):
-        curriculum = curriculum_factory(0)
-        logger.info(f"Constructed curriculum {curriculum}")
-        # FIXME: seed the curriculum https://github.com/darpa-l2m/tella/issues/54
+        curriculum_seed = rng.bit_generator.random_raw()
+        agent_seed = rng.bit_generator.random_raw()
+
+        curriculum = curriculum_factory(curriculum_seed)
+        logger.info(f"Constructed curriculum {curriculum} with seed {curriculum_seed}")
 
         # FIXME: check for RL task variant https://github.com/darpa-l2m/tella/issues/53
         validate_curriculum(curriculum)
         logger.info("Validated curriculum")
 
-        # FIXME: set the agent seed https://github.com/darpa-l2m/tella/issues/63
-        agent = agent_factory(0, observation_space, action_space, num_parallel_envs)
-        logger.info(f"Constructed agent {agent}")
+        agent = agent_factory(
+            agent_seed, observation_space, action_space, num_parallel_envs
+        )
+        logger.info(f"Constructed agent {agent} with seed {agent_seed}")
 
         logger.info(f"Starting lifetime #{i_lifetime + 1}")
         # FIXME: pass num_parallel_envs to run https://github.com/darpa-l2m/tella/issues/32
-        # FIXME: pass log_dir to run https://github.com/darpa-l2m/tella/issues/12
         run(agent, curriculum, render=render, log_dir=log_dir)
 
 
@@ -175,7 +182,6 @@ def run(
     logger_info = {"metrics_columns": ["reward"], "log_format_version": "1.0"}
     data_logger = l2logger.DataLogger(log_dir, scenario_dir, logger_info, scenario_info)
     total_episodes = 0
-    # TODO: set rng seed. https://github.com/darpa-l2m/tella/issues/63
     for i_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
         is_learning_allowed = agent.is_learning_allowed = block.is_learning_allowed
         agent.block_start(is_learning_allowed)

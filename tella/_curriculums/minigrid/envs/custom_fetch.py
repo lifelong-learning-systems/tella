@@ -39,10 +39,10 @@ class CustomFetchEnv(MiniGridEnv):
         self.target_color = target_color
         self.num_targets = num_targets
         self.num_objs = num_objs
-
+        max_steps = 5 * size ** 2
         super().__init__(
             grid_size=size,
-            max_steps=5 * size ** 2,
+            max_steps=max_steps,
             # Set this to True for maximum speed
             see_through_walls=True,
         )
@@ -94,20 +94,20 @@ class CustomFetchEnv(MiniGridEnv):
         # Randomize the player start position and orientation
         self.place_agent()
 
-        descStr = "%s %s" % (self.target_color, self.target_type)
+        desc_str = "%s %s" % (self.target_color, self.target_type)
 
         # Generate the mission string
         idx = self._rand_int(0, 5)
         if idx == 0:
-            self.mission = "get a %s" % descStr
+            self.mission = "get a %s" % desc_str
         elif idx == 1:
-            self.mission = "go get a %s" % descStr
+            self.mission = "go get a %s" % desc_str
         elif idx == 2:
-            self.mission = "fetch a %s" % descStr
+            self.mission = "fetch a %s" % desc_str
         elif idx == 3:
-            self.mission = "go fetch a %s" % descStr
+            self.mission = "go fetch a %s" % desc_str
         elif idx == 4:
-            self.mission = "you must fetch a %s" % descStr
+            self.mission = "you must fetch a %s" % desc_str
         assert hasattr(self, "mission")
 
     def step(self, action):

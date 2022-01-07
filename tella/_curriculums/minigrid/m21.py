@@ -54,13 +54,14 @@ class MiniGridReducedActionSpaceWrapper(gym.ActionWrapper):
     """Reduce the action space in environment to help learning."""
 
     def __init__(self, env: gym.Env, num_actions: int) -> None:
+        assert isinstance(env.action_space, gym.spaces.Discrete)
+        assert num_actions <= env.action_space.n
         super().__init__(env)
-        assert isinstance(self.action_space, gym.spaces.Discrete)
         self.action_space = gym.spaces.Discrete(num_actions)
 
     def action(self, act):
         if act >= self.action_space.n:
-            act = 0
+            raise gym.error.InvalidAction()
         return act
 
 

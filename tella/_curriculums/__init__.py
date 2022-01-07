@@ -41,7 +41,9 @@ def load_curriculum_registry():
             MiniGridDispersed,
         )
     except ImportError:
-        logger.info("Unable to load minigrid curriculums because gym_minigrid is not installed")
+        logger.info(
+            "Unable to load minigrid curriculums because gym_minigrid is not installed"
+        )
     else:
         curriculum_registry["SimpleMiniGrid"] = SimpleMiniGridCurriculum
         curriculum_registry["MiniGridCondensed"] = MiniGridCondensed

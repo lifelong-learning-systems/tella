@@ -69,6 +69,7 @@ def rl_cli(
         num_lifetimes=args.num_lifetimes,
         num_parallel_envs=args.num_parallel_envs,
         log_dir=args.log_dir,
+        rng_seed=args.rng_seed,
         render=args.render,
     )
 
@@ -99,6 +100,13 @@ def _build_parser(require_curriculum: bool) -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--render", action="store_true", help="Whether to render the environment"
+    )
+    parser.add_argument(
+        "--seed",
+        default=0,
+        type=int,
+        help="The rng seed to use for reproducibility. "
+        "This seed to will be used to generate other rng seeds for each component",
     )
     if require_curriculum:
         parser.add_argument(

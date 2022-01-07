@@ -31,7 +31,11 @@ def load_curriculum_registry():
     curriculum_registry["CartPole-1000"] = CartPole1000Curriculum
 
     try:
-        from .minigrid.simple import SimpleMiniGridCurriculum, MiniGridCondensed, MiniGridDispersed
+        from .minigrid.simple import (
+            SimpleMiniGridCurriculum,
+            MiniGridCondensed,
+            MiniGridDispersed,
+        )
     except ImportError:
         # Skip if gym_minigrid is not installed
         pass

@@ -92,7 +92,7 @@ def rl_experiment(
     num_lifetimes: int,
     num_parallel_envs: int,
     log_dir: str,
-    rng_seed: int,
+    rng_seed: typing.Optional[int],
     render: typing.Optional[bool] = False,
 ) -> None:
     """
@@ -104,11 +104,16 @@ def rl_experiment(
     :param num_parallel_envs: TODO
     :param rng_seed: The seed for the RNG for this experiment.
         The agent and curriculum will be seeded with new seeds for every lifetime.
+        If no seed is provided, a random seed is chosen and logged.
     :param log_dir: The root log directory for l2logger.
     :return: None
     """
     observation_space, action_space = _spaces(curriculum_factory)
 
+    if rng_seed is None:
+        logger.info("No RNG seed provided; one will be generated randomly.")
+        rng_seed = np.random.default_rng().bit_generator.random_raw()
+    logger.info(f"RL experiment RNG seed: {rng_seed}")
     rng = np.random.default_rng(rng_seed)
 
     # FIXME: multiprocessing https://github.com/darpa-l2m/tella/issues/44

@@ -31,7 +31,7 @@ def load_curriculum_registry():
     curriculum_registry["CartPole-1000"] = CartPole1000Curriculum
 
     try:
-        from .minigrid.simple import (
+        from .minigrid import (
             SimpleMiniGridCurriculum,
             MiniGridCondensed,
             MiniGridDispersed,

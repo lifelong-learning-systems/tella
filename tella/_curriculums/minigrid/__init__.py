@@ -20,4 +20,6 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 # Import the envs module so that envs register themselves
-import tella._curriculums.minigrid.envs
+import envs
+from simple import SimpleMiniGridCurriculum
+from m21 import MiniGridCondensed, MiniGridDispersed

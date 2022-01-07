@@ -107,7 +107,8 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
 
     def __init__(self, rng_seed: int):
         """
-        :param rng_seed: The seed to be used in setting random number generators.
+        :param rng_seed: The seed to be used in setting random number generators. This should be referenced
+            at each call to .learn_blocks_and_eval_blocks()
         """
         self.rng_seed = rng_seed
 
@@ -120,6 +121,12 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
         ]
     ]:
         """
+        Generate the learning and eval blocks of this curriculum.
+
+        If any randomness is used in a curriculum, the random number generator(s) should be seeded based on
+        self.rng_seed. This should be reset at each call to .learn_blocks_and_eval_blocks() so that each
+        returns identical blocks.
+
         :return: An Iterable of Learn Blocks and Eval Blocks.
         """
 

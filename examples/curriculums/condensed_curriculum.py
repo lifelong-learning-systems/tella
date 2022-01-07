@@ -10,7 +10,9 @@ from random_env import *
 
 
 class ExampleCondensed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
-    def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
         task_variants = [
             EpisodicTaskVariant(Task1VariantA, num_episodes=10),
             EpisodicTaskVariant(Task2, num_episodes=10),

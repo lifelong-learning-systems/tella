@@ -35,11 +35,12 @@ AgentFactory = typing.Callable[[int, gym.Space, gym.Space, int], ContinualRLAgen
 """
 AgentFactory is a function or class that returns a :class:`ContinualRLAgent`.
 
-It takes 3 arguments, which are the same as :meth:`ContinualRLAgent.__init__()`:
+It takes 4 arguments, which are the same as :meth:`ContinualRLAgent.__init__()`:
 
-    1. observation_space, which is a :class:`gym.Space`
-    2. action_space, which is a :class:`gym.Space
-    3. num_parallel_envs, which is an integer indicating how many environments will be run in parallel at the same time.
+    1. rng_seed, which is an integer to be used for repeatable random number generation
+    2. observation_space, which is a :class:`gym.Space`
+    3. action_space, which is a :class:`gym.Space
+    4. num_parallel_envs, which is an integer indicating how many environments will be run in parallel at the same time.
 
 A concrete subclass of :class:`ContinualRLAgent` can be used as an AgentFactory:
 
@@ -47,16 +48,16 @@ A concrete subclass of :class:`ContinualRLAgent` can be used as an AgentFactory:
         ...
 
     agent_factory: AgentFactory = MyAgent
-    agent = agent_factory(observation_space, action_space, num_parallel_envs)
+    agent = agent_factory(rng_seed, observation_space, action_space, num_parallel_envs)
 
 A function can also be used as an AgentFactory:
 
-    def my_factory(observation_space, action_space, num_parallel_envs):
+    def my_factory(rng_seed, observation_space, action_space, num_parallel_envs):
         ...
         return my_agent
 
     agent_factory: AgentFactory = my_factory
-    agent = agent_factory(observation_space, action_space, num_parallel_envs)
+    agent = agent_factory(rng_seed, observation_space, action_space, num_parallel_envs)
 """
 
 CurriculumFactory = typing.Callable[[int], AbstractCurriculum[AbstractRLTaskVariant]]
@@ -64,7 +65,7 @@ CurriculumFactory = typing.Callable[[int], AbstractCurriculum[AbstractRLTaskVari
 CurriculumFactory is a type alias for a function or class that returns a
 :class:`AbstractCurriculum`.
 
-It takes 0 arguments.
+It takes 1 argument, an integer which is to be used for repeatable random number generation.
 
 A concrete subclass of :class:`AbstractCurriculum` can be used as an CurriculumFactory:
 
@@ -72,16 +73,16 @@ A concrete subclass of :class:`AbstractCurriculum` can be used as an CurriculumF
         ...
 
     curriculum_factory: CurriculumFactory = MyCurriculum
-    curriculum = curriculum_factory()
+    curriculum = curriculum_factory(rng_seed)
 
 A function can also be used as an CurriculumFactory:
 
-    def my_factory():
+    def my_factory(rng_seed):
         ...
         return my_curriculum
 
     curriculum_factory: CurriculumFactory = my_factory
-    curriculum = curriculum_factory()
+    curriculum = curriculum_factory(rng_seed)
 """
 
 

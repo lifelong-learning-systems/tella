@@ -11,7 +11,7 @@ from .simple_agent import SimpleRLAgent
 @patch(
     "argparse.ArgumentParser.parse_args",
     return_value=argparse.Namespace(
-        num_parallel_envs=1, num_lifetimes=1, log_dir="logs", render=False
+        num_parallel_envs=1, num_lifetimes=1, log_dir="logs", render=False, rng_seed=0
     ),
 )
 def test_no_args(p, tmpdir):
@@ -23,7 +23,7 @@ def test_no_args(p, tmpdir):
 @patch(
     "argparse.ArgumentParser.parse_args",
     return_value=argparse.Namespace(
-        num_parallel_envs=1, num_lifetimes=2, log_dir="logs", render=False
+        num_parallel_envs=1, num_lifetimes=2, log_dir="logs", render=False, rng_seed=0
     ),
 )
 def test_num_lifetimes(p, tmpdir):
@@ -35,7 +35,7 @@ def test_num_lifetimes(p, tmpdir):
 @patch(
     "argparse.ArgumentParser.parse_args",
     return_value=argparse.Namespace(
-        num_parallel_envs=2, num_lifetimes=1, log_dir="logs", render=False
+        num_parallel_envs=2, num_lifetimes=1, log_dir="logs", render=False, rng_seed=0
     ),
 )
 def test_num_parallel_envs(p, tmpdir):
@@ -52,6 +52,7 @@ def test_num_parallel_envs(p, tmpdir):
         log_dir="logs",
         curriculum="invalid",
         render=False,
+        rng_seed=0,
     ),
 )
 def test_invalid_curriculum_name(p, tmpdir):
@@ -63,7 +64,7 @@ def test_invalid_curriculum_name(p, tmpdir):
 @patch(
     "argparse.ArgumentParser.parse_args",
     return_value=argparse.Namespace(
-        num_parallel_envs=1, num_lifetimes=2, log_dir="logs", render=False
+        num_parallel_envs=1, num_lifetimes=2, log_dir="logs", render=False, rng_seed=0
     ),
 )
 @patch("tella.env.L2LoggerEnv.render")
@@ -76,7 +77,7 @@ def test_no_render(render_patch, argparse_patch, tmpdir):
 @patch(
     "argparse.ArgumentParser.parse_args",
     return_value=argparse.Namespace(
-        num_parallel_envs=1, num_lifetimes=2, log_dir="logs", render=True
+        num_parallel_envs=1, num_lifetimes=2, log_dir="logs", render=True, rng_seed=0
     ),
 )
 @patch("tella.env.L2LoggerEnv.render")

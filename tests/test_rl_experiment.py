@@ -1,4 +1,7 @@
+import pytest
 import argparse
+import csv
+import os
 from unittest.mock import patch
 import typing
 import csv
@@ -19,7 +22,75 @@ def test_space_extraction():
 def test_rl_experiment(tmpdir):
     # TODO what should this test other than being runnable?
     # TODO rl experiment isn't really unit testable since it doesn't have outputs...
-    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, tmpdir)
+    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, tmpdir, 0)
+
+
+def test_reproducible_experiment_filestructure(tmpdir):
+    tmpdir.chdir()
+
+    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 2, 1, "logs1", 0)
+    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 2, 1, "logs2", 0)
+
+    root1 = tmpdir.join("logs1").listdir()[0]
+    root2 = tmpdir.join("logs2").listdir()[0]
+
+    structure1 = [(dirnames, filenames) for _, dirnames, filenames in os.walk(root1)]
+    structure2 = [(dirnames, filenames) for _, dirnames, filenames in os.walk(root2)]
+
+    assert structure1 == structure2
+
+
+@pytest.mark.skip("FIXME: unskip after #62 is resolved")
+def test_reproducible_experiment_same_contents(tmpdir):
+    tmpdir.chdir()
+
+    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 2, 1, "logs1", 0)
+    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 2, 1, "logs2", 0)
+
+    worker1 = tmpdir.join("logs1").listdir()[0].join("worker-default")
+    worker2 = tmpdir.join("logs2").listdir()[0].join("worker-default")
+
+    columns_to_ignore = ["timestamp"]
+    for block1, block2 in zip(worker1.listdir(), worker2.listdir()):
+        assert block1.basename == block2.basename
+        with open(block1.join("data-log.tsv")) as fp1, open(
+            block2.join("data-log.tsv")
+        ) as fp2:
+            reader1 = csv.DictReader(fp1, delimiter="\t")
+            reader2 = csv.DictReader(fp2, delimiter="\t")
+            for row1, row2 in zip(reader1, reader2):
+                assert row1.keys() == row2.keys()
+                for key in [key for key in row1.keys() if key not in columns_to_ignore]:
+                    assert row1[key] == row2[key]
+
+
+@pytest.mark.skip("FIXME: unskip after #62 is resolved")
+def test_reproducible_experiment_different_contents(tmpdir):
+    tmpdir.chdir()
+
+    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 2, 1, "logs1", 0)
+    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 2, 1, "logs2", 1)
+
+    worker1 = tmpdir.join("logs1").listdir()[0].join("worker-default")
+    worker2 = tmpdir.join("logs2").listdir()[0].join("worker-default")
+
+    something_different = False
+
+    columns_to_ignore = ["timestamp"]
+    for block1, block2 in zip(worker1.listdir(), worker2.listdir()):
+        assert block1.basename == block2.basename
+        with open(block1.join("data-log.tsv")) as fp1, open(
+            block2.join("data-log.tsv")
+        ) as fp2:
+            reader1 = csv.DictReader(fp1, delimiter="\t")
+            reader2 = csv.DictReader(fp2, delimiter="\t")
+            for row1, row2 in zip(reader1, reader2):
+                assert row1.keys() == row2.keys()
+                for key in [key for key in row1.keys() if key not in columns_to_ignore]:
+                    if row1[key] != row2[key]:
+                        something_different = True
+
+    assert something_different
 
 
 def test_all_event_orders(tmpdir):
@@ -66,17 +137,17 @@ def test_run_l2logger_dir(tmpdir):
 def test_log_directory(tmpdir):
     tmpdir.chdir()
 
-    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs1")
+    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs1", 0)
     assert tmpdir.join("logs1").check()
 
-    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs2")
+    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs2", 0)
     assert tmpdir.join("logs2").check()
 
 
 def test_l2logger_directory_structure(tmpdir):
     tmpdir.chdir()
 
-    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs")
+    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs", 0)
 
     assert tmpdir.join("logs").check()
     assert len(tmpdir.join("logs").listdir()) == 1
@@ -103,7 +174,7 @@ def test_l2logger_directory_structure(tmpdir):
 def test_l2logger_validation(tmpdir):
     tmpdir.chdir()
 
-    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs")
+    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs", 0)
 
     with patch(
         "argparse.ArgumentParser.parse_args",
@@ -115,7 +186,7 @@ def test_l2logger_validation(tmpdir):
 def test_l2logger_tsv_contents(tmpdir):
     tmpdir.chdir()
 
-    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs")
+    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs", 0)
 
     run_dir = tmpdir.join("logs").listdir()[0]
     worker_dir = run_dir.join("worker-default")

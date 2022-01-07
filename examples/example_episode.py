@@ -15,7 +15,7 @@ def main():
 
     env: gym.Env = gym.make("CartPole-v1")
     agent: ContinualRLAgent = LoggingAgent(
-        env.observation_space, env.action_space, num_envs=1
+        0, env.observation_space, env.action_space, num_envs=1
     )
 
     agent.block_start(is_learning_allowed=True)

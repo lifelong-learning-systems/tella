@@ -50,11 +50,13 @@ class ContinualSupervisedLearningAgent(ContinualLearningAgent[TorchVisionTaskVar
 class ExampleCurriculum(AbstractCurriculum[TorchVisionTaskVariant]):
     def learn_blocks_and_eval_blocks(
         self,
+        rng_seed: int,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[TaskVariantType]", "AbstractEvalBlock[TaskVariantType]"
         ]
     ]:
+        torch.manual_seed(rng_seed)
         dataset = TensorDataset(
             torch.rand(10, 64, 64, 3), torch.randint(low=0, high=5, size=(10,))
         )

@@ -112,7 +112,7 @@ def rl_experiment(
         # FIXME: seed the curriculum https://github.com/darpa-l2m/tella/issues/54
 
         # FIXME: check for RL task variant https://github.com/darpa-l2m/tella/issues/53
-        validate_curriculum(curriculum)
+        validate_curriculum(curriculum, rng_seed=0)
         logger.info("Validated curriculum")
 
         agent = agent_factory(observation_space, action_space, num_parallel_envs)
@@ -135,7 +135,7 @@ def _spaces(
     """
     # FIXME: extract spaces based on solution in https://github.com/darpa-l2m/tella/issues/31
     curriculum_obj = curriculum_factory()
-    for block in curriculum_obj.learn_blocks_and_eval_blocks():
+    for block in curriculum_obj.learn_blocks_and_eval_blocks(rng_seed=0):
         for task_block in block.task_blocks():
             for task_variant in task_block.task_variants():
                 env = task_variant.info()
@@ -173,7 +173,10 @@ def run(
     logger_info = {"metrics_columns": ["reward"], "log_format_version": "1.0"}
     data_logger = l2logger.DataLogger(log_dir, scenario_dir, logger_info, scenario_info)
     total_episodes = 0
-    for i_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
+    # TODO: set rng seed. https://github.com/darpa-l2m/tella/issues/63
+    for i_block, block in enumerate(
+        curriculum.learn_blocks_and_eval_blocks(rng_seed=0)
+    ):
         is_learning_allowed = agent.is_learning_allowed = block.is_learning_allowed
         agent.block_start(is_learning_allowed)
         for task_block in block.task_blocks():

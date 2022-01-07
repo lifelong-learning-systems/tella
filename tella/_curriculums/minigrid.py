@@ -66,14 +66,12 @@ TASKS = [
 
 
 class SimpleMiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
-    def __init__(self, seed: int = 0):
-        super().__init__()
-        self.rng = np.random.default_rng(seed)
-
     def learn_blocks(
         self,
+        rng_seed: int,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        for cls, task_label, variant_label in self.rng.permutation(TASKS):
+        rng = np.random.default_rng(rng_seed)
+        for cls, task_label, variant_label in rng.permutation(TASKS):
             yield LearnBlock(
                 [
                     TaskBlock(
@@ -90,7 +88,11 @@ class SimpleMiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant])
                 ]
             )
 
-    def eval_block(self) -> AbstractEvalBlock[AbstractRLTaskVariant]:
+    def eval_block(
+        self,
+        rng_seed: int,
+    ) -> AbstractEvalBlock[AbstractRLTaskVariant]:
+        rng = np.random.default_rng(rng_seed)
         return simple_eval_block(
             EpisodicTaskVariant(
                 cls,
@@ -98,5 +100,5 @@ class SimpleMiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant])
                 variant_label=variant_label,
                 num_episodes=5,
             )
-            for cls, task_label, variant_label in self.rng.permutation(TASKS)
+            for cls, task_label, variant_label in rng.permutation(TASKS)
         )

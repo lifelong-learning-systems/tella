@@ -22,6 +22,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import abc
 import inspect
 import itertools
+import random
 import typing
 import warnings
 
@@ -107,12 +108,14 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
     @abc.abstractmethod
     def learn_blocks_and_eval_blocks(
         self,
+        rng_seed: int,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[TaskVariantType]", "AbstractEvalBlock[TaskVariantType]"
         ]
     ]:
         """
+        :param rng_seed: A seed integer to be used in setting random number generators.
         :return: An Iterable of Learn Blocks and Eval Blocks.
         """
 
@@ -186,14 +189,22 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
     """
 
     @abc.abstractmethod
-    def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
+    def learn_blocks(
+        self,
+        rng_seed: int,
+    ) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
         """
+        :param rng_seed: A seed integer to be used in setting random number generators.
         :return: An iterable of :class:`LearnBlock`.
         """
 
     @abc.abstractmethod
-    def eval_block(self) -> AbstractEvalBlock[TaskVariantType]:
+    def eval_block(
+        self,
+        rng_seed: int,
+    ) -> AbstractEvalBlock[TaskVariantType]:
         """
+        :param rng_seed: A seed integer to be used in setting random number generators.
         :return: The single :class:`EvalBlock` to interleave between each
             individual :class:`LearnBlock` returned from
             :meth:`InterleavedEvalCurriculum.learn_blocks`.
@@ -201,15 +212,19 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
 
     def learn_blocks_and_eval_blocks(
         self,
+        rng_seed: int,
     ) -> typing.Iterable[
         typing.Union[
             "AbstractLearnBlock[TaskVariantType]", "AbstractEvalBlock[TaskVariantType]"
         ]
     ]:
-        yield self.eval_block()
-        for block in self.learn_blocks():
+        # Create an internal RNG to generate unique but repeatable rng_seed arguments for the following methods
+        rng = random.Random(rng_seed)
+
+        yield self.eval_block(rng_seed=rng.getrandbits(32))
+        for block in self.learn_blocks(rng_seed=rng.getrandbits(32)):
             yield block
-            yield self.eval_block()
+            yield self.eval_block(rng_seed=rng.getrandbits(32))
 
 
 class TaskBlock(AbstractTaskBlock):
@@ -495,22 +510,23 @@ def _where(
     ]
 
 
-def summarize_curriculum(curriculum: AbstractCurriculum[AbstractTaskVariant]) -> str:
+def summarize_curriculum(
+    curriculum: AbstractCurriculum[AbstractTaskVariant],
+    rng_seed: int,
+) -> str:
     """
     Generate a detailed string summarizing the contents of the curriculum.
 
     :return: A string that would print as a formatted outline of this curriculum's contents.
     """
 
-    # TODO: once curriculums have RNG seeded, this should record and reset the seed so that using
-    #  this function (say, for logging) doesn't affect experiments
-    #  https://github.com/darpa-l2m/tella/issues/138
-
     def maybe_plural(num: int, label: str):
         return f"{num} {label}" + ("" if num == 1 else "s")
 
     block_summaries = []
-    for i_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
+    for i_block, block in enumerate(
+        curriculum.learn_blocks_and_eval_blocks(rng_seed=rng_seed)
+    ):
 
         task_summaries = []
         for i_task, task_block in enumerate(block.task_blocks()):
@@ -545,7 +561,10 @@ def summarize_curriculum(curriculum: AbstractCurriculum[AbstractTaskVariant]) ->
     return curriculum_summary
 
 
-def validate_curriculum(curriculum: AbstractCurriculum[AbstractTaskVariant]):
+def validate_curriculum(
+    curriculum: AbstractCurriculum[AbstractTaskVariant],
+    rng_seed: int,
+):
     """
     Helper function to do a partial check that task variants are specified
     correctly in all of the blocks of the `curriculum`.
@@ -562,7 +581,9 @@ def validate_curriculum(curriculum: AbstractCurriculum[AbstractTaskVariant]):
     warned_repeat_variants = False
     obs_and_act_spaces = None  # placeholder
     empty_curriculum = True
-    for i_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
+    for i_block, block in enumerate(
+        curriculum.learn_blocks_and_eval_blocks(rng_seed=rng_seed)
+    ):
         empty_curriculum = False
 
         empty_block = True

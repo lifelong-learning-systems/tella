@@ -18,8 +18,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
+import logging
+
 from ..curriculum import curriculum_registry
 from .cartpole import SimpleCartPoleCurriculum, CartPole1000Curriculum
+
+logger = logging.getLogger(__name__)
 
 
 def load_curriculum_registry():
@@ -37,8 +41,7 @@ def load_curriculum_registry():
             MiniGridDispersed,
         )
     except ImportError:
-        # Skip if gym_minigrid is not installed
-        pass
+        logger.info("Unable to load minigrid curriculums because gym_minigrid is not installed")
     else:
         curriculum_registry["SimpleMiniGrid"] = SimpleMiniGridCurriculum
         curriculum_registry["MiniGridCondensed"] = MiniGridCondensed

@@ -37,7 +37,8 @@ from gym_minigrid.envs import (
     SimpleCrossingS9N3Env,
 )
 from gym_minigrid.wrappers import ImgObsWrapper
-from tella._curriculums.minigrid.envs import (
+
+from .envs import (
     CustomFetchEnv5x5T1N2,
     CustomFetchEnv8x8T1N2,
     CustomFetchEnv16x16T2N4,
@@ -46,7 +47,7 @@ from tella._curriculums.minigrid.envs import (
     CustomUnlock9x9,
     DistShift3,
 )
-from tella.curriculum import *
+from ...curriculum import *
 
 
 class MiniGridReducedActionSpaceWrapper(gym.ActionWrapper):

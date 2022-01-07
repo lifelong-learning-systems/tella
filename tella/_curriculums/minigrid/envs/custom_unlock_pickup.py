@@ -20,7 +20,6 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from gym_minigrid.roomgrid import RoomGrid
-from tella._curriculums.minigrid.register import register
 
 
 class CustomUnlockPickup(RoomGrid):
@@ -76,19 +75,3 @@ class CustomUnlockPickup8x8(CustomUnlockPickup):
 class CustomUnlockPickup16x16(CustomUnlockPickup):
     def __init__(self):
         super().__init__(room_size=16)
-
-
-register(
-    id="MiniGrid-CustomUnlockPickup-5x5-v0",
-    entry_point="tella._curriculums.minigrid.envs:CustomUnlockPickup5x5",
-)
-
-register(
-    id="MiniGrid-CustomUnlockPickup-8x8-v0",
-    entry_point="tella._curriculums.minigrid.envs:CustomUnlockPickup8x8",
-)
-
-register(
-    id="MiniGrid-CustomUnlockPickup-16x16-v0",
-    entry_point="tella._curriculums.minigrid.envs:CustomUnlockPickup16x16",
-)

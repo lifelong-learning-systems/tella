@@ -20,7 +20,6 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from gym_minigrid.minigrid import *
-from tella._curriculums.minigrid.register import register
 
 
 class CustomFetchEnv(MiniGridEnv):
@@ -141,19 +140,3 @@ class CustomFetchEnv8x8T1N2(CustomFetchEnv):
 class CustomFetchEnv16x16T2N4(CustomFetchEnv):
     def __init__(self):
         super().__init__(size=16, num_targets=2, num_objs=4)
-
-
-register(
-    id="MiniGrid-CustomFetch-5x5-T1N2-v0",
-    entry_point="tella._curriculums.minigrid.envs:CustomFetchEnv5x5T1N2",
-)
-
-register(
-    id="MiniGrid-CustomFetch-8x8-T1N2-v0",
-    entry_point="tella._curriculums.minigrid.envs:CustomFetchEnv8x8T1N2",
-)
-
-register(
-    id="MiniGrid-CustomFetch-16x16-T2N4-v0",
-    entry_point="tella._curriculums.minigrid.envs:CustomFetchEnv16x16T2N4",
-)

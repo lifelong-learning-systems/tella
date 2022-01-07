@@ -20,16 +20,8 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from gym_minigrid.envs import DistShiftEnv
-from gym_minigrid.minigrid import *
-from tella._curriculums.minigrid.register import register
 
 
 class DistShift3(DistShiftEnv):
     def __init__(self):
         super().__init__(strip2_row=3)
-
-
-register(
-    id="MiniGrid-DistShift3-v0",
-    entry_point="tella._curriculums.minigrid.envs:DistShift3",
-)

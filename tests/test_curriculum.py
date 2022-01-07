@@ -27,7 +27,7 @@ class TestCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
             ]
         ],
     ) -> None:
-        super(TestCurriculum, self).__init__(rng_seed=0)
+        super(TestCurriculum, self).__init__(0)
         self.blocks = blocks
 
     def learn_blocks_and_eval_blocks(
@@ -146,7 +146,7 @@ class ShuffledCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
 
 
 def test_curriculum_diff_rng_seed():
-    curriculum = ShuffledCurriculum(rng_seed=111111)
+    curriculum = ShuffledCurriculum(111111)
     first_call_tasks = [
         (variant.task_label, variant.variant_label)
         for block in curriculum.learn_blocks_and_eval_blocks()
@@ -154,7 +154,7 @@ def test_curriculum_diff_rng_seed():
         for variant in task.task_variants()
     ]
 
-    curriculum = ShuffledCurriculum(rng_seed=222222)
+    curriculum = ShuffledCurriculum(222222)
     second_call_tasks = [
         (variant.task_label, variant.variant_label)
         for block in curriculum.learn_blocks_and_eval_blocks()
@@ -168,7 +168,7 @@ def test_curriculum_diff_rng_seed():
 
 
 def test_curriculum_rng_seed():
-    curriculum = ShuffledCurriculum(rng_seed=0)
+    curriculum = ShuffledCurriculum(0)
 
     first_call_tasks = [
         (variant.task_label, variant.variant_label)
@@ -217,7 +217,7 @@ class ShuffledInterleavedCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVari
 
 
 def test_interleaved_rng_seed():
-    curriculum = ShuffledInterleavedCurriculum(rng_seed=0)
+    curriculum = ShuffledInterleavedCurriculum(0)
 
     first_call_tasks = [
         (variant.task_label, variant.variant_label)
@@ -284,7 +284,7 @@ class TestInterleaved(InterleavedEvalCurriculum):
 
 
 def test_interleaved_structure():
-    curriculum = TestInterleaved(rng_seed=0)
+    curriculum = TestInterleaved(0)
     blocks = list(curriculum.learn_blocks_and_eval_blocks())
 
     assert len(blocks) == 7

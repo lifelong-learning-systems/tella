@@ -108,7 +108,7 @@ def rl_experiment(
 
     # FIXME: multiprocessing https://github.com/darpa-l2m/tella/issues/44
     for i_lifetime in range(num_lifetimes):
-        curriculum = curriculum_factory(rng_seed=0)
+        curriculum = curriculum_factory(0)
         logger.info(f"Constructed curriculum {curriculum}")
         # FIXME: seed the curriculum https://github.com/darpa-l2m/tella/issues/54
 
@@ -136,7 +136,7 @@ def _spaces(
     :return: A tuple of (observation_space, action_space).
     """
     # FIXME: extract spaces based on solution in https://github.com/darpa-l2m/tella/issues/31
-    curriculum_obj = curriculum_factory(rng_seed=0)
+    curriculum_obj = curriculum_factory(0)
     for block in curriculum_obj.learn_blocks_and_eval_blocks():
         for task_block in block.task_blocks():
             for task_variant in task_block.task_variants():

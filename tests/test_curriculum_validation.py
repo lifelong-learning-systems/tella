@@ -27,7 +27,7 @@ class TestCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
             ]
         ],
     ) -> None:
-        super(TestCurriculum, self).__init__(rng_seed=0)
+        super(TestCurriculum, self).__init__(0)
         self.blocks = blocks
 
     def learn_blocks_and_eval_blocks(

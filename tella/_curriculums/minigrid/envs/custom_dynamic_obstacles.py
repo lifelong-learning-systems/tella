@@ -35,14 +35,10 @@ class CustomDynamicObstaclesEnv(DynamicObstaclesEnv):
         self.action_space = gym.spaces.Discrete(7)
 
     def step(self, action):
-        # Invalid action
-        if action >= self.action_space.n:
-            action = 0
-
         # Check if there is an obstacle in front of the agent
+        #   In the parent class, DynamicObstaclesEnv, touching a wall would end an episode.
+        #   Now, only obstacles carry this penalty.
         front_cell = self.grid.get(*self.front_pos)
-        # The following line is the only modification of this method from DynamicObstaclesEnv.
-        #   Previously, touching a wall would end an episode. Now, only obstacles carry this penalty.
         not_clear = front_cell and front_cell.type == "ball"
 
         # Update obstacle positions
@@ -55,13 +51,13 @@ class CustomDynamicObstaclesEnv(DynamicObstaclesEnv):
                     self.obstacles[i_obst], top=top, size=(3, 3), max_tries=100
                 )
                 self.grid.set(*old_pos, None)
-            except:
+            except RecursionError:
                 pass
 
         # Update the agent's position/direction
         obs, reward, done, info = MiniGridEnv.step(self, action)
 
-        # If the agent tried to walk over an obstacle or wall
+        # If the agent collided with an obstacle, end the episode
         if action == self.actions.forward and not_clear:
             reward = -1
             done = True

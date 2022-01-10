@@ -35,8 +35,8 @@ class CustomDynamicObstaclesEnv(DynamicObstaclesEnv):
         self.action_space = gym.spaces.Discrete(7)
 
     # This method is a modified copy of the .step() method of the parent class,
-    #   DynamicObstaclesEnv, from https://github.com/maximecb/gym-minigrid,
-    #   licensed under the Apache License 2.0
+    #   DynamicObstaclesEnv, obtained from https://github.com/maximecb/gym-minigrid
+    #   under Apache License 2.0, Copyright 2019 Maxime Chevalier-Boisvert
     def step(self, action):
         # Check if there is an obstacle in front of the agent
         #   In the parent class, DynamicObstaclesEnv, touching a wall would end an episode.

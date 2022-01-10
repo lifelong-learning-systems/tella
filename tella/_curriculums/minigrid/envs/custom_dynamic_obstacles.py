@@ -43,7 +43,7 @@ class CustomDynamicObstaclesEnv(DynamicObstaclesEnv):
         front_cell = self.grid.get(*self.front_pos)
         # The following line is the only modification of this method from DynamicObstaclesEnv.
         #   Previously, touching a wall would end an episode. Now, only obstacles carry this penalty.
-        not_clear = front_cell and front_cell.type == 'ball'
+        not_clear = front_cell and front_cell.type == "ball"
 
         # Update obstacle positions
         for i_obst in range(len(self.obstacles)):
@@ -51,7 +51,9 @@ class CustomDynamicObstaclesEnv(DynamicObstaclesEnv):
             top = tuple(map(add, old_pos, (-1, -1)))
 
             try:
-                self.place_obj(self.obstacles[i_obst], top=top, size=(3,3), max_tries=100)
+                self.place_obj(
+                    self.obstacles[i_obst], top=top, size=(3, 3), max_tries=100
+                )
                 self.grid.set(*old_pos, None)
             except:
                 pass

@@ -33,6 +33,7 @@ jobs:
           pip install pytest wheel
           pip install ./l2logger
           pip install ./tella
+          pip install gym-minigrid==1.0.2
       - name: Test with pytest
         run: |
           pytest tella

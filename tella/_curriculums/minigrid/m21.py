@@ -18,7 +18,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import argparse
+
 import typing
 
 import gym
@@ -35,7 +35,11 @@ from gym_minigrid.envs import (
 )
 from gym_minigrid.wrappers import ImgObsWrapper
 
+from ...curriculum import *
 from .envs import (
+    CustomDynamicObstaclesS5N2,
+    CustomDynamicObstaclesS6N3,
+    CustomDynamicObstaclesS8N4,
     CustomFetchEnv5x5T1N2,
     CustomFetchEnv8x8T1N2,
     CustomFetchEnv16x16T2N4,
@@ -43,11 +47,7 @@ from .envs import (
     CustomUnlock7x7,
     CustomUnlock9x9,
     DistShift3,
-    CustomDynamicObstaclesS5N2,
-    CustomDynamicObstaclesS6N3,
-    CustomDynamicObstaclesS8N4,
 )
-from ...curriculum import *
 
 
 class MiniGridReducedActionSpaceWrapper(gym.ActionWrapper):
@@ -303,54 +303,450 @@ class MiniGridDispersed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
         )
 
 
-def main():
-    parser = argparse.ArgumentParser(description="M21 curriculum parser")
+class MiniGridSingleTaskExpert(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
+    def __init__(self, rng_seed: int = 0):
+        super().__init__(rng_seed)
+        self.rng = np.random.default_rng(rng_seed)
 
-    parser.add_argument(
-        "-c",
-        "--curriculum",
-        required=True,
-        default=None,
-        type=str,
-        choices=["MiniGridCondensed", "MiniGridDispersed"],
-        help="Curriculum name. Defaults to None.",
-    )
-    parser.add_argument(
-        "-s",
-        "--seed",
-        default=0,
-        type=int,
-        help="Seed value for task sequence. Defaults to 0.",
-    )
-    parser.add_argument(
-        "-n",
-        "--num-repetitions",
-        default=3,
-        type=int,
-        help="Number of reptitions for dispersed curriculum. Defaults to 3.",
-    )
-
-    args = parser.parse_args()
-
-    if args.curriculum == "MiniGridCondensed":
-        curriculum = MiniGridCondensed(rng_seed=args.seed)
-    elif args.curriculum == "MiniGridDispersed":
-        curriculum = MiniGridDispersed(
-            rng_seed=args.seed, num_repetitions=args.num_repetitions
+    def eval_block(self) -> AbstractEvalBlock[AbstractRLTaskVariant]:
+        return simple_eval_block(
+            EpisodicTaskVariant(
+                cls,
+                task_label=task_label,
+                variant_label=variant_label,
+                num_episodes=100,
+            )
+            for cls, task_label, variant_label in TASKS
         )
-    else:
-        print(f"Invalid curriculum name: {args.curriculum}")
-        return
 
-    for i, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
-        for task_block in block.task_blocks():
-            for task_variant in task_block.task_variants():
-                print(
-                    f"Block {i}, learning_allowed={block.is_learning_allowed}, "
-                    f"task_variant={task_variant.task_label}_{task_variant.variant_label}, "
-                    f"num_episodes={task_variant.total_episodes}"
+
+class MiniGridSimpleCrossingS9N1(MiniGridSingleTaskExpert):
+    def __init__(self, rng_seed: int = 0):
+        super().__init__(rng_seed)
+
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+        yield LearnBlock(
+            [
+                TaskBlock(
+                    "SimpleCrossing",
+                    [
+                        EpisodicTaskVariant(
+                            SimpleCrossingS9N1,
+                            task_label="SimpleCrossing",
+                            variant_label="S9N1",
+                            num_episodes=1000,
+                        )
+                    ],
                 )
+            ]
+        )
 
 
-if __name__ == "__main__":
-    main()
+class MiniGridSimpleCrossingS9N2(MiniGridSingleTaskExpert):
+    def __init__(self, rng_seed: int = 0):
+        super().__init__(rng_seed)
+
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+        yield LearnBlock(
+            [
+                TaskBlock(
+                    "SimpleCrossing",
+                    [
+                        EpisodicTaskVariant(
+                            SimpleCrossingS9N2,
+                            task_label="SimpleCrossing",
+                            variant_label="S9N2",
+                            num_episodes=1000,
+                        )
+                    ],
+                )
+            ]
+        )
+
+
+class MiniGridSimpleCrossingS9N3(MiniGridSingleTaskExpert):
+    def __init__(self, rng_seed: int = 0):
+        super().__init__(rng_seed)
+
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+        yield LearnBlock(
+            [
+                TaskBlock(
+                    "SimpleCrossing",
+                    [
+                        EpisodicTaskVariant(
+                            SimpleCrossingS9N3,
+                            task_label="SimpleCrossing",
+                            variant_label="S9N3",
+                            num_episodes=1000,
+                        )
+                    ],
+                )
+            ]
+        )
+
+
+class MiniGridDistShiftR2(MiniGridSingleTaskExpert):
+    def __init__(self, rng_seed: int = 0):
+        super().__init__(rng_seed)
+
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+        yield LearnBlock(
+            [
+                TaskBlock(
+                    "DistShift",
+                    [
+                        EpisodicTaskVariant(
+                            DistShiftR2,
+                            task_label="DistShift",
+                            variant_label="R2",
+                            num_episodes=1000,
+                        )
+                    ],
+                )
+            ]
+        )
+
+
+class MiniGridDistShiftR5(MiniGridSingleTaskExpert):
+    def __init__(self, rng_seed: int = 0):
+        super().__init__(rng_seed)
+
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+        yield LearnBlock(
+            [
+                TaskBlock(
+                    "DistShift",
+                    [
+                        EpisodicTaskVariant(
+                            DistShiftR5,
+                            task_label="DistShift",
+                            variant_label="R5",
+                            num_episodes=1000,
+                        )
+                    ],
+                )
+            ]
+        )
+
+
+class MiniGridDistShiftR3(MiniGridSingleTaskExpert):
+    def __init__(self, rng_seed: int = 0):
+        super().__init__(rng_seed)
+
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+        yield LearnBlock(
+            [
+                TaskBlock(
+                    "DistShift",
+                    [
+                        EpisodicTaskVariant(
+                            DistShiftR3,
+                            task_label="DistShift",
+                            variant_label="R3",
+                            num_episodes=1000,
+                        )
+                    ],
+                )
+            ]
+        )
+
+
+class MiniGridDynObstaclesS5N2(MiniGridSingleTaskExpert):
+    def __init__(self, rng_seed: int = 0):
+        super().__init__(rng_seed)
+
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+        yield LearnBlock(
+            [
+                TaskBlock(
+                    "DynObstacles",
+                    [
+                        EpisodicTaskVariant(
+                            DynObstaclesS5N2,
+                            task_label="DynObstacles",
+                            variant_label="S5N2",
+                            num_episodes=1000,
+                        )
+                    ],
+                )
+            ]
+        )
+
+
+class MiniGridDynObstaclesS6N3(MiniGridSingleTaskExpert):
+    def __init__(self, rng_seed: int = 0):
+        super().__init__(rng_seed)
+
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+        yield LearnBlock(
+            [
+                TaskBlock(
+                    "DynObstacles",
+                    [
+                        EpisodicTaskVariant(
+                            DynObstaclesS6N3,
+                            task_label="DynObstacles",
+                            variant_label="S6N3",
+                            num_episodes=1000,
+                        )
+                    ],
+                )
+            ]
+        )
+
+
+class MiniGridDynObstaclesS8N4(MiniGridSingleTaskExpert):
+    def __init__(self, rng_seed: int = 0):
+        super().__init__(rng_seed)
+
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+        yield LearnBlock(
+            [
+                TaskBlock(
+                    "DynObstacles",
+                    [
+                        EpisodicTaskVariant(
+                            DynObstaclesS8N4,
+                            task_label="DynObstacles",
+                            variant_label="S8N4",
+                            num_episodes=1000,
+                        )
+                    ],
+                )
+            ]
+        )
+
+
+class MiniGridCustomFetchS5T1N2(MiniGridSingleTaskExpert):
+    def __init__(self, rng_seed: int = 0):
+        super().__init__(rng_seed)
+
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+        yield LearnBlock(
+            [
+                TaskBlock(
+                    "CustomFetch",
+                    [
+                        EpisodicTaskVariant(
+                            CustomFetchS5T1N2,
+                            task_label="CustomFetch",
+                            variant_label="S5T1N2",
+                            num_episodes=1000,
+                        )
+                    ],
+                )
+            ]
+        )
+
+
+class MiniGridCustomFetchS8T1N2(MiniGridSingleTaskExpert):
+    def __init__(self, rng_seed: int = 0):
+        super().__init__(rng_seed)
+
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+        yield LearnBlock(
+            [
+                TaskBlock(
+                    "CustomFetch",
+                    [
+                        EpisodicTaskVariant(
+                            CustomFetchS8T1N2,
+                            task_label="CustomFetch",
+                            variant_label="S8T1N2",
+                            num_episodes=1000,
+                        )
+                    ],
+                )
+            ]
+        )
+
+
+class MiniGridCustomFetchS16T2N4(MiniGridSingleTaskExpert):
+    def __init__(self, rng_seed: int = 0):
+        super().__init__(rng_seed)
+
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+        yield LearnBlock(
+            [
+                TaskBlock(
+                    "CustomFetch",
+                    [
+                        EpisodicTaskVariant(
+                            CustomFetchS16T2N4,
+                            task_label="CustomFetch",
+                            variant_label="S16T2N4",
+                            num_episodes=1000,
+                        )
+                    ],
+                )
+            ]
+        )
+
+
+class MiniGridCustomUnlockS5(MiniGridSingleTaskExpert):
+    def __init__(self, rng_seed: int = 0):
+        super().__init__(rng_seed)
+
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+        yield LearnBlock(
+            [
+                TaskBlock(
+                    "CustomUnlock",
+                    [
+                        EpisodicTaskVariant(
+                            CustomUnlockS5,
+                            task_label="CustomUnlock",
+                            variant_label="S5",
+                            num_episodes=1000,
+                        )
+                    ],
+                )
+            ]
+        )
+
+
+class MiniGridCustomUnlockS7(MiniGridSingleTaskExpert):
+    def __init__(self, rng_seed: int = 0):
+        super().__init__(rng_seed)
+
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+        yield LearnBlock(
+            [
+                TaskBlock(
+                    "CustomUnlock",
+                    [
+                        EpisodicTaskVariant(
+                            CustomUnlockS7,
+                            task_label="CustomUnlock",
+                            variant_label="S7",
+                            num_episodes=1000,
+                        )
+                    ],
+                )
+            ]
+        )
+
+
+class MiniGridCustomUnlockS9(MiniGridSingleTaskExpert):
+    def __init__(self, rng_seed: int = 0):
+        super().__init__(rng_seed)
+
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+        yield LearnBlock(
+            [
+                TaskBlock(
+                    "CustomUnlock",
+                    [
+                        EpisodicTaskVariant(
+                            CustomUnlockS9,
+                            task_label="CustomUnlock",
+                            variant_label="S9",
+                            num_episodes=1000,
+                        )
+                    ],
+                )
+            ]
+        )
+
+
+class MiniGridDoorKeyS5(MiniGridSingleTaskExpert):
+    def __init__(self, rng_seed: int = 0):
+        super().__init__(rng_seed)
+
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+        yield LearnBlock(
+            [
+                TaskBlock(
+                    "DoorKey",
+                    [
+                        EpisodicTaskVariant(
+                            DoorKeyS5,
+                            task_label="CustomUnlock",
+                            variant_label="S5",
+                            num_episodes=1000,
+                        )
+                    ],
+                )
+            ]
+        )
+
+
+class MiniGridDoorKeyS6(MiniGridSingleTaskExpert):
+    def __init__(self, rng_seed: int = 0):
+        super().__init__(rng_seed)
+
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+        yield LearnBlock(
+            [
+                TaskBlock(
+                    "DoorKey",
+                    [
+                        EpisodicTaskVariant(
+                            DoorKeyS6,
+                            task_label="CustomUnlock",
+                            variant_label="S6",
+                            num_episodes=1000,
+                        )
+                    ],
+                )
+            ]
+        )
+
+
+class MiniGridDoorKeyS8(MiniGridSingleTaskExpert):
+    def __init__(self, rng_seed: int = 0):
+        super().__init__(rng_seed)
+
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+        yield LearnBlock(
+            [
+                TaskBlock(
+                    "DoorKey",
+                    [
+                        EpisodicTaskVariant(
+                            DoorKeyS8,
+                            task_label="CustomUnlock",
+                            variant_label="S8",
+                            num_episodes=1000,
+                        )
+                    ],
+                )
+            ]
+        )

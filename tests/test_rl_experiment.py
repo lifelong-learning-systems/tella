@@ -40,7 +40,6 @@ def test_reproducible_experiment_filestructure(tmpdir):
     assert structure1 == structure2
 
 
-@pytest.mark.skip("FIXME: unskip after #62 is resolved")
 def test_reproducible_experiment_same_contents(tmpdir):
     tmpdir.chdir()
 
@@ -64,7 +63,6 @@ def test_reproducible_experiment_same_contents(tmpdir):
                     assert row1[key] == row2[key]
 
 
-@pytest.mark.skip("FIXME: unskip after #62 is resolved")
 def test_reproducible_experiment_different_contents(tmpdir):
     tmpdir.chdir()
 

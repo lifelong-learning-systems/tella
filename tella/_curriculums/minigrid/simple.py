@@ -84,6 +84,7 @@ class SimpleMiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant])
                                 task_label=task_label,
                                 variant_label=variant_label,
                                 num_episodes=5,
+                                rng_seed=rng.bit_generator.random_raw(),
                             )
                         ],
                     )
@@ -98,6 +99,7 @@ class SimpleMiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant])
                 task_label=task_label,
                 variant_label=variant_label,
                 num_episodes=5,
+                rng_seed=rng.bit_generator.random_raw(),
             )
             for cls, task_label, variant_label in rng.permutation(TASKS)
         )

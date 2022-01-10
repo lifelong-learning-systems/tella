@@ -40,5 +40,5 @@ from .m21 import (
     MiniGridCustomUnlockS9,
     MiniGridDoorKeyS5,
     MiniGridDoorKeyS6,
-    MiniGridDoorKeyS8
+    MiniGridDoorKeyS8,
 )

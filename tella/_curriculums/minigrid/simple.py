@@ -22,9 +22,10 @@ import typing
 
 import gym
 import numpy as np
-from gym_minigrid.envs import DistShift1, DynamicObstaclesEnv, SimpleCrossingEnv
+from gym_minigrid.envs import DistShift1, SimpleCrossingEnv
 from gym_minigrid.wrappers import ImgObsWrapper, StateBonus, ActionBonus
 
+from .envs import CustomDynamicObstaclesS8N4
 from ...curriculum import *
 
 
@@ -57,7 +58,7 @@ class EasyDistShift1(_EasyMiniGrid):
 
 class EasyDynamicObstacles(_EasyMiniGrid):
     def __init__(self):
-        super().__init__(DynamicObstaclesEnv)
+        super().__init__(CustomDynamicObstaclesS8N4)
 
 
 TASKS = [

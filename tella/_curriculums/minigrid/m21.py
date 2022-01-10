@@ -263,7 +263,8 @@ class MiniGridCondensed(_MiniGridCurriculum):
 
 
 class MiniGridDispersed(_MiniGridCurriculum):
-    def __init__(self, num_repetitions: int = 3):
+    def __init__(self, rng_seed: int, num_repetitions: int = 3):
+        super().__init__(rng_seed)
         self.num_repetitions = num_repetitions
 
     def learn_blocks(

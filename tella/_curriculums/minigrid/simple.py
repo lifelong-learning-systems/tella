@@ -18,12 +18,15 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import gym
 import typing
+
+import gym
 import numpy as np
-from tella.curriculum import *
-from gym_minigrid.envs import DistShift1, DynamicObstaclesEnv, SimpleCrossingEnv
+from gym_minigrid.envs import DistShift1, SimpleCrossingEnv
 from gym_minigrid.wrappers import ImgObsWrapper, StateBonus, ActionBonus
+
+from .envs import CustomDynamicObstaclesS8N4
+from ...curriculum import *
 
 
 class RestrictedActions(gym.Wrapper):
@@ -55,7 +58,7 @@ class EasyDistShift1(_EasyMiniGrid):
 
 class EasyDynamicObstacles(_EasyMiniGrid):
     def __init__(self):
-        super().__init__(DynamicObstaclesEnv)
+        super().__init__(CustomDynamicObstaclesS8N4)
 
 
 TASKS = [

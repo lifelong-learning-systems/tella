@@ -18,8 +18,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
+import logging
+
 from ..curriculum import curriculum_registry
 from .cartpole import SimpleCartPoleCurriculum, CartPole1000Curriculum
+
+logger = logging.getLogger(__name__)
 
 
 def load_curriculum_registry():
@@ -31,8 +35,52 @@ def load_curriculum_registry():
     curriculum_registry["CartPole-1000"] = CartPole1000Curriculum
 
     try:
-        from .minigrid import SimpleMiniGridCurriculum
-
-        curriculum_registry["SimpleMiniGrid"] = SimpleMiniGridCurriculum
+        from .minigrid import (
+            SimpleMiniGridCurriculum,
+            MiniGridCondensed,
+            MiniGridDispersed,
+            MiniGridSimpleCrossingS9N1,
+            MiniGridSimpleCrossingS9N2,
+            MiniGridSimpleCrossingS9N3,
+            MiniGridDistShiftR2,
+            MiniGridDistShiftR5,
+            MiniGridDistShiftR3,
+            MiniGridDynObstaclesS5N2,
+            MiniGridDynObstaclesS6N3,
+            MiniGridDynObstaclesS8N4,
+            MiniGridCustomFetchS5T1N2,
+            MiniGridCustomFetchS8T1N2,
+            MiniGridCustomFetchS16T2N4,
+            MiniGridCustomUnlockS5,
+            MiniGridCustomUnlockS7,
+            MiniGridCustomUnlockS9,
+            MiniGridDoorKeyS5,
+            MiniGridDoorKeyS6,
+            MiniGridDoorKeyS8,
+        )
     except ImportError:
-        pass
+        logger.info(
+            "Unable to load minigrid curriculums because gym_minigrid is not installed"
+        )
+    else:
+        curriculum_registry["SimpleMiniGrid"] = SimpleMiniGridCurriculum
+        curriculum_registry["MiniGridCondensed"] = MiniGridCondensed
+        curriculum_registry["MiniGridDispersed"] = MiniGridDispersed
+        curriculum_registry["MiniGridSimpleCrossingS9N1"] = MiniGridSimpleCrossingS9N1
+        curriculum_registry["MiniGridSimpleCrossingS9N2"] = MiniGridSimpleCrossingS9N2
+        curriculum_registry["MiniGridSimpleCrossingS9N3"] = MiniGridSimpleCrossingS9N3
+        curriculum_registry["MiniGridDistShiftR2"] = MiniGridDistShiftR2
+        curriculum_registry["MiniGridDistShiftR5"] = MiniGridDistShiftR5
+        curriculum_registry["MiniGridDistShiftR3"] = MiniGridDistShiftR3
+        curriculum_registry["MiniGridDynObstaclesS5N2"] = MiniGridDynObstaclesS5N2
+        curriculum_registry["MiniGridDynObstaclesS6N3"] = MiniGridDynObstaclesS6N3
+        curriculum_registry["MiniGridDynObstaclesS8N4"] = MiniGridDynObstaclesS8N4
+        curriculum_registry["MiniGridCustomFetchS5T1N2"] = MiniGridCustomFetchS5T1N2
+        curriculum_registry["MiniGridCustomFetchS8T1N2"] = MiniGridCustomFetchS8T1N2
+        curriculum_registry["MiniGridCustomFetchS16T2N4"] = MiniGridCustomFetchS16T2N4
+        curriculum_registry["MiniGridCustomUnlockS5"] = MiniGridCustomUnlockS5
+        curriculum_registry["MiniGridCustomUnlockS7"] = MiniGridCustomUnlockS7
+        curriculum_registry["MiniGridCustomUnlockS9"] = MiniGridCustomUnlockS9
+        curriculum_registry["MiniGridDoorKeyS5"] = MiniGridDoorKeyS5
+        curriculum_registry["MiniGridDoorKeyS6"] = MiniGridDoorKeyS6
+        curriculum_registry["MiniGridDoorKeyS8"] = MiniGridDoorKeyS8

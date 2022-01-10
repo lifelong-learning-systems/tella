@@ -29,9 +29,6 @@ from gym_minigrid.envs import (
     DoorKeyEnv,
     DoorKeyEnv5x5,
     DoorKeyEnv6x6,
-    DynamicObstaclesEnv,
-    DynamicObstaclesEnv5x5,
-    DynamicObstaclesEnv6x6,
     SimpleCrossingEnv,
     SimpleCrossingS9N2Env,
     SimpleCrossingS9N3Env,
@@ -46,6 +43,9 @@ from .envs import (
     CustomUnlock7x7,
     CustomUnlock9x9,
     DistShift3,
+    CustomDynamicObstaclesS5N2,
+    CustomDynamicObstaclesS6N3,
+    CustomDynamicObstaclesS8N4,
 )
 from ...curriculum import *
 
@@ -63,16 +63,6 @@ class MiniGridReducedActionSpaceWrapper(gym.ActionWrapper):
         if act >= self.action_space.n:
             raise gym.error.InvalidAction()
         return act
-
-
-class MiniGridMovementActionWrapper(gym.ActionWrapper):
-    """Remap pickup, drop, and toggle actions to movements."""
-
-    def __init__(self, env):
-        super().__init__(env)
-
-    def action(self, act):
-        return act % 3
 
 
 class MiniGridLavaPenaltyWrapper(gym.Wrapper):
@@ -121,7 +111,6 @@ class _MiniGridDynObsEnv(gym.Wrapper):
         env = env_class()
         env = ImgObsWrapper(env)
         env = MiniGridReducedActionSpaceWrapper(env, num_actions=6)
-        env = MiniGridMovementActionWrapper(env)
         super().__init__(env)
 
 
@@ -157,17 +146,17 @@ class DistShiftR3(_MiniGridLavaEnv):
 
 class DynObstaclesS5N2(_MiniGridDynObsEnv):
     def __init__(self):
-        super().__init__(DynamicObstaclesEnv5x5)
+        super().__init__(CustomDynamicObstaclesS5N2)
 
 
 class DynObstaclesS6N3(_MiniGridDynObsEnv):
     def __init__(self):
-        super().__init__(DynamicObstaclesEnv6x6)
+        super().__init__(CustomDynamicObstaclesS6N3)
 
 
 class DynObstaclesS8N4(_MiniGridDynObsEnv):
     def __init__(self):
-        super().__init__(DynamicObstaclesEnv)
+        super().__init__(CustomDynamicObstaclesS8N4)
 
 
 class CustomFetchS5T1N2(_MiniGridEnv):

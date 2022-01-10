@@ -19,9 +19,55 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
+import gym
 from gym_minigrid.envs import DynamicObstaclesEnv
 
 
-class DynamicObstaclesRandomEnv8x8(DynamicObstaclesEnv):
-    def __init__(self):
-        super().__init__(size=8, agent_start_pos=None, n_obstacles=4)
+class CustomDynamicObstaclesEnv(DynamicObstaclesEnv):
+    def __init__(
+        self, size=8, agent_start_pos=(1, 1), agent_start_dir=0, n_obstacles=4
+    ):
+        super().__init__(size, agent_start_pos, agent_start_dir, n_obstacles)
+
+        # DynamicObstaclesEnv limits actions, but we want that left for our wrapper
+        self.action_space = gym.spaces.Discrete(7)
+
+    def reset(self):
+        obs = super().reset()
+
+        # DynamicObstaclesEnv uses the class Ball as obstacles, but those can be picked up.
+        #   To prevent this, replace their .can_pickup() method with no_obstacle_pickup().
+        def no_obstacle_pickup():
+            return False
+
+        for ball in self.obstacles:
+            ball.can_pickup = no_obstacle_pickup
+
+        return obs
+
+
+class CustomDynamicObstaclesS5N2(CustomDynamicObstaclesEnv):
+    def __init__(
+        self,
+        agent_start_pos=(1, 1),
+        agent_start_dir=0,
+    ):
+        super().__init__(5, agent_start_pos, agent_start_dir, 2)
+
+
+class CustomDynamicObstaclesS6N3(CustomDynamicObstaclesEnv):
+    def __init__(
+        self,
+        agent_start_pos=(1, 1),
+        agent_start_dir=0,
+    ):
+        super().__init__(6, agent_start_pos, agent_start_dir, 3)
+
+
+class CustomDynamicObstaclesS8N4(CustomDynamicObstaclesEnv):
+    def __init__(
+        self,
+        agent_start_pos=(1, 1),
+        agent_start_dir=0,
+    ):
+        super().__init__(8, agent_start_pos, agent_start_dir, 4)

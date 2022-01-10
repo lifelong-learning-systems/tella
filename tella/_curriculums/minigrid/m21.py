@@ -227,14 +227,11 @@ TASKS = [
 
 
 class MiniGridCondensed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
-    def __init__(self, rng_seed: int = 0):
-        super().__init__(rng_seed)
-        self.rng = np.random.default_rng(rng_seed)
-
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        for cls, task_label, variant_label in self.rng.permutation(TASKS):
+        rng = np.random.default_rng(self.rng_seed)
+        for cls, task_label, variant_label in rng.permutation(TASKS):
             yield LearnBlock(
                 [
                     TaskBlock(
@@ -264,9 +261,7 @@ class MiniGridCondensed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
 
 
 class MiniGridDispersed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
-    def __init__(self, rng_seed: int = 0, num_repetitions: int = 3):
-        super().__init__(rng_seed)
-        self.rng = np.random.default_rng(rng_seed)
+    def __init__(self, num_repetitions: int = 3):
         self.num_repetitions = num_repetitions
 
     def learn_blocks(
@@ -274,7 +269,8 @@ class MiniGridDispersed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
 
         for _ in range(self.num_repetitions):
-            for cls, task_label, variant_label in self.rng.permutation(TASKS):
+            rng = np.random.default_rng(self.rng_seed)
+            for cls, task_label, variant_label in rng.permutation(TASKS):
                 yield LearnBlock(
                     [
                         TaskBlock(
@@ -304,10 +300,6 @@ class MiniGridDispersed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
 
 
 class MiniGridSingleTaskExpert(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
-    def __init__(self, rng_seed: int = 0):
-        super().__init__(rng_seed)
-        self.rng = np.random.default_rng(rng_seed)
-
     def eval_block(self) -> AbstractEvalBlock[AbstractRLTaskVariant]:
         return simple_eval_block(
             EpisodicTaskVariant(
@@ -321,9 +313,6 @@ class MiniGridSingleTaskExpert(InterleavedEvalCurriculum[AbstractRLTaskVariant])
 
 
 class MiniGridSimpleCrossingS9N1(MiniGridSingleTaskExpert):
-    def __init__(self, rng_seed: int = 0):
-        super().__init__(rng_seed)
-
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
@@ -345,9 +334,6 @@ class MiniGridSimpleCrossingS9N1(MiniGridSingleTaskExpert):
 
 
 class MiniGridSimpleCrossingS9N2(MiniGridSingleTaskExpert):
-    def __init__(self, rng_seed: int = 0):
-        super().__init__(rng_seed)
-
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
@@ -369,9 +355,6 @@ class MiniGridSimpleCrossingS9N2(MiniGridSingleTaskExpert):
 
 
 class MiniGridSimpleCrossingS9N3(MiniGridSingleTaskExpert):
-    def __init__(self, rng_seed: int = 0):
-        super().__init__(rng_seed)
-
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
@@ -393,9 +376,6 @@ class MiniGridSimpleCrossingS9N3(MiniGridSingleTaskExpert):
 
 
 class MiniGridDistShiftR2(MiniGridSingleTaskExpert):
-    def __init__(self, rng_seed: int = 0):
-        super().__init__(rng_seed)
-
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
@@ -417,9 +397,6 @@ class MiniGridDistShiftR2(MiniGridSingleTaskExpert):
 
 
 class MiniGridDistShiftR5(MiniGridSingleTaskExpert):
-    def __init__(self, rng_seed: int = 0):
-        super().__init__(rng_seed)
-
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
@@ -441,9 +418,6 @@ class MiniGridDistShiftR5(MiniGridSingleTaskExpert):
 
 
 class MiniGridDistShiftR3(MiniGridSingleTaskExpert):
-    def __init__(self, rng_seed: int = 0):
-        super().__init__(rng_seed)
-
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
@@ -465,9 +439,6 @@ class MiniGridDistShiftR3(MiniGridSingleTaskExpert):
 
 
 class MiniGridDynObstaclesS5N2(MiniGridSingleTaskExpert):
-    def __init__(self, rng_seed: int = 0):
-        super().__init__(rng_seed)
-
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
@@ -489,9 +460,6 @@ class MiniGridDynObstaclesS5N2(MiniGridSingleTaskExpert):
 
 
 class MiniGridDynObstaclesS6N3(MiniGridSingleTaskExpert):
-    def __init__(self, rng_seed: int = 0):
-        super().__init__(rng_seed)
-
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
@@ -513,9 +481,6 @@ class MiniGridDynObstaclesS6N3(MiniGridSingleTaskExpert):
 
 
 class MiniGridDynObstaclesS8N4(MiniGridSingleTaskExpert):
-    def __init__(self, rng_seed: int = 0):
-        super().__init__(rng_seed)
-
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
@@ -537,9 +502,6 @@ class MiniGridDynObstaclesS8N4(MiniGridSingleTaskExpert):
 
 
 class MiniGridCustomFetchS5T1N2(MiniGridSingleTaskExpert):
-    def __init__(self, rng_seed: int = 0):
-        super().__init__(rng_seed)
-
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
@@ -561,9 +523,6 @@ class MiniGridCustomFetchS5T1N2(MiniGridSingleTaskExpert):
 
 
 class MiniGridCustomFetchS8T1N2(MiniGridSingleTaskExpert):
-    def __init__(self, rng_seed: int = 0):
-        super().__init__(rng_seed)
-
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
@@ -585,9 +544,6 @@ class MiniGridCustomFetchS8T1N2(MiniGridSingleTaskExpert):
 
 
 class MiniGridCustomFetchS16T2N4(MiniGridSingleTaskExpert):
-    def __init__(self, rng_seed: int = 0):
-        super().__init__(rng_seed)
-
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
@@ -609,9 +565,6 @@ class MiniGridCustomFetchS16T2N4(MiniGridSingleTaskExpert):
 
 
 class MiniGridCustomUnlockS5(MiniGridSingleTaskExpert):
-    def __init__(self, rng_seed: int = 0):
-        super().__init__(rng_seed)
-
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
@@ -633,9 +586,6 @@ class MiniGridCustomUnlockS5(MiniGridSingleTaskExpert):
 
 
 class MiniGridCustomUnlockS7(MiniGridSingleTaskExpert):
-    def __init__(self, rng_seed: int = 0):
-        super().__init__(rng_seed)
-
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
@@ -657,9 +607,6 @@ class MiniGridCustomUnlockS7(MiniGridSingleTaskExpert):
 
 
 class MiniGridCustomUnlockS9(MiniGridSingleTaskExpert):
-    def __init__(self, rng_seed: int = 0):
-        super().__init__(rng_seed)
-
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
@@ -681,9 +628,6 @@ class MiniGridCustomUnlockS9(MiniGridSingleTaskExpert):
 
 
 class MiniGridDoorKeyS5(MiniGridSingleTaskExpert):
-    def __init__(self, rng_seed: int = 0):
-        super().__init__(rng_seed)
-
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
@@ -705,9 +649,6 @@ class MiniGridDoorKeyS5(MiniGridSingleTaskExpert):
 
 
 class MiniGridDoorKeyS6(MiniGridSingleTaskExpert):
-    def __init__(self, rng_seed: int = 0):
-        super().__init__(rng_seed)
-
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
@@ -729,9 +670,6 @@ class MiniGridDoorKeyS6(MiniGridSingleTaskExpert):
 
 
 class MiniGridDoorKeyS8(MiniGridSingleTaskExpert):
-    def __init__(self, rng_seed: int = 0):
-        super().__init__(rng_seed)
-
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:

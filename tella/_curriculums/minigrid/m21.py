@@ -638,7 +638,7 @@ class MiniGridDoorKeyS5(MiniGridSingleTaskExpert):
                     [
                         EpisodicTaskVariant(
                             DoorKeyS5,
-                            task_label="CustomUnlock",
+                            task_label="DoorKey",
                             variant_label="S5",
                             num_episodes=1000,
                         )
@@ -659,7 +659,7 @@ class MiniGridDoorKeyS6(MiniGridSingleTaskExpert):
                     [
                         EpisodicTaskVariant(
                             DoorKeyS6,
-                            task_label="CustomUnlock",
+                            task_label="DoorKey",
                             variant_label="S6",
                             num_episodes=1000,
                         )
@@ -680,7 +680,7 @@ class MiniGridDoorKeyS8(MiniGridSingleTaskExpert):
                     [
                         EpisodicTaskVariant(
                             DoorKeyS8,
-                            task_label="CustomUnlock",
+                            task_label="DoorKey",
                             variant_label="S8",
                             num_episodes=1000,
                         )

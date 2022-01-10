@@ -20,4 +20,25 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from .simple import SimpleMiniGridCurriculum
-from .m21 import MiniGridCondensed, MiniGridDispersed
+from .m21 import (
+    MiniGridCondensed,
+    MiniGridDispersed,
+    MiniGridSimpleCrossingS9N1,
+    MiniGridSimpleCrossingS9N2,
+    MiniGridSimpleCrossingS9N3,
+    MiniGridDistShiftR2,
+    MiniGridDistShiftR5,
+    MiniGridDistShiftR3,
+    MiniGridDynObstaclesS5N2,
+    MiniGridDynObstaclesS6N3,
+    MiniGridDynObstaclesS8N4,
+    MiniGridCustomFetchS5T1N2,
+    MiniGridCustomFetchS8T1N2,
+    MiniGridCustomFetchS16T2N4,
+    MiniGridCustomUnlockS5,
+    MiniGridCustomUnlockS7,
+    MiniGridCustomUnlockS9,
+    MiniGridDoorKeyS5,
+    MiniGridDoorKeyS6,
+    MiniGridDoorKeyS8,
+)

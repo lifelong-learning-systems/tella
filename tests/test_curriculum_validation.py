@@ -266,7 +266,7 @@ def test_validate_invalid_params_function():
     with pytest.raises(ValueError) as err:
         validate_params(example_function, ["a", "b"])
 
-    assert err.match("Parameters not accepted: \['b'\]")
+    assert err.match(r"Parameters not accepted: \['b'\]")
 
 
 def test_validate_invalid_params_class():
@@ -277,7 +277,7 @@ def test_validate_invalid_params_class():
     with pytest.raises(ValueError) as err:
         validate_params(ExampleClass, ["a", "b"])
 
-    assert err.match("Parameters not accepted: \['b'\]")
+    assert err.match(r"Parameters not accepted: \['b'\]")
 
 
 def test_validate_missing_params_function():
@@ -287,12 +287,12 @@ def test_validate_missing_params_function():
     with pytest.raises(ValueError) as err:
         validate_params(example_function, [])
 
-    assert err.match("Missing parameters: \['a', 'b'\]")
+    assert err.match(r"Missing parameters: \['a', 'b'\]")
 
     with pytest.raises(ValueError) as err:
         validate_params(example_function, ["a"])
 
-    assert err.match("Missing parameters: \['b'\]")
+    assert err.match(r"Missing parameters: \['b'\]")
 
 
 def test_validate_missing_params_class():
@@ -303,12 +303,12 @@ def test_validate_missing_params_class():
     with pytest.raises(ValueError) as err:
         validate_params(ExampleClass, [])
 
-    assert err.match("Missing parameters: \['a', 'b'\]")
+    assert err.match(r"Missing parameters: \['a', 'b'\]")
 
     with pytest.raises(ValueError) as err:
         validate_params(ExampleClass, ["a"])
 
-    assert err.match("Missing parameters: \['b'\]")
+    assert err.match(r"Missing parameters: \['b'\]")
 
 
 def test_validate_args_function():
@@ -318,7 +318,7 @@ def test_validate_args_function():
     with pytest.raises(ValueError) as err:
         validate_params(example_function, ["args"])
 
-    assert err.match("\*args not allowed")
+    assert err.match(r"\*args not allowed")
 
 
 def test_validate_args_class():
@@ -329,7 +329,7 @@ def test_validate_args_class():
     with pytest.raises(ValueError) as err:
         validate_params(ExampleClass, ["args"])
 
-    assert err.match("\*args not allowed")
+    assert err.match(r"\*args not allowed")
 
 
 def test_validate_default_function():
@@ -356,7 +356,7 @@ def test_validate_missing_not_default_function():
     with pytest.raises(ValueError) as err:
         validate_params(example_function, [])
 
-    assert err.match("Missing parameters: \['a'\]")
+    assert err.match(r"Missing parameters: \['a'\]")
 
 
 def test_validate_missing_not_default_class():
@@ -367,7 +367,7 @@ def test_validate_missing_not_default_class():
     with pytest.raises(ValueError) as err:
         validate_params(ExampleClass, [])
 
-    assert err.match("Missing parameters: \['a'\]")
+    assert err.match(r"Missing parameters: \['a'\]")
 
 
 def test_validate_kwargs_function():

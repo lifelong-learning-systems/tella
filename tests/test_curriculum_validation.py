@@ -17,7 +17,7 @@ from tella.curriculum import (
 )
 
 
-class TestCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
+class SampleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
     def __init__(
         self,
         blocks: typing.Iterable[
@@ -27,7 +27,7 @@ class TestCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
             ]
         ],
     ) -> None:
-        super(TestCurriculum, self).__init__(0)
+        super().__init__(0)
         self.blocks = blocks
 
     def learn_blocks_and_eval_blocks(
@@ -43,7 +43,7 @@ class TestCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
 
 
 def test_correct_curriculum():
-    curriculum = TestCurriculum(
+    curriculum = SampleCurriculum(
         [
             simple_learn_block(
                 [
@@ -76,7 +76,7 @@ def test_correct_curriculum():
 
 
 def test_error_on_diff_task_labels():
-    curriculum = TestCurriculum(
+    curriculum = SampleCurriculum(
         [
             LearnBlock(
                 [
@@ -119,7 +119,7 @@ def test_error_on_diff_task_labels():
 
 
 def test_error_on_multiple_spaces():
-    curriculum = TestCurriculum(
+    curriculum = SampleCurriculum(
         [
             simple_learn_block(
                 [
@@ -156,7 +156,7 @@ def test_error_on_multiple_spaces():
 
 
 def test_warn_same_variant_labels():
-    curriculum = TestCurriculum(
+    curriculum = SampleCurriculum(
         [
             simple_learn_block(
                 [
@@ -190,7 +190,7 @@ def test_warn_same_variant_labels():
 
 
 def test_empty_curriculum():
-    curriculum = TestCurriculum([])
+    curriculum = SampleCurriculum([])
 
     with pytest.raises(ValueError) as err:
         validate_curriculum(curriculum)
@@ -199,7 +199,7 @@ def test_empty_curriculum():
 
 
 def test_empty_block():
-    curriculum = TestCurriculum([LearnBlock([])])
+    curriculum = SampleCurriculum([LearnBlock([])])
 
     with pytest.raises(ValueError) as err:
         validate_curriculum(curriculum)
@@ -208,7 +208,7 @@ def test_empty_block():
 
 
 def test_empty_task():
-    curriculum = TestCurriculum([LearnBlock([TaskBlock("Task1", [])])])
+    curriculum = SampleCurriculum([LearnBlock([TaskBlock("Task1", [])])])
 
     with pytest.raises(ValueError) as err:
         validate_curriculum(curriculum)
@@ -217,7 +217,7 @@ def test_empty_task():
 
 
 def test_invalid_task_params():
-    curriculum = TestCurriculum(
+    curriculum = SampleCurriculum(
         [
             simple_eval_block(
                 [

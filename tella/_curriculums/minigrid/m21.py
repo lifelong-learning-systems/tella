@@ -228,13 +228,14 @@ TASKS = [
 
 class _MiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
     def eval_block(self) -> AbstractEvalBlock[AbstractRLTaskVariant]:
+        rng = np.random.default_rng(self.eval_rng_seed)
         return simple_eval_block(
             EpisodicTaskVariant(
                 cls,
                 task_label=task_label,
                 variant_label=variant_label,
                 num_episodes=100,
-                rng_seed=self.eval_rng_seed,
+                rng_seed=rng.bit_generator.random_raw(),
             )
             for cls, task_label, variant_label in TASKS
         )

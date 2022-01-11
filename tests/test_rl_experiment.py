@@ -31,13 +31,23 @@ def test_reproducible_experiment_filestructure(tmpdir):
     rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 2, 1, "logs1", 0)
     rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 2, 1, "logs2", 0)
 
-    root1 = tmpdir.join("logs1").listdir()[0]
-    root2 = tmpdir.join("logs2").listdir()[0]
+    assert len(tmpdir.join("logs1").listdir()) == 2
+    assert len(tmpdir.join("logs2").listdir()) == 2
 
-    structure1 = [(dirnames, filenames) for _, dirnames, filenames in os.walk(root1)]
-    structure2 = [(dirnames, filenames) for _, dirnames, filenames in os.walk(root2)]
+    for lifetime1, lifetime2 in zip(
+        sorted(tmpdir.join("logs1").listdir()),
+        sorted(tmpdir.join("logs2").listdir()),
+    ):
+        structure1 = [
+            (dirnames, filenames)
+            for _, dirnames, filenames in sorted(os.walk(lifetime1))
+        ]
+        structure2 = [
+            (dirnames, filenames)
+            for _, dirnames, filenames in sorted(os.walk(lifetime2))
+        ]
 
-    assert structure1 == structure2
+        assert structure1 == structure2
 
 
 def test_reproducible_experiment_same_contents(tmpdir):
@@ -46,21 +56,30 @@ def test_reproducible_experiment_same_contents(tmpdir):
     rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 2, 1, "logs1", 0)
     rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 2, 1, "logs2", 0)
 
-    worker1 = tmpdir.join("logs1").listdir()[0].join("worker-default")
-    worker2 = tmpdir.join("logs2").listdir()[0].join("worker-default")
+    assert len(tmpdir.join("logs1").listdir()) == 2
+    assert len(tmpdir.join("logs2").listdir()) == 2
 
-    columns_to_ignore = ["timestamp"]
-    for block1, block2 in zip(worker1.listdir(), worker2.listdir()):
-        assert block1.basename == block2.basename
-        with open(block1.join("data-log.tsv")) as fp1, open(
-            block2.join("data-log.tsv")
-        ) as fp2:
-            reader1 = csv.DictReader(fp1, delimiter="\t")
-            reader2 = csv.DictReader(fp2, delimiter="\t")
-            for row1, row2 in zip(reader1, reader2):
-                assert row1.keys() == row2.keys()
-                for key in [key for key in row1.keys() if key not in columns_to_ignore]:
-                    assert row1[key] == row2[key]
+    for lifetime1, lifetime2 in zip(
+        sorted(tmpdir.join("logs1").listdir()),
+        sorted(tmpdir.join("logs2").listdir()),
+    ):
+        worker1 = lifetime1.join("worker-default")
+        worker2 = lifetime2.join("worker-default")
+
+        columns_to_ignore = ["timestamp"]
+        for block1, block2 in zip(sorted(worker1.listdir()), sorted(worker2.listdir())):
+            assert block1.basename == block2.basename
+            with open(block1.join("data-log.tsv")) as fp1, open(
+                block2.join("data-log.tsv")
+            ) as fp2:
+                reader1 = csv.DictReader(fp1, delimiter="\t")
+                reader2 = csv.DictReader(fp2, delimiter="\t")
+                for row1, row2 in zip(reader1, reader2):
+                    assert row1.keys() == row2.keys()
+                    for key in [
+                        key for key in row1.keys() if key not in columns_to_ignore
+                    ]:
+                        assert row1[key] == row2[key]
 
 
 def test_reproducible_experiment_different_contents(tmpdir):
@@ -69,26 +88,35 @@ def test_reproducible_experiment_different_contents(tmpdir):
     rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 2, 1, "logs1", 0)
     rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 2, 1, "logs2", 1)
 
-    worker1 = tmpdir.join("logs1").listdir()[0].join("worker-default")
-    worker2 = tmpdir.join("logs2").listdir()[0].join("worker-default")
+    assert len(tmpdir.join("logs1").listdir()) == 2
+    assert len(tmpdir.join("logs2").listdir()) == 2
 
-    something_different = False
+    for lifetime1, lifetime2 in zip(
+        sorted(tmpdir.join("logs1").listdir()),
+        sorted(tmpdir.join("logs2").listdir()),
+    ):
+        worker1 = lifetime1.join("worker-default")
+        worker2 = lifetime2.join("worker-default")
 
-    columns_to_ignore = ["timestamp"]
-    for block1, block2 in zip(worker1.listdir(), worker2.listdir()):
-        assert block1.basename == block2.basename
-        with open(block1.join("data-log.tsv")) as fp1, open(
-            block2.join("data-log.tsv")
-        ) as fp2:
-            reader1 = csv.DictReader(fp1, delimiter="\t")
-            reader2 = csv.DictReader(fp2, delimiter="\t")
-            for row1, row2 in zip(reader1, reader2):
-                assert row1.keys() == row2.keys()
-                for key in [key for key in row1.keys() if key not in columns_to_ignore]:
-                    if row1[key] != row2[key]:
-                        something_different = True
+        something_different = False
 
-    assert something_different
+        columns_to_ignore = ["timestamp"]
+        for block1, block2 in zip(sorted(worker1.listdir()), sorted(worker2.listdir())):
+            assert block1.basename == block2.basename
+            with open(block1.join("data-log.tsv")) as fp1, open(
+                block2.join("data-log.tsv")
+            ) as fp2:
+                reader1 = csv.DictReader(fp1, delimiter="\t")
+                reader2 = csv.DictReader(fp2, delimiter="\t")
+                for row1, row2 in zip(reader1, reader2):
+                    assert row1.keys() == row2.keys()
+                    for key in [
+                        key for key in row1.keys() if key not in columns_to_ignore
+                    ]:
+                        if row1[key] != row2[key]:
+                            something_different = True
+
+        assert something_different
 
 
 def test_all_event_orders(tmpdir):

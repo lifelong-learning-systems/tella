@@ -228,14 +228,13 @@ TASKS = [
 
 class _MiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
     def eval_block(self) -> AbstractEvalBlock[AbstractRLTaskVariant]:
-        rng = np.random.default_rng(self.rng_seed)
         return simple_eval_block(
             EpisodicTaskVariant(
                 cls,
                 task_label=task_label,
                 variant_label=variant_label,
                 num_episodes=100,
-                rng_seed=rng.bit_generator.random_raw(),
+                rng_seed=self.eval_rng_seed,
             )
             for cls, task_label, variant_label in TASKS
         )
@@ -245,8 +244,7 @@ class MiniGridCondensed(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        rng = np.random.default_rng(self.rng_seed)
-        for cls, task_label, variant_label in rng.permutation(TASKS):
+        for cls, task_label, variant_label in self.rng.permutation(TASKS):
             yield LearnBlock(
                 [
                     TaskBlock(
@@ -257,7 +255,7 @@ class MiniGridCondensed(_MiniGridCurriculum):
                                 task_label=task_label,
                                 variant_label=variant_label,
                                 num_episodes=1000,
-                                rng_seed=rng.bit_generator.random_raw(),
+                                rng_seed=self.rng.bit_generator.random_raw(),
                             )
                         ],
                     )
@@ -273,10 +271,8 @@ class MiniGridDispersed(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        rng = np.random.default_rng(self.rng_seed)
         for _ in range(self.num_repetitions):
-            rng = np.random.default_rng(self.rng_seed)
-            for cls, task_label, variant_label in rng.permutation(TASKS):
+            for cls, task_label, variant_label in self.rng.permutation(TASKS):
                 yield LearnBlock(
                     [
                         TaskBlock(
@@ -287,7 +283,7 @@ class MiniGridDispersed(_MiniGridCurriculum):
                                     task_label=task_label,
                                     variant_label=variant_label,
                                     num_episodes=1000 // self.num_repetitions,
-                                    rng_seed=rng.bit_generator.random_raw(),
+                                    rng_seed=self.rng.bit_generator.random_raw(),
                                 )
                             ],
                         )
@@ -299,7 +295,6 @@ class MiniGridSimpleCrossingS9N1(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        rng = np.random.default_rng(self.rng_seed)
         yield LearnBlock(
             [
                 TaskBlock(
@@ -310,7 +305,7 @@ class MiniGridSimpleCrossingS9N1(_MiniGridCurriculum):
                             task_label="SimpleCrossing",
                             variant_label="S9N1",
                             num_episodes=1000,
-                            rng_seed=rng.bit_generator.random_raw(),
+                            rng_seed=self.rng.bit_generator.random_raw(),
                         )
                     ],
                 )
@@ -322,7 +317,6 @@ class MiniGridSimpleCrossingS9N2(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        rng = np.random.default_rng(self.rng_seed)
         yield LearnBlock(
             [
                 TaskBlock(
@@ -333,7 +327,7 @@ class MiniGridSimpleCrossingS9N2(_MiniGridCurriculum):
                             task_label="SimpleCrossing",
                             variant_label="S9N2",
                             num_episodes=1000,
-                            rng_seed=rng.bit_generator.random_raw(),
+                            rng_seed=self.rng.bit_generator.random_raw(),
                         )
                     ],
                 )
@@ -345,7 +339,6 @@ class MiniGridSimpleCrossingS9N3(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        rng = np.random.default_rng(self.rng_seed)
         yield LearnBlock(
             [
                 TaskBlock(
@@ -356,7 +349,7 @@ class MiniGridSimpleCrossingS9N3(_MiniGridCurriculum):
                             task_label="SimpleCrossing",
                             variant_label="S9N3",
                             num_episodes=1000,
-                            rng_seed=rng.bit_generator.random_raw(),
+                            rng_seed=self.rng.bit_generator.random_raw(),
                         )
                     ],
                 )
@@ -368,7 +361,6 @@ class MiniGridDistShiftR2(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        rng = np.random.default_rng(self.rng_seed)
         yield LearnBlock(
             [
                 TaskBlock(
@@ -379,7 +371,7 @@ class MiniGridDistShiftR2(_MiniGridCurriculum):
                             task_label="DistShift",
                             variant_label="R2",
                             num_episodes=1000,
-                            rng_seed=rng.bit_generator.random_raw(),
+                            rng_seed=self.rng.bit_generator.random_raw(),
                         )
                     ],
                 )
@@ -391,7 +383,6 @@ class MiniGridDistShiftR5(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        rng = np.random.default_rng(self.rng_seed)
         yield LearnBlock(
             [
                 TaskBlock(
@@ -402,7 +393,7 @@ class MiniGridDistShiftR5(_MiniGridCurriculum):
                             task_label="DistShift",
                             variant_label="R5",
                             num_episodes=1000,
-                            rng_seed=rng.bit_generator.random_raw(),
+                            rng_seed=self.rng.bit_generator.random_raw(),
                         )
                     ],
                 )
@@ -414,7 +405,6 @@ class MiniGridDistShiftR3(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        rng = np.random.default_rng(self.rng_seed)
         yield LearnBlock(
             [
                 TaskBlock(
@@ -425,7 +415,7 @@ class MiniGridDistShiftR3(_MiniGridCurriculum):
                             task_label="DistShift",
                             variant_label="R3",
                             num_episodes=1000,
-                            rng_seed=rng.bit_generator.random_raw(),
+                            rng_seed=self.rng.bit_generator.random_raw(),
                         )
                     ],
                 )
@@ -437,7 +427,6 @@ class MiniGridDynObstaclesS5N2(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        rng = np.random.default_rng(self.rng_seed)
         yield LearnBlock(
             [
                 TaskBlock(
@@ -448,7 +437,7 @@ class MiniGridDynObstaclesS5N2(_MiniGridCurriculum):
                             task_label="DynObstacles",
                             variant_label="S5N2",
                             num_episodes=1000,
-                            rng_seed=rng.bit_generator.random_raw(),
+                            rng_seed=self.rng.bit_generator.random_raw(),
                         )
                     ],
                 )
@@ -460,7 +449,6 @@ class MiniGridDynObstaclesS6N3(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        rng = np.random.default_rng(self.rng_seed)
         yield LearnBlock(
             [
                 TaskBlock(
@@ -471,7 +459,7 @@ class MiniGridDynObstaclesS6N3(_MiniGridCurriculum):
                             task_label="DynObstacles",
                             variant_label="S6N3",
                             num_episodes=1000,
-                            rng_seed=rng.bit_generator.random_raw(),
+                            rng_seed=self.rng.bit_generator.random_raw(),
                         )
                     ],
                 )
@@ -483,7 +471,6 @@ class MiniGridDynObstaclesS8N4(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        rng = np.random.default_rng(self.rng_seed)
         yield LearnBlock(
             [
                 TaskBlock(
@@ -494,7 +481,7 @@ class MiniGridDynObstaclesS8N4(_MiniGridCurriculum):
                             task_label="DynObstacles",
                             variant_label="S8N4",
                             num_episodes=1000,
-                            rng_seed=rng.bit_generator.random_raw(),
+                            rng_seed=self.rng.bit_generator.random_raw(),
                         )
                     ],
                 )
@@ -506,7 +493,6 @@ class MiniGridCustomFetchS5T1N2(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        rng = np.random.default_rng(self.rng_seed)
         yield LearnBlock(
             [
                 TaskBlock(
@@ -517,7 +503,7 @@ class MiniGridCustomFetchS5T1N2(_MiniGridCurriculum):
                             task_label="CustomFetch",
                             variant_label="S5T1N2",
                             num_episodes=1000,
-                            rng_seed=rng.bit_generator.random_raw(),
+                            rng_seed=self.rng.bit_generator.random_raw(),
                         )
                     ],
                 )
@@ -529,7 +515,6 @@ class MiniGridCustomFetchS8T1N2(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        rng = np.random.default_rng(self.rng_seed)
         yield LearnBlock(
             [
                 TaskBlock(
@@ -540,7 +525,7 @@ class MiniGridCustomFetchS8T1N2(_MiniGridCurriculum):
                             task_label="CustomFetch",
                             variant_label="S8T1N2",
                             num_episodes=1000,
-                            rng_seed=rng.bit_generator.random_raw(),
+                            rng_seed=self.rng.bit_generator.random_raw(),
                         )
                     ],
                 )
@@ -552,7 +537,6 @@ class MiniGridCustomFetchS16T2N4(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        rng = np.random.default_rng(self.rng_seed)
         yield LearnBlock(
             [
                 TaskBlock(
@@ -563,7 +547,7 @@ class MiniGridCustomFetchS16T2N4(_MiniGridCurriculum):
                             task_label="CustomFetch",
                             variant_label="S16T2N4",
                             num_episodes=1000,
-                            rng_seed=rng.bit_generator.random_raw(),
+                            rng_seed=self.rng.bit_generator.random_raw(),
                         )
                     ],
                 )
@@ -575,7 +559,6 @@ class MiniGridCustomUnlockS5(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        rng = np.random.default_rng(self.rng_seed)
         yield LearnBlock(
             [
                 TaskBlock(
@@ -586,7 +569,7 @@ class MiniGridCustomUnlockS5(_MiniGridCurriculum):
                             task_label="CustomUnlock",
                             variant_label="S5",
                             num_episodes=1000,
-                            rng_seed=rng.bit_generator.random_raw(),
+                            rng_seed=self.rng.bit_generator.random_raw(),
                         )
                     ],
                 )
@@ -598,7 +581,6 @@ class MiniGridCustomUnlockS7(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        rng = np.random.default_rng(self.rng_seed)
         yield LearnBlock(
             [
                 TaskBlock(
@@ -609,7 +591,7 @@ class MiniGridCustomUnlockS7(_MiniGridCurriculum):
                             task_label="CustomUnlock",
                             variant_label="S7",
                             num_episodes=1000,
-                            rng_seed=rng.bit_generator.random_raw(),
+                            rng_seed=self.rng.bit_generator.random_raw(),
                         )
                     ],
                 )
@@ -621,7 +603,6 @@ class MiniGridCustomUnlockS9(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        rng = np.random.default_rng(self.rng_seed)
         yield LearnBlock(
             [
                 TaskBlock(
@@ -632,7 +613,7 @@ class MiniGridCustomUnlockS9(_MiniGridCurriculum):
                             task_label="CustomUnlock",
                             variant_label="S9",
                             num_episodes=1000,
-                            rng_seed=rng.bit_generator.random_raw(),
+                            rng_seed=self.rng.bit_generator.random_raw(),
                         )
                     ],
                 )
@@ -644,7 +625,6 @@ class MiniGridDoorKeyS5(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        rng = np.random.default_rng(self.rng_seed)
         yield LearnBlock(
             [
                 TaskBlock(
@@ -655,7 +635,7 @@ class MiniGridDoorKeyS5(_MiniGridCurriculum):
                             task_label="DoorKey",
                             variant_label="S5",
                             num_episodes=1000,
-                            rng_seed=rng.bit_generator.random_raw(),
+                            rng_seed=self.rng.bit_generator.random_raw(),
                         )
                     ],
                 )
@@ -667,7 +647,6 @@ class MiniGridDoorKeyS6(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        rng = np.random.default_rng(self.rng_seed)
         yield LearnBlock(
             [
                 TaskBlock(
@@ -678,7 +657,7 @@ class MiniGridDoorKeyS6(_MiniGridCurriculum):
                             task_label="DoorKey",
                             variant_label="S6",
                             num_episodes=1000,
-                            rng_seed=rng.bit_generator.random_raw(),
+                            rng_seed=self.rng.bit_generator.random_raw(),
                         )
                     ],
                 )
@@ -690,7 +669,6 @@ class MiniGridDoorKeyS8(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        rng = np.random.default_rng(self.rng_seed)
         yield LearnBlock(
             [
                 TaskBlock(
@@ -701,7 +679,7 @@ class MiniGridDoorKeyS8(_MiniGridCurriculum):
                             task_label="DoorKey",
                             variant_label="S8",
                             num_episodes=1000,
-                            rng_seed=rng.bit_generator.random_raw(),
+                            rng_seed=self.rng.bit_generator.random_raw(),
                         )
                     ],
                 )

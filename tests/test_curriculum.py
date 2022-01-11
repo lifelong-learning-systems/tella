@@ -153,15 +153,14 @@ class ShuffledCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
             "AbstractEvalBlock[AbstractRLTaskVariant]",
         ]
     ]:
-        rng = np.random.default_rng(self.rng_seed)
-        for n in rng.permutation(100):
+        for n in self.rng.permutation(100):
             yield simple_learn_block(
                 [
                     EpisodicTaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         task_label=f"Task{n}",
-                        rng_seed=rng.bit_generator.random_raw(),
+                        rng_seed=self.rng.bit_generator.random_raw(),
                     )
                 ]
             )
@@ -171,7 +170,7 @@ class ShuffledCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
                     CartPoleEnv,
                     num_episodes=1,
                     task_label="Task0",
-                    rng_seed=rng.bit_generator.random_raw(),
+                    rng_seed=self.rng.bit_generator.random_raw(),
                 )
             ]
         )
@@ -201,7 +200,6 @@ def test_curriculum_diff_rng_seed():
 
 def test_curriculum_rng_seed():
     curriculum = ShuffledCurriculum(0)
-
     first_call_tasks = [
         (variant.task_label, variant.variant_label)
         for block in curriculum.learn_blocks_and_eval_blocks()
@@ -209,6 +207,7 @@ def test_curriculum_rng_seed():
         for variant in task.task_variants()
     ]
 
+    curriculum = ShuffledCurriculum(0)
     second_call_tasks = [
         (variant.task_label, variant.variant_label)
         for block in curriculum.learn_blocks_and_eval_blocks()
@@ -228,37 +227,34 @@ class ShuffledInterleavedCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVari
             "AbstractEvalBlock[AbstractRLTaskVariant]",
         ]
     ]:
-        rng = np.random.default_rng(self.rng_seed)
-        for n in rng.permutation(10):
+        for n in self.rng.permutation(10):
             yield simple_learn_block(
                 [
                     EpisodicTaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         task_label=f"Task{n}",
-                        rng_seed=rng.bit_generator.random_raw(),
+                        rng_seed=self.rng.bit_generator.random_raw(),
                     )
                 ]
             )
 
     def eval_block(self) -> AbstractEvalBlock[TaskVariantType]:
-        rng = np.random.default_rng(self.rng_seed)
         return simple_eval_block(
             [
                 EpisodicTaskVariant(
                     CartPoleEnv,
                     num_episodes=1,
                     task_label=f"Task{n}",
-                    rng_seed=rng.bit_generator.random_raw(),
+                    rng_seed=self.eval_rng_seed,
                 )
-                for n in rng.permutation(10)
+                for n in range(10)
             ]
         )
 
 
 def test_interleaved_rng_seed():
     curriculum = ShuffledInterleavedCurriculum(0)
-
     first_call_tasks = [
         (variant.task_label, variant.variant_label)
         for block in curriculum.learn_blocks_and_eval_blocks()
@@ -266,6 +262,7 @@ def test_interleaved_rng_seed():
         for variant in task.task_variants()
     ]
 
+    curriculum = ShuffledInterleavedCurriculum(0)
     second_call_tasks = [
         (variant.task_label, variant.variant_label)
         for block in curriculum.learn_blocks_and_eval_blocks()
@@ -278,14 +275,13 @@ def test_interleaved_rng_seed():
 
 class SampleInterleavedCurriculum(InterleavedEvalCurriculum):
     def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
-        rng = np.random.default_rng(self.rng_seed)
         yield simple_learn_block(
             [
                 EpisodicTaskVariant(
                     CartPoleEnv,
                     num_episodes=1,
                     task_label="Task1",
-                    rng_seed=rng.bit_generator.random_raw(),
+                    rng_seed=self.rng.bit_generator.random_raw(),
                 ),
             ]
         )
@@ -295,7 +291,7 @@ class SampleInterleavedCurriculum(InterleavedEvalCurriculum):
                     CartPoleEnv,
                     num_episodes=1,
                     task_label="Task2",
-                    rng_seed=rng.bit_generator.random_raw(),
+                    rng_seed=self.rng.bit_generator.random_raw(),
                 ),
             ]
         )
@@ -305,26 +301,25 @@ class SampleInterleavedCurriculum(InterleavedEvalCurriculum):
                     CartPoleEnv,
                     num_episodes=1,
                     task_label="Task3",
-                    rng_seed=rng.bit_generator.random_raw(),
+                    rng_seed=self.rng.bit_generator.random_raw(),
                 )
             ]
         )
 
     def eval_block(self) -> AbstractEvalBlock[TaskVariantType]:
-        rng = np.random.default_rng(self.rng_seed)
         return simple_eval_block(
             [
                 EpisodicTaskVariant(
                     CartPoleEnv,
                     num_episodes=1,
                     task_label="Task1",
-                    rng_seed=rng.bit_generator.random_raw(),
+                    rng_seed=self.eval_rng_seed,
                 ),
                 EpisodicTaskVariant(
                     CartPoleEnv,
                     num_episodes=1,
                     task_label="Task1",
-                    rng_seed=rng.bit_generator.random_raw(),
+                    rng_seed=self.eval_rng_seed + 1,
                 ),
             ]
         )

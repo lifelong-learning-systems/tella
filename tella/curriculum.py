@@ -111,6 +111,7 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
             at each call to .learn_blocks_and_eval_blocks()
         """
         self.rng_seed = rng_seed
+        self.rng = np.random.default_rng(rng_seed)
 
     @abc.abstractmethod
     def learn_blocks_and_eval_blocks(
@@ -205,8 +206,8 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
             at each call to .learn_blocks_and_eval_blocks()
         """
         super().__init__(rng_seed)
-        # Also save rng_seed as private variable for resetting after mid-iterable modification
-        self._rng_seed = rng_seed
+        # Also save a fixed eval_rng_seed so that eval environments are the same in each block
+        self.eval_rng_seed = self.rng.bit_generator.random_raw()
 
     @abc.abstractmethod
     def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
@@ -229,18 +230,9 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
             "AbstractLearnBlock[TaskVariantType]", "AbstractEvalBlock[TaskVariantType]"
         ]
     ]:
-        # Create an internal RNG to generate unique but repeatable
-        #  rng_seed arguments for the following methods
-        rng = np.random.default_rng(self._rng_seed)
-
-        self.rng_seed = rng.bit_generator.random_raw()
         yield self.eval_block()
-
-        self.rng_seed = rng.bit_generator.random_raw()
         for block in self.learn_blocks():
             yield block
-
-            self.rng_seed = rng.bit_generator.random_raw()
             yield self.eval_block()
 
 

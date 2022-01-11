@@ -15,19 +15,18 @@ class SimpleRLCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
             "AbstractEvalBlock[AbstractRLTaskVariant]",
         ]
     ]:
-        rng = np.random.default_rng(self.rng_seed)
         yield simple_learn_block(
             [
                 EpisodicTaskVariant(
                     CartPoleEnv,
                     num_episodes=1,
-                    rng_seed=rng.bit_generator.random_raw(),
+                    rng_seed=self.rng.bit_generator.random_raw(),
                 ),
                 EpisodicTaskVariant(
                     CartPoleEnv,
                     num_episodes=1,
                     variant_label="Variant1",
-                    rng_seed=rng.bit_generator.random_raw(),
+                    rng_seed=self.rng.bit_generator.random_raw(),
                 ),
             ]
         )
@@ -36,7 +35,7 @@ class SimpleRLCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
                 EpisodicTaskVariant(
                     CartPoleEnv,
                     num_episodes=1,
-                    rng_seed=rng.bit_generator.random_raw(),
+                    rng_seed=self.rng.bit_generator.random_raw(),
                 )
             ]
         )

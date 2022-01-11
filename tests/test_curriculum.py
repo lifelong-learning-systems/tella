@@ -17,7 +17,7 @@ from tella.curriculum import (
 )
 
 
-class TestCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
+class SampleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
     def __init__(
         self,
         blocks: typing.Iterable[
@@ -27,7 +27,7 @@ class TestCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
             ]
         ],
     ) -> None:
-        super(TestCurriculum, self).__init__(0)
+        super().__init__(0)
         self.blocks = blocks
 
     def learn_blocks_and_eval_blocks(
@@ -43,7 +43,7 @@ class TestCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
 
 
 def test_simple_block_task_split():
-    curriculum = TestCurriculum(
+    curriculum = SampleCurriculum(
         [
             simple_learn_block(
                 [
@@ -66,7 +66,7 @@ def test_simple_block_task_split():
 
 
 def test_generator_curriculum():
-    curriculum = TestCurriculum(
+    curriculum = SampleCurriculum(
         simple_learn_block(
             EpisodicTaskVariant(
                 CartPoleEnv,
@@ -83,7 +83,7 @@ def test_generator_curriculum():
 
 
 def test_curriculum_summary():
-    curriculum = TestCurriculum(
+    curriculum = SampleCurriculum(
         [
             simple_learn_block(
                 [
@@ -236,7 +236,7 @@ def test_interleaved_rng_seed():
     assert first_call_tasks == second_call_tasks
 
 
-class TestInterleaved(InterleavedEvalCurriculum):
+class SampleInterleavedCurriculum(InterleavedEvalCurriculum):
     def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
         yield simple_learn_block(
             [
@@ -284,7 +284,7 @@ class TestInterleaved(InterleavedEvalCurriculum):
 
 
 def test_interleaved_structure():
-    curriculum = TestInterleaved(0)
+    curriculum = SampleInterleavedCurriculum(0)
     blocks = list(curriculum.learn_blocks_and_eval_blocks())
 
     assert len(blocks) == 7

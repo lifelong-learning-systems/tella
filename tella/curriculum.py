@@ -113,6 +113,14 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
         self.rng_seed = rng_seed
         self.rng = np.random.default_rng(rng_seed)
 
+    def copy(self) -> "AbstractCurriculum":
+        """
+        :return: A new instance of this curriculum
+
+        Curriculum authors will need to overwrite this method for subclasses with additional inputs
+        """
+        return self.__class__(self.rng_seed)
+
     @abc.abstractmethod
     def learn_blocks_and_eval_blocks(
         self,

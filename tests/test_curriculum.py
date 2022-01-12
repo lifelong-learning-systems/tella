@@ -218,6 +218,49 @@ def test_curriculum_rng_seed():
     assert first_call_tasks == second_call_tasks
 
 
+def test_curriculum_copy():
+    curriculum = ShuffledCurriculum(0)
+
+    first_call_tasks = [
+        (variant.task_label, variant.variant_label)
+        for block in curriculum.copy().learn_blocks_and_eval_blocks()
+        for task in block.task_blocks()
+        for variant in task.task_variants()
+    ]
+
+    second_call_tasks = [
+        (variant.task_label, variant.variant_label)
+        for block in curriculum.learn_blocks_and_eval_blocks()
+        for task in block.task_blocks()
+        for variant in task.task_variants()
+    ]
+
+    assert first_call_tasks == second_call_tasks
+
+
+def test_curriculum_copy_validate():
+    curriculum = ShuffledCurriculum(0)
+    first_call_tasks = [
+        (variant.task_label, variant.variant_label)
+        for block in curriculum.learn_blocks_and_eval_blocks()
+        for task in block.task_blocks()
+        for variant in task.task_variants()
+    ]
+
+    curriculum = ShuffledCurriculum(0)
+    # Validation iterates over blocks and so changes the curriculum RNG state.
+    #   Copying the curriculum should not alter the state
+    validate_curriculum(curriculum.copy())
+    second_call_tasks = [
+        (variant.task_label, variant.variant_label)
+        for block in curriculum.learn_blocks_and_eval_blocks()
+        for task in block.task_blocks()
+        for variant in task.task_variants()
+    ]
+
+    assert first_call_tasks == second_call_tasks
+
+
 class ShuffledInterleavedCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
     def learn_blocks(
         self,

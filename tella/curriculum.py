@@ -389,19 +389,16 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         *,
         num_episodes: int,
         rng_seed: int,
-        num_envs: typing.Optional[int] = None,
         params: typing.Optional[typing.Dict] = None,
         task_label: typing.Optional[str] = None,
         variant_label: typing.Optional[str] = "Default",
     ) -> None:
-        if num_envs is None:
-            num_envs = 1
+        num_envs = 1
         if params is None:
             params = {}
         if task_label is None:
             task_label = task_cls.__name__
         assert num_envs > 0
-
         self._task_cls = task_cls
         self._params = params
         self._num_episodes = num_episodes
@@ -416,6 +413,9 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
 
     def set_render(self, render):
         self.render = render
+
+    def set_num_envs(self, num_envs):
+        self._num_envs = num_envs
 
     @property
     def total_episodes(self):
@@ -503,13 +503,13 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
                         else next_observations[i],
                     )
 
-                # increment episode ids if episode ended
-                if dones[i]:
-                    episode_ids[i] = next_episode_id
-                    next_episode_id += 1
+                    # increment episode ids if episode ended
+                    if dones[i]:
+                        num_episodes_finished += 1
+                        episode_ids[i] = next_episode_id
+                        next_episode_id += 1
 
             observations = next_observations
-            num_episodes_finished += sum(dones)
         env.close()
         del env
 

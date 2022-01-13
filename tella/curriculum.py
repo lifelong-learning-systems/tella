@@ -501,13 +501,13 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
                         else next_observations[i],
                     )
 
-                # increment episode ids if episode ended
-                if dones[i]:
-                    episode_ids[i] = next_episode_id
-                    next_episode_id += 1
+                    # increment episode ids if episode ended
+                    if dones[i]:
+                        num_episodes_finished += 1
+                        episode_ids[i] = next_episode_id
+                        next_episode_id += 1
 
             observations = next_observations
-            num_episodes_finished += sum(dones)
         self._env.close()
         self._env = None
 

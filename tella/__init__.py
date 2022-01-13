@@ -21,7 +21,13 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 from .agents import ContinualRLAgent, Metrics
 from .cli import rl_cli
-from .curriculum import AbstractRLTaskVariant, Action, Observation, Transition, ValidationError
+from .curriculum import (
+    AbstractRLTaskVariant,
+    Action,
+    Observation,
+    Transition,
+    ValidationError,
+)
 from .metrics import RLMetricAccumulator
 from ._curriculums import load_curriculum_registry
 

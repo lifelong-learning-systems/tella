@@ -40,6 +40,7 @@ InfoType = typing.TypeVar("InfoType")
 
 class ValidationError(ValueError):
     """Raised when there is a problem with a curriculum."""
+
     pass
 
 
@@ -700,7 +701,9 @@ def validate_params(fn: typing.Callable, param_names: typing.List[str]) -> None:
     expected_fn_names = []
     for param_name, param in fn_signature.parameters.items():
         if param.kind == param.VAR_POSITIONAL:
-            raise ValidationError(f"*args not allowed. Found {param_name} in {fn_signature}")
+            raise ValidationError(
+                f"*args not allowed. Found {param_name} in {fn_signature}"
+            )
         if param.kind == param.POSITIONAL_ONLY:
             raise ValidationError(
                 f"Positional only arguments not allowed. Found {param_name} in {fn_signature}"
@@ -717,7 +720,9 @@ def validate_params(fn: typing.Callable, param_names: typing.List[str]) -> None:
         if name not in fn_signature.parameters:
             invalid_params.append(name)
     if len(invalid_params) > 0 and not kwarg_found:
-        raise ValidationError(f"Parameters not accepted: {invalid_params} in {fn_signature}")
+        raise ValidationError(
+            f"Parameters not accepted: {invalid_params} in {fn_signature}"
+        )
 
     # NOTE: this is checking for parameters that don't have a default specified
     missing_params = []

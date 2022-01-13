@@ -510,7 +510,6 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
                         next_episode_id += 1
 
             observations = next_observations
-            num_episodes_finished += sum(dones)
         env.close()
         del env
 

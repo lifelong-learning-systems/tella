@@ -628,8 +628,8 @@ def validate_curriculum(
                     and task_variant.variant_label == previous_variant
                 ):
                     warnings.warn(
-                        "Multiple task variants shared the same variant label."
-                        "Consider combining these task variants."
+                        f"Multiple task variants share the same variant label "
+                        f"'{task_variant.variant_label}' for task '{task_variant.task_label}'."
                     )
                     warned_repeat_variants = True
                 previous_variant = task_variant.variant_label

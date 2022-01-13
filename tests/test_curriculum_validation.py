@@ -14,6 +14,7 @@ from tella.curriculum import (
     TaskBlock,
     LearnBlock,
     validate_params,
+    ValidationError,
 )
 
 
@@ -110,7 +111,7 @@ def test_error_on_diff_task_labels():
             ),
         ]
     )
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValidationError) as err:
         validate_curriculum(curriculum)
 
     assert err.match(
@@ -147,7 +148,7 @@ def test_error_on_multiple_spaces():
         ]
     )
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValidationError) as err:
         validate_curriculum(curriculum)
 
     assert err.match(
@@ -192,7 +193,7 @@ def test_warn_same_variant_labels():
 def test_empty_curriculum():
     curriculum = SampleCurriculum([])
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValidationError) as err:
         validate_curriculum(curriculum)
 
     assert err.match("This curriculum is empty.")
@@ -201,7 +202,7 @@ def test_empty_curriculum():
 def test_empty_block():
     curriculum = SampleCurriculum([LearnBlock([])])
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValidationError) as err:
         validate_curriculum(curriculum)
 
     assert err.match("Block #0 is empty.")
@@ -210,7 +211,7 @@ def test_empty_block():
 def test_empty_task():
     curriculum = SampleCurriculum([LearnBlock([TaskBlock("Task1", [])])])
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValidationError) as err:
         validate_curriculum(curriculum)
 
     assert err.match("Block #0, task block #0 is empty.")
@@ -232,16 +233,13 @@ def test_invalid_task_params():
         ]
     )
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValidationError) as err:
         validate_curriculum(curriculum)
 
     assert err.match(
         "Invalid task variant at block #0, task block #0, task variant #0."
     )
-    assert (
-        err.getrepr().chain[0][1].message
-        == "ValueError: Parameters not accepted: ['a'] in ()"
-    )
+    assert "Parameters not accepted: ['a'] in ()" in err.getrepr().chain[0][1].message
 
 
 def test_validate_valid_params_function():
@@ -263,7 +261,7 @@ def test_validate_invalid_params_function():
     def example_function(a: int):
         pass
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValidationError) as err:
         validate_params(example_function, ["a", "b"])
 
     assert err.match(r"Parameters not accepted: \['b'\]")
@@ -274,7 +272,7 @@ def test_validate_invalid_params_class():
         def __init__(self, a: int):
             pass
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValidationError) as err:
         validate_params(ExampleClass, ["a", "b"])
 
     assert err.match(r"Parameters not accepted: \['b'\]")
@@ -284,12 +282,12 @@ def test_validate_missing_params_function():
     def example_function(a, b):
         pass
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValidationError) as err:
         validate_params(example_function, [])
 
     assert err.match(r"Missing parameters: \['a', 'b'\]")
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValidationError) as err:
         validate_params(example_function, ["a"])
 
     assert err.match(r"Missing parameters: \['b'\]")
@@ -300,12 +298,12 @@ def test_validate_missing_params_class():
         def __init__(self, a, b):
             pass
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValidationError) as err:
         validate_params(ExampleClass, [])
 
     assert err.match(r"Missing parameters: \['a', 'b'\]")
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValidationError) as err:
         validate_params(ExampleClass, ["a"])
 
     assert err.match(r"Missing parameters: \['b'\]")
@@ -315,7 +313,7 @@ def test_validate_args_function():
     def example_function(*args):
         pass
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValidationError) as err:
         validate_params(example_function, ["args"])
 
     assert err.match(r"\*args not allowed")
@@ -326,7 +324,7 @@ def test_validate_args_class():
         def __init__(self, *args):
             pass
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValidationError) as err:
         validate_params(ExampleClass, ["args"])
 
     assert err.match(r"\*args not allowed")
@@ -353,7 +351,7 @@ def test_validate_missing_not_default_function():
     def example_function(a, d=10):
         pass
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValidationError) as err:
         validate_params(example_function, [])
 
     assert err.match(r"Missing parameters: \['a'\]")
@@ -364,7 +362,7 @@ def test_validate_missing_not_default_class():
         def __init__(self, a, d=10):
             pass
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValidationError) as err:
         validate_params(ExampleClass, [])
 
     assert err.match(r"Missing parameters: \['a'\]")
@@ -399,7 +397,7 @@ def test_validate_positional():
 
     for fn in [function_with_params, ClassWithParams]:
         with pytest.raises(
-            ValueError, match="Positional only arguments not allowed. Found q"
+            ValidationError, match="Positional only arguments not allowed. Found q"
         ):
             validate_params(fn, ["q", "c"])
 """

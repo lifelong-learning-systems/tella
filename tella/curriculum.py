@@ -38,6 +38,12 @@ ExperienceType = typing.TypeVar("ExperienceType")
 InfoType = typing.TypeVar("InfoType")
 
 
+class ValidationError(ValueError):
+    """Raised when there is a problem with a curriculum."""
+
+    pass
+
+
 class AbstractTaskVariant(abc.ABC, typing.Generic[InputType, ExperienceType, InfoType]):
     """
     A TaskVariant abstractly represents some amount of experience in a single task.
@@ -61,7 +67,7 @@ class AbstractTaskVariant(abc.ABC, typing.Generic[InputType, ExperienceType, Inf
         """
         A method to validate that the experience is set up properly.
 
-        This should raise an Exception if the experience is not set up properly.
+        Raises a ValidationError if the experience is not set up properly.
         """
 
     @abc.abstractmethod
@@ -426,7 +432,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         return self._variant_label
 
     def validate(self) -> None:
-        return validate_params(self._task_cls, list(self._params.keys()))
+        validate_params(self._task_cls, list(self._params.keys()))
 
     def _make_env(self) -> gym.Env:
         """
@@ -583,14 +589,14 @@ def validate_curriculum(
 ):
     """
     Helper function to do a partial check that task variants are specified
-    correctly in all of the blocks of the `curriculum`.
+    correctly in the blocks of the `curriculum`.
 
     Uses :meth:`AbstractTaskVariant.validate()` to check task variants.
 
-    Raises a :class:`ValueError` if an invalid parameter is detected.
-    Raises a :class:`ValueError` if the curriculum contains multiple observation or action spaces.
-    Raises a :class:`ValueError` if any task block contains multiple tasks.
-    Raises a :class:`ValueError` if the curriculum, or any block, or any task block is empty.
+    Raises a :class:`ValidationError` if an invalid parameter is detected.
+    Raises a :class:`ValidationError` if the curriculum contains multiple observation or action spaces.
+    Raises a :class:`ValidationError` if any task block contains multiple tasks.
+    Raises a :class:`ValidationError` if the curriculum, or any block, or any task block is empty.
 
     :return: None
     """
@@ -616,8 +622,8 @@ def validate_curriculum(
                 # Validate this individual task variant instance
                 try:
                     task_variant.validate()
-                except Exception as e:
-                    raise ValueError(
+                except ValidationError as e:
+                    raise ValidationError(
                         f"Invalid task variant at block #{i_block}, "
                         f"task block #{i_task_block}, "
                         f"task variant #{i_task_variant}."
@@ -650,26 +656,26 @@ def validate_curriculum(
                     obs_and_act_spaces = (observation_space, action_space)
                 else:
                     if obs_and_act_spaces != (observation_space, action_space):
-                        raise ValueError(
+                        raise ValidationError(
                             "All environments in a curriculum must use the same observation and action spaces."
                         )
 
             # Check that task blocks only contain one task
             if len(task_labels) > 1:
-                raise ValueError(
+                raise ValidationError(
                     f"Block #{i_block}, task block #{i_task_block} had more than 1"
                     f" task label found across all task variants: {task_labels}"
                 )
 
             # Check that no empty blocks are included
             if empty_task:
-                raise ValueError(
+                raise ValidationError(
                     f"Block #{i_block}, task block #{i_task_block} is empty."
                 )
         if empty_block:
-            raise ValueError(f"Block #{i_block} is empty.")
+            raise ValidationError(f"Block #{i_block} is empty.")
     if empty_curriculum:
-        raise ValueError(f"This curriculum is empty.")
+        raise ValidationError(f"This curriculum is empty.")
 
 
 def validate_params(fn: typing.Callable, param_names: typing.List[str]) -> None:
@@ -683,10 +689,10 @@ def validate_params(fn: typing.Callable, param_names: typing.List[str]) -> None:
     :param fn: The callable that will accept the parameters.
     :param param_names: The names of the parameters to check.
 
-    :raises: a ValueError if any of `param_names` are not found in the signature, and there are no **kwargs
-    :raises: a ValueError if any of the parameters without defaults in `fn` are not present in `param_names`
-    :raises: a ValueError if any `*args` are found
-    :raises: a ValueError if any positional only arguments are found (i.e. using /)
+    :raises: a ValidationError if any of `param_names` are not found in the signature, and there are no **kwargs
+    :raises: a ValidationError if any of the parameters without defaults in `fn` are not present in `param_names`
+    :raises: a ValidationError if any `*args` are found
+    :raises: a ValidationError if any positional only arguments are found (i.e. using /)
     """
 
     fn_signature = inspect.signature(fn)
@@ -695,9 +701,11 @@ def validate_params(fn: typing.Callable, param_names: typing.List[str]) -> None:
     expected_fn_names = []
     for param_name, param in fn_signature.parameters.items():
         if param.kind == param.VAR_POSITIONAL:
-            raise ValueError(f"*args not allowed. Found {param_name} in {fn_signature}")
+            raise ValidationError(
+                f"*args not allowed. Found {param_name} in {fn_signature}"
+            )
         if param.kind == param.POSITIONAL_ONLY:
-            raise ValueError(
+            raise ValidationError(
                 f"Positional only arguments not allowed. Found {param_name} in {fn_signature}"
             )
         if param.kind == param.VAR_KEYWORD:
@@ -712,7 +720,9 @@ def validate_params(fn: typing.Callable, param_names: typing.List[str]) -> None:
         if name not in fn_signature.parameters:
             invalid_params.append(name)
     if len(invalid_params) > 0 and not kwarg_found:
-        raise ValueError(f"Parameters not accepted: {invalid_params} in {fn_signature}")
+        raise ValidationError(
+            f"Parameters not accepted: {invalid_params} in {fn_signature}"
+        )
 
     # NOTE: this is checking for parameters that don't have a default specified
     missing_params = []
@@ -720,4 +730,4 @@ def validate_params(fn: typing.Callable, param_names: typing.List[str]) -> None:
         if name not in param_names:
             missing_params.append(name)
     if len(missing_params) > 0:
-        raise ValueError(f"Missing parameters: {missing_params} in {fn_signature}")
+        raise ValidationError(f"Missing parameters: {missing_params} in {fn_signature}")

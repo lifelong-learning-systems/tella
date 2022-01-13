@@ -18,3 +18,10 @@ def test_validate(curriculum_name):
     curriculum_cls = curriculum_registry[curriculum_name]
     curriculum = curriculum_cls(0)
     validate_curriculum(curriculum)
+
+
+@pytest.mark.parametrize("curriculum_name", list(curriculum_registry.keys()))
+def test_copy(curriculum_name):
+    curriculum_cls = curriculum_registry[curriculum_name]
+    curriculum = curriculum_cls(0)
+    curriculum.copy()

@@ -1,4 +1,5 @@
 import typing
+import numpy as np
 from gym.envs.classic_control import CartPoleEnv
 from tella.curriculum import AbstractCurriculum, AbstractLearnBlock, AbstractEvalBlock
 from tella.curriculum import AbstractRLTaskVariant, EpisodicTaskVariant
@@ -16,10 +17,25 @@ class SimpleRLCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
     ]:
         yield simple_learn_block(
             [
-                EpisodicTaskVariant(CartPoleEnv, num_episodes=1),
                 EpisodicTaskVariant(
-                    CartPoleEnv, num_episodes=1, variant_label="Variant1"
+                    CartPoleEnv,
+                    num_episodes=1,
+                    rng_seed=self.rng.bit_generator.random_raw(),
+                ),
+                EpisodicTaskVariant(
+                    CartPoleEnv,
+                    num_episodes=1,
+                    variant_label="Variant1",
+                    rng_seed=self.rng.bit_generator.random_raw(),
                 ),
             ]
         )
-        yield simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)])
+        yield simple_eval_block(
+            [
+                EpisodicTaskVariant(
+                    CartPoleEnv,
+                    num_episodes=1,
+                    rng_seed=self.rng.bit_generator.random_raw(),
+                )
+            ]
+        )

@@ -22,10 +22,10 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import abc
 import inspect
 import itertools
-import random
 import typing
 import warnings
 
+import numpy as np
 import gym
 
 from .env import L2LoggerEnv
@@ -36,6 +36,12 @@ curriculum_registry = {}
 InputType = typing.TypeVar("InputType")
 ExperienceType = typing.TypeVar("ExperienceType")
 InfoType = typing.TypeVar("InfoType")
+
+
+class ValidationError(ValueError):
+    """Raised when there is a problem with a curriculum."""
+
+    pass
 
 
 class AbstractTaskVariant(abc.ABC, typing.Generic[InputType, ExperienceType, InfoType]):
@@ -61,7 +67,7 @@ class AbstractTaskVariant(abc.ABC, typing.Generic[InputType, ExperienceType, Inf
         """
         A method to validate that the experience is set up properly.
 
-        This should raise an Exception if the experience is not set up properly.
+        Raises a ValidationError if the experience is not set up properly.
         """
 
     @abc.abstractmethod
@@ -111,6 +117,15 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
             at each call to .learn_blocks_and_eval_blocks()
         """
         self.rng_seed = rng_seed
+        self.rng = np.random.default_rng(rng_seed)
+
+    def copy(self) -> "AbstractCurriculum":
+        """
+        :return: A new instance of this curriculum
+
+        Curriculum authors will need to overwrite this method for subclasses with additional inputs
+        """
+        return self.__class__(self.rng_seed)
 
     @abc.abstractmethod
     def learn_blocks_and_eval_blocks(
@@ -199,6 +214,15 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
 
     """
 
+    def __init__(self, rng_seed: int):
+        """
+        :param rng_seed: The seed to be used in setting random number generators. This should be referenced
+            at each call to .learn_blocks_and_eval_blocks()
+        """
+        super().__init__(rng_seed)
+        # Also save a fixed eval_rng_seed so that eval environments are the same in each block
+        self.eval_rng_seed = self.rng.bit_generator.random_raw()
+
     @abc.abstractmethod
     def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
         """
@@ -220,8 +244,6 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
             "AbstractLearnBlock[TaskVariantType]", "AbstractEvalBlock[TaskVariantType]"
         ]
     ]:
-        # TODO: Create an internal RNG to generate unique but repeatable
-        #  rng_seed arguments for the following methods
         yield self.eval_block()
         for block in self.learn_blocks():
             yield block
@@ -366,10 +388,11 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         task_cls: typing.Type[gym.Env],
         *,
         num_episodes: int,
+        rng_seed: int,
         num_envs: typing.Optional[int] = None,
         params: typing.Optional[typing.Dict] = None,
         task_label: typing.Optional[str] = None,
-        variant_label: typing.Optional[str] = None,
+        variant_label: typing.Optional[str] = "Default",
     ) -> None:
         if num_envs is None:
             num_envs = 1
@@ -377,8 +400,6 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
             params = {}
         if task_label is None:
             task_label = task_cls.__name__
-        if variant_label is None:
-            variant_label = "Default"
         assert num_envs > 0
 
         self._task_cls = task_cls
@@ -388,6 +409,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         self._env = None
         self._task_label = task_label
         self._variant_label = variant_label
+        self.rng_seed = rng_seed
         self.data_logger = None
         self.logger_info = None
         self.render = False
@@ -408,7 +430,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         return self._variant_label
 
     def validate(self) -> None:
-        return validate_params(self._task_cls, list(self._params.keys()))
+        validate_params(self._task_cls, list(self._params.keys()))
 
     def _make_env(self) -> gym.Env:
         """
@@ -443,6 +465,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         if self._num_envs == 1:
             vector_env_cls = gym.vector.SyncVectorEnv
         env = vector_env_cls([self._make_env for _ in range(self._num_envs)])
+        env.seed(self.rng_seed)
         num_episodes_finished = 0
 
         # data to keep track of which observations to mask out (set to None)
@@ -562,14 +585,14 @@ def validate_curriculum(
 ):
     """
     Helper function to do a partial check that task variants are specified
-    correctly in all of the blocks of the `curriculum`.
+    correctly in the blocks of the `curriculum`.
 
     Uses :meth:`AbstractTaskVariant.validate()` to check task variants.
 
-    Raises a :class:`ValueError` if an invalid parameter is detected.
-    Raises a :class:`ValueError` if the curriculum contains multiple observation or action spaces.
-    Raises a :class:`ValueError` if any task block contains multiple tasks.
-    Raises a :class:`ValueError` if the curriculum, or any block, or any task block is empty.
+    Raises a :class:`ValidationError` if an invalid parameter is detected.
+    Raises a :class:`ValidationError` if the curriculum contains multiple observation or action spaces.
+    Raises a :class:`ValidationError` if any task block contains multiple tasks.
+    Raises a :class:`ValidationError` if the curriculum, or any block, or any task block is empty.
 
     :return: None
     """
@@ -595,8 +618,8 @@ def validate_curriculum(
                 # Validate this individual task variant instance
                 try:
                     task_variant.validate()
-                except Exception as e:
-                    raise ValueError(
+                except ValidationError as e:
+                    raise ValidationError(
                         f"Invalid task variant at block #{i_block}, "
                         f"task block #{i_task_block}, "
                         f"task variant #{i_task_variant}."
@@ -609,8 +632,8 @@ def validate_curriculum(
                     and task_variant.variant_label == previous_variant
                 ):
                     warnings.warn(
-                        "Multiple task variants shared the same variant label."
-                        "Consider combining these task variants."
+                        f"Multiple task variants share the same variant label "
+                        f"'{task_variant.variant_label}' for task '{task_variant.task_label}'."
                     )
                     warned_repeat_variants = True
                 previous_variant = task_variant.variant_label
@@ -629,26 +652,26 @@ def validate_curriculum(
                     obs_and_act_spaces = (observation_space, action_space)
                 else:
                     if obs_and_act_spaces != (observation_space, action_space):
-                        raise ValueError(
+                        raise ValidationError(
                             "All environments in a curriculum must use the same observation and action spaces."
                         )
 
             # Check that task blocks only contain one task
             if len(task_labels) > 1:
-                raise ValueError(
+                raise ValidationError(
                     f"Block #{i_block}, task block #{i_task_block} had more than 1"
                     f" task label found across all task variants: {task_labels}"
                 )
 
             # Check that no empty blocks are included
             if empty_task:
-                raise ValueError(
+                raise ValidationError(
                     f"Block #{i_block}, task block #{i_task_block} is empty."
                 )
         if empty_block:
-            raise ValueError(f"Block #{i_block} is empty.")
+            raise ValidationError(f"Block #{i_block} is empty.")
     if empty_curriculum:
-        raise ValueError(f"This curriculum is empty.")
+        raise ValidationError(f"This curriculum is empty.")
 
 
 def validate_params(fn: typing.Callable, param_names: typing.List[str]) -> None:
@@ -662,10 +685,10 @@ def validate_params(fn: typing.Callable, param_names: typing.List[str]) -> None:
     :param fn: The callable that will accept the parameters.
     :param param_names: The names of the parameters to check.
 
-    :raises: a ValueError if any of `param_names` are not found in the signature, and there are no **kwargs
-    :raises: a ValueError if any of the parameters without defaults in `fn` are not present in `param_names`
-    :raises: a ValueError if any `*args` are found
-    :raises: a ValueError if any positional only arguments are found (i.e. using /)
+    :raises: a ValidationError if any of `param_names` are not found in the signature, and there are no **kwargs
+    :raises: a ValidationError if any of the parameters without defaults in `fn` are not present in `param_names`
+    :raises: a ValidationError if any `*args` are found
+    :raises: a ValidationError if any positional only arguments are found (i.e. using /)
     """
 
     fn_signature = inspect.signature(fn)
@@ -674,9 +697,11 @@ def validate_params(fn: typing.Callable, param_names: typing.List[str]) -> None:
     expected_fn_names = []
     for param_name, param in fn_signature.parameters.items():
         if param.kind == param.VAR_POSITIONAL:
-            raise ValueError(f"*args not allowed. Found {param_name} in {fn_signature}")
+            raise ValidationError(
+                f"*args not allowed. Found {param_name} in {fn_signature}"
+            )
         if param.kind == param.POSITIONAL_ONLY:
-            raise ValueError(
+            raise ValidationError(
                 f"Positional only arguments not allowed. Found {param_name} in {fn_signature}"
             )
         if param.kind == param.VAR_KEYWORD:
@@ -691,7 +716,9 @@ def validate_params(fn: typing.Callable, param_names: typing.List[str]) -> None:
         if name not in fn_signature.parameters:
             invalid_params.append(name)
     if len(invalid_params) > 0 and not kwarg_found:
-        raise ValueError(f"Parameters not accepted: {invalid_params} in {fn_signature}")
+        raise ValidationError(
+            f"Parameters not accepted: {invalid_params} in {fn_signature}"
+        )
 
     # NOTE: this is checking for parameters that don't have a default specified
     missing_params = []
@@ -699,4 +726,4 @@ def validate_params(fn: typing.Callable, param_names: typing.List[str]) -> None:
         if name not in param_names:
             missing_params.append(name)
     if len(missing_params) > 0:
-        raise ValueError(f"Missing parameters: {missing_params} in {fn_signature}")
+        raise ValidationError(f"Missing parameters: {missing_params} in {fn_signature}")

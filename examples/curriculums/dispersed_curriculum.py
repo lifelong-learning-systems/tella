@@ -18,18 +18,49 @@ class ExampleDispersed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
         task_variants = [
-            EpisodicTaskVariant(Task1VariantA, num_episodes=10),
-            EpisodicTaskVariant(Task2, num_episodes=10),
-            EpisodicTaskVariant(Task3Variant1, num_episodes=10),
-            EpisodicTaskVariant(Task4, num_episodes=10),
-            EpisodicTaskVariant(Task1VariantB, num_episodes=10, params={"a": 0.1}),
-            EpisodicTaskVariant(Task2, num_episodes=10, params={"b": 0.2}),
-            EpisodicTaskVariant(Task3Variant2, num_episodes=10, params={"c": 0.3}),
-            EpisodicTaskVariant(Task4, num_episodes=10, params={"d": 0.4}),
+            EpisodicTaskVariant(
+                Task1VariantA,
+                num_episodes=10,
+                rng_seed=self.rng.bit_generator.random_raw(),
+            ),
+            EpisodicTaskVariant(
+                Task2, num_episodes=10, rng_seed=self.rng.bit_generator.random_raw()
+            ),
+            EpisodicTaskVariant(
+                Task3Variant1,
+                num_episodes=10,
+                rng_seed=self.rng.bit_generator.random_raw(),
+            ),
+            EpisodicTaskVariant(
+                Task4, num_episodes=10, rng_seed=self.rng.bit_generator.random_raw()
+            ),
+            EpisodicTaskVariant(
+                Task1VariantB,
+                num_episodes=10,
+                params={"a": 0.1},
+                rng_seed=self.rng.bit_generator.random_raw(),
+            ),
+            EpisodicTaskVariant(
+                Task2,
+                num_episodes=10,
+                params={"b": 0.2},
+                rng_seed=self.rng.bit_generator.random_raw(),
+            ),
+            EpisodicTaskVariant(
+                Task3Variant2,
+                num_episodes=10,
+                params={"c": 0.3},
+                rng_seed=self.rng.bit_generator.random_raw(),
+            ),
+            EpisodicTaskVariant(
+                Task4,
+                num_episodes=10,
+                params={"d": 0.4},
+                rng_seed=self.rng.bit_generator.random_raw(),
+            ),
         ]
-        rng = np.random.default_rng(self.rng_seed)
         for i_repetition in range(self.num_repetitions):
-            rng.shuffle(task_variants)
+            self.rng.shuffle(task_variants)
             for task_variant in task_variants:
                 # NOTE: only 1 experience in the learn block
                 yield simple_learn_block([task_variant])
@@ -37,14 +68,38 @@ class ExampleDispersed(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
     def eval_block(self) -> AbstractEvalBlock[AbstractRLTaskVariant]:
         return simple_eval_block(
             [
-                EpisodicTaskVariant(Task1VariantA, num_episodes=1),
-                EpisodicTaskVariant(Task2, num_episodes=1),
-                EpisodicTaskVariant(Task3Variant1, num_episodes=1),
-                EpisodicTaskVariant(Task4, num_episodes=1),
-                EpisodicTaskVariant(Task1VariantB, num_episodes=1, params={"a": 0.1}),
-                EpisodicTaskVariant(Task2, num_episodes=1, params={"b": 0.2}),
-                EpisodicTaskVariant(Task3Variant2, num_episodes=1, params={"c": 0.3}),
-                EpisodicTaskVariant(Task4, num_episodes=1, params={"d": 0.4}),
+                EpisodicTaskVariant(
+                    Task1VariantA, num_episodes=1, rng_seed=self.eval_rng_seed
+                ),
+                EpisodicTaskVariant(Task2, num_episodes=1, rng_seed=self.eval_rng_seed),
+                EpisodicTaskVariant(
+                    Task3Variant1, num_episodes=1, rng_seed=self.eval_rng_seed
+                ),
+                EpisodicTaskVariant(Task4, num_episodes=1, rng_seed=self.eval_rng_seed),
+                EpisodicTaskVariant(
+                    Task1VariantB,
+                    num_episodes=1,
+                    params={"a": 0.1},
+                    rng_seed=self.eval_rng_seed,
+                ),
+                EpisodicTaskVariant(
+                    Task2,
+                    num_episodes=1,
+                    params={"b": 0.2},
+                    rng_seed=self.eval_rng_seed,
+                ),
+                EpisodicTaskVariant(
+                    Task3Variant2,
+                    num_episodes=1,
+                    params={"c": 0.3},
+                    rng_seed=self.eval_rng_seed,
+                ),
+                EpisodicTaskVariant(
+                    Task4,
+                    num_episodes=1,
+                    params={"d": 0.4},
+                    rng_seed=self.eval_rng_seed,
+                ),
             ]
         )
 

@@ -20,6 +20,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from gym.envs.classic_control import CartPoleEnv
 from gym.wrappers.time_limit import TimeLimit
+import numpy as np
 from tella.curriculum import *
 
 
@@ -44,6 +45,7 @@ class SimpleCartPoleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
                     num_episodes=5,
                     task_label="CartPole",
                     variant_label="Default",
+                    rng_seed=self.rng.bit_generator.random_raw(),
                 )
             ]
         )
@@ -54,6 +56,7 @@ class SimpleCartPoleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
                     num_episodes=1,
                     task_label="CartPole",
                     variant_label="Default",
+                    rng_seed=self.rng.bit_generator.random_raw(),
                 )
             ]
         )
@@ -76,6 +79,7 @@ class CartPole1000Curriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
                         num_episodes=100,
                         task_label="CartPole",
                         variant_label="Default",
+                        rng_seed=self.rng.bit_generator.random_raw(),
                     )
                 ]
             )
@@ -88,6 +92,7 @@ class CartPole1000Curriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
                     num_episodes=10,
                     task_label="CartPole",
                     variant_label="Default",
+                    rng_seed=self.eval_rng_seed,
                 )
             ]
         )

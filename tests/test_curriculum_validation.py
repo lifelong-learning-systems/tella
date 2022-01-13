@@ -14,7 +14,7 @@ from tella.curriculum import (
     TaskBlock,
     LearnBlock,
     validate_params,
-    ValidationError
+    ValidationError,
 )
 
 
@@ -239,9 +239,7 @@ def test_invalid_task_params():
     assert err.match(
         "Invalid task variant at block #0, task block #0, task variant #0."
     )
-    assert (
-        "Parameters not accepted: ['a'] in ()" in err.getrepr().chain[0][1].message
-    )
+    assert "Parameters not accepted: ['a'] in ()" in err.getrepr().chain[0][1].message
 
 
 def test_validate_valid_params_function():

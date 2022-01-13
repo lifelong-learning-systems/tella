@@ -55,6 +55,7 @@ def test_num_episodes(num_envs: int):
             num_episodes=num_episodes,
             num_envs=num_envs,
             params={"a": 1, "b": 3.0, "c": "a"},
+            rng_seed=0,
         )
         steps = list(exp.generate(random_action))
         assert len(steps) == 5 * num_episodes
@@ -64,22 +65,38 @@ def test_num_episodes(num_envs: int):
 
 
 def test_labels():
-    task_variant = EpisodicTaskVariant(DummyEnv, num_episodes=1)
+    task_variant = EpisodicTaskVariant(
+        DummyEnv,
+        num_episodes=1,
+        rng_seed=0,
+    )
     assert task_variant.task_label == "DummyEnv"
     assert task_variant.variant_label == "Default"
 
-    task_variant = EpisodicTaskVariant(DummyEnv, num_episodes=1, task_label="TaskLabel")
+    task_variant = EpisodicTaskVariant(
+        DummyEnv,
+        num_episodes=1,
+        task_label="TaskLabel",
+        rng_seed=0,
+    )
     assert task_variant.task_label == "TaskLabel"
     assert task_variant.variant_label == "Default"
 
     task_variant = EpisodicTaskVariant(
-        DummyEnv, num_episodes=1, variant_label="VariantLabel"
+        DummyEnv,
+        num_episodes=1,
+        variant_label="VariantLabel",
+        rng_seed=0,
     )
     assert task_variant.task_label == "DummyEnv"
     assert task_variant.variant_label == "VariantLabel"
 
     task_variant = EpisodicTaskVariant(
-        DummyEnv, num_episodes=1, task_label="TaskLabel", variant_label="VariantLabel"
+        DummyEnv,
+        num_episodes=1,
+        task_label="TaskLabel",
+        variant_label="VariantLabel",
+        rng_seed=0,
     )
     assert task_variant.task_label == "TaskLabel"
     assert task_variant.variant_label == "VariantLabel"
@@ -102,6 +119,7 @@ def test_terminal_observations():
             "b": 3.0,
             "c": "a",
         },
+        rng_seed=0,
     )
     transitions = list(task_variant.generate(random_action))
     assert len(transitions) == 3

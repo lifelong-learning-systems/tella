@@ -51,15 +51,25 @@ def test_correct_curriculum():
                         CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant1",
+                        rng_seed=0,
                     ),
                     EpisodicTaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant2",
+                        rng_seed=0,
                     ),
                 ]
             ),
-            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
+            simple_eval_block(
+                [
+                    EpisodicTaskVariant(
+                        CartPoleEnv,
+                        num_episodes=1,
+                        rng_seed=0,
+                    )
+                ]
+            ),
         ]
     )
     validate_curriculum(curriculum)
@@ -77,17 +87,27 @@ def test_error_on_diff_task_labels():
                                 CartPoleEnv,
                                 num_episodes=1,
                                 task_label="Task1",
+                                rng_seed=0,
                             ),
                             EpisodicTaskVariant(
                                 CartPoleEnv,
                                 num_episodes=1,
                                 task_label="Task2",
+                                rng_seed=0,
                             ),
                         ],
                     )
                 ]
             ),
-            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
+            simple_eval_block(
+                [
+                    EpisodicTaskVariant(
+                        CartPoleEnv,
+                        num_episodes=1,
+                        rng_seed=0,
+                    )
+                ]
+            ),
         ]
     )
     with pytest.raises(ValueError) as err:
@@ -106,14 +126,24 @@ def test_error_on_multiple_spaces():
                     EpisodicTaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
+                        rng_seed=0,
                     ),
                     EpisodicTaskVariant(
                         MountainCarEnv,
                         num_episodes=1,
+                        rng_seed=0,
                     ),
                 ]
             ),
-            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
+            simple_eval_block(
+                [
+                    EpisodicTaskVariant(
+                        CartPoleEnv,
+                        num_episodes=1,
+                        rng_seed=0,
+                    )
+                ]
+            ),
         ]
     )
 
@@ -134,15 +164,25 @@ def test_warn_same_variant_labels():
                         CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant1",
+                        rng_seed=0,
                     ),
                     EpisodicTaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant1",
+                        rng_seed=0,
                     ),
                 ]
             ),
-            simple_eval_block([EpisodicTaskVariant(CartPoleEnv, num_episodes=1)]),
+            simple_eval_block(
+                [
+                    EpisodicTaskVariant(
+                        CartPoleEnv,
+                        num_episodes=1,
+                        rng_seed=0,
+                    )
+                ]
+            ),
         ]
     )
     with pytest.warns(UserWarning):
@@ -180,7 +220,14 @@ def test_invalid_task_params():
     curriculum = SampleCurriculum(
         [
             simple_eval_block(
-                [EpisodicTaskVariant(CartPoleEnv, num_episodes=1, params={"a": 1})]
+                [
+                    EpisodicTaskVariant(
+                        CartPoleEnv,
+                        num_episodes=1,
+                        params={"a": 1},
+                        rng_seed=0,
+                    )
+                ]
             ),
         ]
     )

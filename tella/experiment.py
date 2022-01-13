@@ -125,7 +125,7 @@ def rl_experiment(
         logger.info(f"Constructed curriculum {curriculum} with seed {curriculum_seed}")
 
         # FIXME: check for RL task variant https://github.com/darpa-l2m/tella/issues/53
-        validate_curriculum(curriculum)
+        validate_curriculum(curriculum.copy())
         logger.info("Validated curriculum")
 
         agent = agent_factory(

@@ -22,10 +22,10 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import abc
 import inspect
 import itertools
-import random
 import typing
 import warnings
 
+import numpy as np
 import gym
 
 from .env import L2LoggerEnv
@@ -111,6 +111,15 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
             at each call to .learn_blocks_and_eval_blocks()
         """
         self.rng_seed = rng_seed
+        self.rng = np.random.default_rng(rng_seed)
+
+    def copy(self) -> "AbstractCurriculum":
+        """
+        :return: A new instance of this curriculum
+
+        Curriculum authors will need to overwrite this method for subclasses with additional inputs
+        """
+        return self.__class__(self.rng_seed)
 
     @abc.abstractmethod
     def learn_blocks_and_eval_blocks(
@@ -199,6 +208,15 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
 
     """
 
+    def __init__(self, rng_seed: int):
+        """
+        :param rng_seed: The seed to be used in setting random number generators. This should be referenced
+            at each call to .learn_blocks_and_eval_blocks()
+        """
+        super().__init__(rng_seed)
+        # Also save a fixed eval_rng_seed so that eval environments are the same in each block
+        self.eval_rng_seed = self.rng.bit_generator.random_raw()
+
     @abc.abstractmethod
     def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
         """
@@ -220,8 +238,6 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
             "AbstractLearnBlock[TaskVariantType]", "AbstractEvalBlock[TaskVariantType]"
         ]
     ]:
-        # TODO: Create an internal RNG to generate unique but repeatable
-        #  rng_seed arguments for the following methods
         yield self.eval_block()
         for block in self.learn_blocks():
             yield block
@@ -366,6 +382,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         task_cls: typing.Type[gym.Env],
         *,
         num_episodes: int,
+        rng_seed: int,
         num_envs: typing.Optional[int] = None,
         params: typing.Optional[typing.Dict] = None,
         task_label: typing.Optional[str] = None,
@@ -388,6 +405,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         self._env = None
         self._task_label = task_label
         self._variant_label = variant_label
+        self.rng_seed = rng_seed
         self.data_logger = None
         self.logger_info = None
         self.render = False
@@ -445,6 +463,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
 
     def generate(self, action_fn: ActionFn) -> typing.Iterable[Transition]:
         env = self.info()
+        env.seed(self.rng_seed)
         num_episodes_finished = 0
 
         # data to keep track of which observations to mask out (set to None)

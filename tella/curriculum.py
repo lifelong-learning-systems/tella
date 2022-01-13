@@ -458,15 +458,13 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         }
 
     def info(self) -> gym.Env:
-        if self._env is None:
-            vector_env_cls = gym.vector.AsyncVectorEnv
-            if self._num_envs == 1:
-                vector_env_cls = gym.vector.SyncVectorEnv
-            self._env = vector_env_cls([self._make_env for _ in range(self._num_envs)])
-        return self._env
+        return self._make_env()
 
     def generate(self, action_fn: ActionFn) -> typing.Iterable[Transition]:
-        env = self.info()
+        vector_env_cls = gym.vector.AsyncVectorEnv
+        if self._num_envs == 1:
+            vector_env_cls = gym.vector.SyncVectorEnv
+        env = vector_env_cls([self._make_env for _ in range(self._num_envs)])
         env.seed(self.rng_seed)
         num_episodes_finished = 0
 
@@ -512,8 +510,9 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
                         next_episode_id += 1
 
             observations = next_observations
-        self._env.close()
-        self._env = None
+            num_episodes_finished += sum(dones)
+        env.close()
+        del env
 
 
 def _where(

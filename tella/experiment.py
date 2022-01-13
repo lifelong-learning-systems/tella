@@ -135,7 +135,13 @@ def rl_experiment(
 
         logger.info(f"Starting lifetime #{i_lifetime + 1}")
         # FIXME: pass num_parallel_envs to run https://github.com/darpa-l2m/tella/issues/32
-        run(agent, curriculum, render=render, log_dir=log_dir)
+        run(
+            agent,
+            curriculum,
+            render=render,
+            log_dir=log_dir,
+            num_envs=num_parallel_envs,
+        )
 
 
 def _spaces(
@@ -169,6 +175,7 @@ def run(
     curriculum: AbstractCurriculum[AbstractTaskVariant],
     render: typing.Optional[bool],
     log_dir: str,
+    num_envs: typing.Optional[int] = 1,
 ):
     """
     Run an agent through an entire curriculum. This assumes that the agent
@@ -193,6 +200,7 @@ def run(
         for task_block in block.task_blocks():
             agent.task_start(task_block.task_label)
             for task_variant in task_block.task_variants():
+                task_variant.set_num_envs(num_envs)
                 # NOTE: assuming taskvariant has params
                 task_variant.set_logger_info(
                     data_logger, i_block, is_learning_allowed, total_episodes

@@ -53,10 +53,10 @@ def test_num_episodes(num_envs: int):
         exp = EpisodicTaskVariant(
             DummyEnv,
             num_episodes=num_episodes,
-            num_envs=num_envs,
             params={"a": 1, "b": 3.0, "c": "a"},
             rng_seed=0,
         )
+        exp.set_num_envs(num_envs)
         steps = list(exp.generate(random_action))
         assert len(steps) == 5 * num_episodes
         assert (

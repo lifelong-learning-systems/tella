@@ -392,7 +392,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         num_envs: typing.Optional[int] = None,
         params: typing.Optional[typing.Dict] = None,
         task_label: typing.Optional[str] = None,
-        variant_label: typing.Optional[str] = None,
+        variant_label: typing.Optional[str] = "Default",
     ) -> None:
         if num_envs is None:
             num_envs = 1
@@ -400,8 +400,6 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
             params = {}
         if task_label is None:
             task_label = task_cls.__name__
-        if variant_label is None:
-            variant_label = "Default"
         assert num_envs > 0
 
         self._task_cls = task_cls
@@ -636,8 +634,8 @@ def validate_curriculum(
                     and task_variant.variant_label == previous_variant
                 ):
                     warnings.warn(
-                        "Multiple task variants shared the same variant label."
-                        "Consider combining these task variants."
+                        f"Multiple task variants share the same variant label "
+                        f"'{task_variant.variant_label}' for task '{task_variant.task_label}'."
                     )
                     warned_repeat_variants = True
                 previous_variant = task_variant.variant_label

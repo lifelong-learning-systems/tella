@@ -77,6 +77,7 @@ def test_correct_curriculum():
 
 
 def test_error_on_diff_task_labels():
+    # tests if the variants for a task have the same task label
     curriculum = SampleCurriculum(
         [
             LearnBlock(
@@ -88,12 +89,14 @@ def test_error_on_diff_task_labels():
                                 CartPoleEnv,
                                 num_episodes=1,
                                 task_label="Task1",
+                                variant_label="1",
                                 rng_seed=0,
                             ),
                             EpisodicTaskVariant(
                                 CartPoleEnv,
                                 num_episodes=1,
                                 task_label="Task2",
+                                variant_label="2",
                                 rng_seed=0,
                             ),
                         ],

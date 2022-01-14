@@ -208,11 +208,13 @@ def test_l2logger_directory_structure(tmpdir):
     assert tmpdir.join("logs").listdir()[0].basename.startswith("SimpleRLCurriculum")
 
     run_dir = tmpdir.join("logs").listdir()[0]
+    assert len(run_dir.listdir()) == 3
     assert run_dir.join("logger_info.json").check()
     assert run_dir.join("scenario_info.json").check()
     assert run_dir.join("worker-default").check()
 
     worker_dir = run_dir.join("worker-default")
+    assert len(worker_dir.listdir()) == 2
     assert worker_dir.join("0-train").check()
     assert worker_dir.join("1-test").check()
 
@@ -237,55 +239,65 @@ def test_l2logger_validation(tmpdir):
         l2logger_validate()
 
 
-def test_l2logger_tsv_contents(tmpdir):
+def test_l2logger_tsv_num_episodes(tmpdir):
     tmpdir.chdir()
 
     rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs")
+    worker_dir = tmpdir.join("logs").listdir()[0].join("worker-default")
 
-    run_dir = tmpdir.join("logs").listdir()[0]
-    worker_dir = run_dir.join("worker-default")
-    block_0_dir = worker_dir.join("0-train")
-    block_1_dir = worker_dir.join("1-test")
-    block_0_tsv = block_0_dir.join("data-log.tsv")
-    block_1_tsv = block_1_dir.join("data-log.tsv")
+    # first block
+    with open(worker_dir.join("0-train").join("data-log.tsv")) as fp:
+        reader = csv.DictReader(fp, delimiter="\t")
+        assert sum(int(row["exp_status"] == "complete") for row in reader) == 2
 
-    with open(block_0_tsv) as fp:
-        _verify_tsv(
-            fp,
-            expected_num_completes=2,
-            expected_task_names={"CartPoleEnv_Default", "CartPoleEnv_Variant1"},
-        )
-
-    with open(block_1_tsv) as fp:
-        _verify_tsv(
-            fp,
-            expected_num_completes=1,
-            expected_task_names={"CartPoleEnv_Default"},
-        )
+    # second block
+    with open(worker_dir.join("1-test").join("data-log.tsv")) as fp:
+        reader = csv.DictReader(fp, delimiter="\t")
+        assert sum(int(row["exp_status"] == "complete") for row in reader) == 1
 
 
-def _verify_tsv(fp, expected_num_completes: int, expected_task_names: typing.Set[str]):
-    reader = csv.reader(fp, delimiter="\t")
+def test_l2logger_tsv_task_names(tmpdir):
+    tmpdir.chdir()
 
-    header = next(reader)
-    assert header == [
-        "block_num",
-        "exp_num",
-        "worker_id",
-        "block_type",
-        "block_subtype",
-        "task_name",
-        "task_params",
-        "exp_status",
-        "timestamp",
-        "reward",
-    ]
-    num_completes = 0
-    task_names = set()
-    for row in reader:
-        assert len(row) == len(header)
-        if row[header.index("exp_status")] == "complete":
-            num_completes += 1
-        task_names.add(row[header.index("task_name")])
-    assert num_completes == expected_num_completes
-    assert task_names == expected_task_names
+    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs")
+    worker_dir = tmpdir.join("logs").listdir()[0].join("worker-default")
+
+    # first block
+    with open(worker_dir.join("0-train").join("data-log.tsv")) as fp:
+        reader = csv.DictReader(fp, delimiter="\t")
+        assert set(row["task_name"] for row in reader) == {
+            "CartPoleEnv_Default",
+            "CartPoleEnv_Variant1",
+        }
+
+    # second block
+    with open(worker_dir.join("1-test").join("data-log.tsv")) as fp:
+        reader = csv.DictReader(fp, delimiter="\t")
+        assert set(row["task_name"] for row in reader) == {"CartPoleEnv_Default"}
+
+
+def test_l2logger_tsv_episode_reward(tmpdir):
+    tmpdir.chdir()
+
+    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs")
+    worker_dir = tmpdir.join("logs").listdir()[0].join("worker-default")
+
+    # first block
+    with open(worker_dir.join("0-train").join("data-log.tsv")) as fp:
+        reader = csv.DictReader(fp, delimiter="\t")
+        expected_reward = 1.0
+        for row in reader:
+            assert float(row["reward"]) == expected_reward
+            expected_reward += 1.0  # NOTE: we can do this because we know cartpole always has a reward of 1.0
+            if row["exp_status"] == "complete":
+                expected_reward = 1.0
+
+    # second block
+    with open(worker_dir.join("1-test").join("data-log.tsv")) as fp:
+        reader = csv.DictReader(fp, delimiter="\t")
+        expected_reward = 1.0
+        for row in reader:
+            assert float(row["reward"]) == expected_reward
+            expected_reward += 1.0  # NOTE: we can do this because we know cartpole always has a reward of 1.0
+            if row["exp_status"] == "complete":
+                expected_reward = 1.0

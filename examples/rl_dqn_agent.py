@@ -115,10 +115,10 @@ class MinimalRlDqnAgent(tella.ContinualRLAgent):
         observation_space: gym.Space,
         action_space: gym.Space,
         num_envs: int,
-        metric: typing.Optional[tella.RLMetricAccumulator] = None,
+        config_file: typing.Optional[str] = None,
     ) -> None:
         super(MinimalRlDqnAgent, self).__init__(
-            rng_seed, observation_space, action_space, num_envs, metric
+            rng_seed, observation_space, action_space, num_envs, config_file
         )
 
         # Check that this environment is compatible with DQN

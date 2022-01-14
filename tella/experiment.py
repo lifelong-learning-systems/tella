@@ -31,16 +31,17 @@ from .curriculum import AbstractCurriculum, AbstractTaskVariant, validate_curric
 
 logger = logging.getLogger(__name__)
 
-AgentFactory = typing.Callable[[int, gym.Space, gym.Space, int], ContinualRLAgent]
+AgentFactory = typing.Callable[[int, gym.Space, gym.Space, int, str], ContinualRLAgent]
 """
 AgentFactory is a function or class that returns a :class:`ContinualRLAgent`.
 
-It takes 4 arguments, which are the same as :meth:`ContinualRLAgent.__init__()`:
+It takes 5 arguments, which are the same as :meth:`ContinualRLAgent.__init__()`:
 
     1. rng_seed, which is an integer to be used for repeatable random number generation
     2. observation_space, which is a :class:`gym.Space`
     3. action_space, which is a :class:`gym.Space
     4. num_parallel_envs, which is an integer indicating how many environments will be run in parallel at the same time.
+    4. config_file, which is a path as a string to a configuration file or None if no configuration.
 
 A concrete subclass of :class:`ContinualRLAgent` can be used as an AgentFactory:
 
@@ -48,16 +49,16 @@ A concrete subclass of :class:`ContinualRLAgent` can be used as an AgentFactory:
         ...
 
     agent_factory: AgentFactory = MyAgent
-    agent = agent_factory(rng_seed, observation_space, action_space, num_parallel_envs)
+    agent = agent_factory(rng_seed, observation_space, action_space, num_parallel_envs, config_file)
 
 A function can also be used as an AgentFactory:
 
-    def my_factory(rng_seed, observation_space, action_space, num_parallel_envs):
+    def my_factory(rng_seed, observation_space, action_space, num_parallel_envs, config_file):
         ...
         return my_agent
 
     agent_factory: AgentFactory = my_factory
-    agent = agent_factory(rng_seed, observation_space, action_space, num_parallel_envs)
+    agent = agent_factory(rng_seed, observation_space, action_space, num_parallel_envs, config_file)
 """
 
 CurriculumFactory = typing.Callable[[int], AbstractCurriculum[AbstractRLTaskVariant]]
@@ -95,6 +96,7 @@ def rl_experiment(
     agent_seed: typing.Optional[int] = None,
     curriculum_seed: typing.Optional[int] = None,
     render: typing.Optional[bool] = False,
+    agent_config: typing.Optional[str] = None,
 ) -> None:
     """
     Run an experiment with an RL agent and an RL curriculum.
@@ -107,6 +109,7 @@ def rl_experiment(
     :param agent_seed: The seed for the RNG for the agent or None for random seed.
     :param curriculum_seed: The seed for the RNG for the curriculum or None for random seed.
     :param render: Whether to render the environment for debugging or demonstrations.
+    :param agent_config: Optional path to a configuration file for the agent.
     :return: None
     """
     observation_space, action_space = _spaces(curriculum_factory)
@@ -135,7 +138,7 @@ def rl_experiment(
         logger.info("Validated curriculum")
 
         agent = agent_factory(
-            agent_seed, observation_space, action_space, num_parallel_envs
+            agent_seed, observation_space, action_space, num_parallel_envs, agent_config
         )
         logger.info(f"Constructed agent {agent} with seed {agent_seed}")
 

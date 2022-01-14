@@ -189,22 +189,23 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
         observation_space: gym.Space,
         action_space: gym.Space,
         num_envs: int,
-        metric: typing.Optional[RLMetricAccumulator] = None,
+        config_file: typing.Optional[str] = None,
     ) -> None:
         """
         The constructor for the Continual RL agent.
 
+        :param rng_seed: Random number generator seed.
         :param observation_space: The observation space from the :class:`gym.Env`.
         :param action_space: The action space from the :class:`gym.Env`.
         :param num_envs: The number of environments that will be used for :class:`gym.vector.VectorEnv`.
+        :param config_file: Path to a config file for the agent or None if no config.
         """
         super().__init__(rng_seed)
-        if metric is None:
-            metric = default_metrics()
         self.observation_space = observation_space
         self.action_space = action_space
         self.num_envs = num_envs
-        self.metric = metric
+        self.config_file = config_file
+        self.metric = default_metrics()
 
         # Set RNG seeds on observation and action spaces for .sample() method
         self.observation_space.seed(self.rng_seed)

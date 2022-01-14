@@ -215,14 +215,16 @@ def run(
                     data_logger, i_block, is_learning_allowed, total_episodes
                 )
                 task_variant.set_render(render)
+                logger.info(
+                    f"Starting TaskVariant {task_variant.task_label}-{task_variant.variant_label}"
+                )
                 agent.task_variant_start(
                     task_variant.task_label, task_variant.variant_label
                 )
                 if is_learning_allowed:
-                    metrics = agent.learn_task_variant(task_variant)
+                    agent.learn_task_variant(task_variant)
                 else:
-                    metrics = agent.eval_task_variant(task_variant)
-                logger.info(f"TaskVariant produced metrics: {metrics}")
+                    agent.eval_task_variant(task_variant)
                 agent.task_variant_end(
                     task_variant.task_label, task_variant.variant_label
                 )

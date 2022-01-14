@@ -16,7 +16,9 @@ class LoggingAgent(tella.ContinualRLAgent):
         num_envs: int,
         config_file: typing.Optional[str] = None,
     ) -> None:
-        super().__init__(rng_seed, observation_space, action_space, num_envs, config_file)
+        super().__init__(
+            rng_seed, observation_space, action_space, num_envs, config_file
+        )
         logger.info(
             f"Constructed with observation_space={observation_space} "
             f"action_space={action_space} num_envs={num_envs}"

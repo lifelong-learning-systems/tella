@@ -69,9 +69,15 @@ def rl_cli(
         num_lifetimes=args.num_lifetimes,
         num_parallel_envs=args.num_parallel_envs,
         log_dir=args.log_dir,
-        rng_seed=args.rng_seed,
+        agent_seed=args.agent_seed,
+        curriculum_seed=args.curriculum_seed,
         render=args.render,
     )
+
+
+class DeprecateAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        print(f"Warning: Argument {self.option_strings} is deprecated and unused.")
 
 
 def _build_parser(require_curriculum: bool) -> argparse.ArgumentParser:
@@ -103,11 +109,20 @@ def _build_parser(require_curriculum: bool) -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--seed",
-        dest="rng_seed",
+        action=DeprecateAction,
+        help="replaced by --agent-seed and --curriculum-seed",
+    )
+    parser.add_argument(
+        "--agent-seed",
         default=None,
         type=int,
-        help="The rng seed to use for reproducibility. "
-        "This seed to will be used to generate other rng seeds for each component",
+        help="The agent rng seed to use for reproducibility.",
+    )
+    parser.add_argument(
+        "--curriculum-seed",
+        default=None,
+        type=int,
+        help="The curriculum rng seed to use for reproducibility.",
     )
     if require_curriculum:
         parser.add_argument(

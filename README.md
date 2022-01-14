@@ -111,8 +111,9 @@ All the curriculums registered with tella are listed in the help.
 The l2logger output by default is stored in your current directory in `logs`.
 This can be set with the `--log-dir` argument.
 
-For reproducing behavior, use the `--seed` argument to pass in a RNG seed to curriculums and agents.
-If no seed is provided, the seed used internally will be logged using the python logging package.
+For reproducing behavior, use the `--agent-seed`  and `--curriculum-seed` arguments.
+If a seed is not provided, a random seed is generated.
+The seeds used will be logged using the python logging package.
 
 To view a rendering of the agent learning, set the `--render` flag.
 This will render the first environment in the list.

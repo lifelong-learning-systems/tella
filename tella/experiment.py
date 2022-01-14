@@ -92,7 +92,8 @@ def rl_experiment(
     num_lifetimes: int,
     num_parallel_envs: int,
     log_dir: str,
-    rng_seed: typing.Optional[int],
+    agent_seed: typing.Optional[int] = None,
+    curriculum_seed: typing.Optional[int] = None,
     render: typing.Optional[bool] = False,
 ) -> None:
     """
@@ -102,24 +103,29 @@ def rl_experiment(
     :param curriculum_factory: Function or class to produce curriculum.
     :param num_lifetimes: Number of times to call :func:`run()`.
     :param num_parallel_envs: TODO
-    :param rng_seed: The seed for the RNG for this experiment.
-        The agent and curriculum will be seeded with new seeds for every lifetime.
-        If no seed is provided, a random seed is chosen and logged.
     :param log_dir: The root log directory for l2logger.
+    :param agent_seed: The seed for the RNG for the agent or None for random seed.
+    :param curriculum_seed: The seed for the RNG for the curriculum or None for random seed.
+    :param render: Whether to render the environment for debugging or demonstrations.
     :return: None
     """
     observation_space, action_space = _spaces(curriculum_factory)
 
-    if rng_seed is None:
-        logger.info("No RNG seed provided; one will be generated randomly.")
-        rng_seed = np.random.default_rng().bit_generator.random_raw()
-    logger.info(f"RL experiment RNG seed: {rng_seed}")
-    rng = np.random.default_rng(rng_seed)
+    if agent_seed is None:
+        logger.info("No agent seed provided; one will be generated randomly.")
+        agent_seed = np.random.default_rng().bit_generator.random_raw()
+    logger.info(f"Agent RNG seed: {agent_seed}")
+    agent_rng = np.random.default_rng(agent_seed)
+    if curriculum_seed is None:
+        logger.info("No curriculum seed provided; one will be generated randomly.")
+        curriculum_seed = np.random.default_rng().bit_generator.random_raw()
+    logger.info(f"Curriculum RNG seed: {curriculum_seed}")
+    curriculum_rng = np.random.default_rng(curriculum_seed)
 
     # FIXME: multiprocessing https://github.com/darpa-l2m/tella/issues/44
     for i_lifetime in range(num_lifetimes):
-        curriculum_seed = rng.bit_generator.random_raw()
-        agent_seed = rng.bit_generator.random_raw()
+        agent_seed = agent_rng.bit_generator.random_raw()
+        curriculum_seed = curriculum_rng.bit_generator.random_raw()
 
         curriculum = curriculum_factory(curriculum_seed)
         logger.info(f"Constructed curriculum {curriculum} with seed {curriculum_seed}")

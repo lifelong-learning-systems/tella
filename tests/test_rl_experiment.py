@@ -33,14 +33,14 @@ def test_reproducible_experiment_filestructure(tmpdir):
         SimpleRLCurriculum,
         num_lifetimes=2,
         num_parallel_envs=1,
-        log_dir="logs1"
+        log_dir="logs1",
     )
     rl_experiment(
         SimpleRLAgent,
         SimpleRLCurriculum,
         num_lifetimes=2,
         num_parallel_envs=1,
-        log_dir="logs2"
+        log_dir="logs2",
     )
 
     assert len(tmpdir.join("logs1").listdir()) == 2
@@ -72,7 +72,7 @@ def test_reproducible_experiment_same_contents(tmpdir):
         num_parallel_envs=1,
         log_dir="logs1",
         agent_seed=0,
-        curriculum_seed=0
+        curriculum_seed=0,
     )
     rl_experiment(
         SimpleRLAgent,
@@ -81,7 +81,7 @@ def test_reproducible_experiment_same_contents(tmpdir):
         num_parallel_envs=1,
         log_dir="logs2",
         agent_seed=0,
-        curriculum_seed=0
+        curriculum_seed=0,
     )
 
     assert len(tmpdir.join("logs1").listdir()) == 2

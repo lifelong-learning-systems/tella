@@ -72,6 +72,7 @@ def rl_cli(
         agent_seed=args.agent_seed,
         curriculum_seed=args.curriculum_seed,
         render=args.render,
+        agent_config=args.agent_config,
     )
 
 
@@ -123,6 +124,12 @@ def _build_parser(require_curriculum: bool) -> argparse.ArgumentParser:
         default=None,
         type=int,
         help="The curriculum rng seed to use for reproducibility.",
+    )
+    parser.add_argument(
+        "--agent-config",
+        default=None,
+        type=str,
+        help="Optional path to agent config file.",
     )
     if require_curriculum:
         parser.add_argument(

@@ -12,9 +12,10 @@ class SimpleRLAgent(ContinualRLAgent):
         observation_space: gym.Space,
         action_space: gym.Space,
         num_envs: int,
+        config_file: typing.Optional[str] = None,
     ) -> None:
         super().__init__(
-            rng_seed, observation_space, action_space, num_envs, metric=None
+            rng_seed, observation_space, action_space, num_envs, config_file
         )
         self.all_events = []
 

@@ -118,6 +118,9 @@ The seeds used will be logged using the python logging package.
 To view a rendering of the agent learning, set the `--render` flag.
 This will render the first environment in the list.
 
+To pass a configuration file to the agent, set the `--agent-config` argument.
+The format of the configuration file is determined by the specific agent.
+
 Parallel environments is not currently implemented.
 
 

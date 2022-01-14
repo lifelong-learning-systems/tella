@@ -205,6 +205,7 @@ def run(
     total_episodes = 0
     for i_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
         is_learning_allowed = agent.is_learning_allowed = block.is_learning_allowed
+        block_type = "Learning" if is_learning_allowed else "Evaluating"
         agent.block_start(is_learning_allowed)
         for task_block in block.task_blocks():
             agent.task_start(task_block.task_label)
@@ -216,7 +217,7 @@ def run(
                 )
                 task_variant.set_render(render)
                 logger.info(
-                    f"Starting TaskVariant {task_variant.task_label}-{task_variant.variant_label}"
+                    f"{block_type} TaskVariant {task_variant.task_label}-{task_variant.variant_label}"
                 )
                 agent.task_variant_start(
                     task_variant.task_label, task_variant.variant_label

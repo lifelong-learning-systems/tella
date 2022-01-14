@@ -117,19 +117,19 @@ def rl_experiment(
     if agent_seed is None:
         logger.info("No agent seed provided; one will be generated randomly.")
         agent_seed = np.random.default_rng().bit_generator.random_raw()
-    logger.info(f"Agent RNG seed: {agent_seed}")
+    logger.info(f"Experiment RNG seed for agents: {agent_seed}")
     agent_rng = np.random.default_rng(agent_seed)
     if curriculum_seed is None:
         logger.info("No curriculum seed provided; one will be generated randomly.")
         curriculum_seed = np.random.default_rng().bit_generator.random_raw()
-    logger.info(f"Curriculum RNG seed: {curriculum_seed}")
+    logger.info(f"Experiment RNG seed for curriculums: {curriculum_seed}")
     curriculum_rng = np.random.default_rng(curriculum_seed)
 
     # FIXME: multiprocessing https://github.com/darpa-l2m/tella/issues/44
     for i_lifetime in range(num_lifetimes):
-        agent_seed = agent_rng.bit_generator.random_raw()
-        curriculum_seed = curriculum_rng.bit_generator.random_raw()
+        logger.info(f"Starting lifetime #{i_lifetime + 1}")
 
+        curriculum_seed = curriculum_rng.bit_generator.random_raw()
         curriculum = curriculum_factory(curriculum_seed)
         logger.info(f"Constructed curriculum {curriculum} with seed {curriculum_seed}")
 
@@ -137,12 +137,12 @@ def rl_experiment(
         validate_curriculum(curriculum.copy())
         logger.info("Validated curriculum")
 
+        agent_seed = agent_rng.bit_generator.random_raw()
         agent = agent_factory(
             agent_seed, observation_space, action_space, num_parallel_envs, agent_config
         )
         logger.info(f"Constructed agent {agent} with seed {agent_seed}")
 
-        logger.info(f"Starting lifetime #{i_lifetime + 1}")
         # FIXME: pass num_parallel_envs to run https://github.com/darpa-l2m/tella/issues/32
         run(
             agent,

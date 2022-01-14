@@ -234,7 +234,7 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
             ... = vector_env.step(actions)
 
         If there are environments that are done, but no more new steps can be taken
-        due to limitations from the curricula, a None will be passed inplace of
+        due to limitations from the curriculums, a None will be passed inplace of
         an observation. This is done to preserve the ordering of observations.
 
         In the case that `observations[i] is None`, then the i'th action returned

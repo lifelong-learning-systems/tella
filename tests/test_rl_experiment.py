@@ -1,10 +1,8 @@
 import argparse
 import csv
+from itertools import groupby
 import os
-import typing
 from unittest.mock import patch
-
-import pytest
 import gym
 from tella.experiment import rl_experiment, _spaces, run
 from l2logger.validate import run as l2logger_validate
@@ -239,65 +237,68 @@ def test_l2logger_validation(tmpdir):
         l2logger_validate()
 
 
-def test_l2logger_tsv_num_episodes(tmpdir):
+@patch("l2logger.l2logger.DataLogger.log_record")
+def test_l2logger_tsv_num_episodes(log_record, tmpdir):
     tmpdir.chdir()
 
     rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs")
-    worker_dir = tmpdir.join("logs").listdir()[0].join("worker-default")
 
-    # first block
-    with open(worker_dir.join("0-train").join("data-log.tsv")) as fp:
-        reader = csv.DictReader(fp, delimiter="\t")
-        assert sum(int(row["exp_status"] == "complete") for row in reader) == 2
+    assert log_record.call_count > 0
+    assert all(len(call.args) == 1 for call in log_record.call_args_list)
 
-    # second block
-    with open(worker_dir.join("1-test").join("data-log.tsv")) as fp:
-        reader = csv.DictReader(fp, delimiter="\t")
-        assert sum(int(row["exp_status"] == "complete") for row in reader) == 1
+    blocks = {
+        block_num: list(calls)
+        for block_num, calls in groupby(
+            log_record.call_args_list, key=lambda call: call.args[0]["block_num"]
+        )
+    }
+    assert len(blocks) == 2
+    assert len(blocks[0]) + len(blocks[1]) == log_record.call_count
+
+    assert sum(call.args[0]["exp_status"] == "complete" for call in blocks[0]) == 2
+    assert sum(call.args[0]["exp_status"] == "complete" for call in blocks[1]) == 1
 
 
-def test_l2logger_tsv_task_names(tmpdir):
+@patch("l2logger.l2logger.DataLogger.log_record")
+def test_l2logger_tsv_task_names(log_record, tmpdir):
     tmpdir.chdir()
 
     rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs")
-    worker_dir = tmpdir.join("logs").listdir()[0].join("worker-default")
 
-    # first block
-    with open(worker_dir.join("0-train").join("data-log.tsv")) as fp:
-        reader = csv.DictReader(fp, delimiter="\t")
-        assert set(row["task_name"] for row in reader) == {
-            "CartPoleEnv_Default",
-            "CartPoleEnv_Variant1",
-        }
+    assert log_record.call_count > 0
+    assert all(len(call.args) == 1 for call in log_record.call_args_list)
 
-    # second block
-    with open(worker_dir.join("1-test").join("data-log.tsv")) as fp:
-        reader = csv.DictReader(fp, delimiter="\t")
-        assert set(row["task_name"] for row in reader) == {"CartPoleEnv_Default"}
+    blocks = {
+        block_num: list(calls)
+        for block_num, calls in groupby(
+            log_record.call_args_list, key=lambda call: call.args[0]["block_num"]
+        )
+    }
+    assert len(blocks) == 2
+    assert len(blocks[0]) + len(blocks[1]) == log_record.call_count
+
+    assert set(call.args[0]["task_name"] for call in blocks[0]) == {
+        "CartPoleEnv_Default",
+        "CartPoleEnv_Variant1",
+    }
+    assert set(call.args[0]["task_name"] for call in blocks[1]) == {
+        "CartPoleEnv_Default"
+    }
 
 
-def test_l2logger_tsv_episode_reward(tmpdir):
+@patch("l2logger.l2logger.DataLogger.log_record")
+def test_l2logger_tsv_episode_reward(log_record, tmpdir):
     tmpdir.chdir()
 
     rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs")
-    worker_dir = tmpdir.join("logs").listdir()[0].join("worker-default")
 
-    # first block
-    with open(worker_dir.join("0-train").join("data-log.tsv")) as fp:
-        reader = csv.DictReader(fp, delimiter="\t")
-        expected_reward = 1.0
-        for row in reader:
-            assert float(row["reward"]) == expected_reward
-            expected_reward += 1.0  # NOTE: we can do this because we know cartpole always has a reward of 1.0
-            if row["exp_status"] == "complete":
-                expected_reward = 1.0
+    assert log_record.call_count > 0
 
-    # second block
-    with open(worker_dir.join("1-test").join("data-log.tsv")) as fp:
-        reader = csv.DictReader(fp, delimiter="\t")
-        expected_reward = 1.0
-        for row in reader:
-            assert float(row["reward"]) == expected_reward
-            expected_reward += 1.0  # NOTE: we can do this because we know cartpole always has a reward of 1.0
-            if row["exp_status"] == "complete":
-                expected_reward = 1.0
+    expected_reward = 1.0
+    for call in log_record.call_args_list:
+        assert len(call.args) == 1
+        args = call.args[0]
+        assert args["reward"] == expected_reward
+        expected_reward += 1.0  # NOTE: we can do this because we know cartpole always has a reward of 1.0
+        if args["exp_status"] == "complete":
+            expected_reward = 1.0

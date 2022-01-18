@@ -26,9 +26,9 @@ def main():
 
     obs, done = env.reset(), False
     while not done:
-        action = list(agent.choose_action([obs]))[0]
+        action = list(agent.choose_actions([obs]))[0]
         next_obs, reward, done, info = env.step(action)
-        agent.receive_transition((obs, action, reward, done, next_obs))
+        agent.receive_transitions([(obs, action, reward, done, next_obs)])
 
     agent.task_variant_end(task_name="CartPole", variant_name="Default")
 

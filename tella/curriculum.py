@@ -464,7 +464,9 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
     def info(self) -> gym.Env:
         return self._make_env()
 
-    def generate(self, action_fn: ActionFn) -> typing.Iterable[typing.List[Transition]]:
+    def generate(
+        self, action_fn: ActionFn
+    ) -> typing.Iterable[typing.List[typing.Optional[Transition]]]:
         vector_env_cls = gym.vector.AsyncVectorEnv
         if self._num_envs == 1:
             vector_env_cls = gym.vector.SyncVectorEnv

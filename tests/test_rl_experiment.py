@@ -1,8 +1,8 @@
 import argparse
 import csv
-from itertools import groupby
 import os
-from unittest.mock import patch
+from unittest import mock
+from collections import defaultdict
 import gym
 from tella.experiment import rl_experiment, _spaces, run
 from l2logger.validate import run as l2logger_validate
@@ -230,63 +230,53 @@ def test_l2logger_validation(tmpdir):
 
     rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs")
 
-    with patch(
+    with mock.patch(
         "argparse.ArgumentParser.parse_args",
         return_value=argparse.Namespace(log_dir=tmpdir.join("logs").listdir()[0]),
     ):
         l2logger_validate()
 
 
-@patch("l2logger.l2logger.DataLogger.log_record")
+@mock.patch("l2logger.l2logger.DataLogger.log_record")
 def test_l2logger_tsv_num_episodes(log_record, tmpdir):
     tmpdir.chdir()
 
     rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs")
 
     assert log_record.call_count > 0
-    assert all(len(call.args) == 1 for call in log_record.call_args_list)
-
-    blocks = {
-        block_num: list(calls)
-        for block_num, calls in groupby(
-            log_record.call_args_list, key=lambda call: call.args[0]["block_num"]
+    completes_by_block = defaultdict(int)
+    for call in log_record.call_args_list:
+        (record,), _kwargs = call
+        completes_by_block[record["block_num"]] += int(
+            record["exp_status"] == "complete"
         )
-    }
-    assert len(blocks) == 2
-    assert len(blocks[0]) + len(blocks[1]) == log_record.call_count
 
-    assert sum(call.args[0]["exp_status"] == "complete" for call in blocks[0]) == 2
-    assert sum(call.args[0]["exp_status"] == "complete" for call in blocks[1]) == 1
+    assert len(completes_by_block) == 2
+    assert completes_by_block[0] == 2
+    assert completes_by_block[1] == 1
 
 
-@patch("l2logger.l2logger.DataLogger.log_record")
+@mock.patch("l2logger.l2logger.DataLogger.log_record")
 def test_l2logger_tsv_task_names(log_record, tmpdir):
     tmpdir.chdir()
 
     rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs")
 
     assert log_record.call_count > 0
-    assert all(len(call.args) == 1 for call in log_record.call_args_list)
+    task_names_by_block = defaultdict(set)
+    for call in log_record.call_args_list:
+        (record,), _kwargs = call
+        task_names_by_block[record["block_num"]].add(record["task_name"])
 
-    blocks = {
-        block_num: list(calls)
-        for block_num, calls in groupby(
-            log_record.call_args_list, key=lambda call: call.args[0]["block_num"]
-        )
-    }
-    assert len(blocks) == 2
-    assert len(blocks[0]) + len(blocks[1]) == log_record.call_count
-
-    assert set(call.args[0]["task_name"] for call in blocks[0]) == {
+    assert len(task_names_by_block) == 2
+    assert task_names_by_block[0] == {
         "CartPoleEnv_Default",
         "CartPoleEnv_Variant1",
     }
-    assert set(call.args[0]["task_name"] for call in blocks[1]) == {
-        "CartPoleEnv_Default"
-    }
+    assert task_names_by_block[1] == {"CartPoleEnv_Default"}
 
 
-@patch("l2logger.l2logger.DataLogger.log_record")
+@mock.patch("l2logger.l2logger.DataLogger.log_record")
 def test_l2logger_tsv_episode_reward(log_record, tmpdir):
     tmpdir.chdir()
 
@@ -296,9 +286,8 @@ def test_l2logger_tsv_episode_reward(log_record, tmpdir):
 
     expected_reward = 1.0
     for call in log_record.call_args_list:
-        assert len(call.args) == 1
-        args = call.args[0]
-        assert args["reward"] == expected_reward
+        (record,), _kwargs = call
+        assert record["reward"] == expected_reward
         expected_reward += 1.0  # NOTE: we can do this because we know cartpole always has a reward of 1.0
-        if args["exp_status"] == "complete":
+        if record["exp_status"] == "complete":
             expected_reward = 1.0

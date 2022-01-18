@@ -406,6 +406,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         self._env = None
         self._task_label = task_label
         self._variant_label = variant_label
+        self._show_rewards = None
         self.rng_seed = rng_seed
         self.data_logger = None
         self.logger_info = None
@@ -416,6 +417,9 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
 
     def set_num_envs(self, num_envs):
         self._num_envs = num_envs
+
+    def set_show_rewards(self, show_rewards: bool):
+        self._show_rewards = show_rewards
 
     @property
     def total_episodes(self):
@@ -496,7 +500,9 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
                 zip(
                     observations,
                     actions,
-                    rewards,
+                    rewards
+                    if self._show_rewards
+                    else [None for _ in range(self._num_envs)],
                     dones,
                     (
                         infos[i]["terminal_observation"]

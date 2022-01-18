@@ -198,6 +198,8 @@ class MinimalRlDqnAgent(tella.ContinualRLAgent):
     def receive_transitions(
         self, transitions: typing.List[typing.Optional[tella.Transition]]
     ):
+        if not self.is_learning_allowed:
+            return
         for transition in transitions:
             if transition is not None:
                 self.receive_transition(transition)

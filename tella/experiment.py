@@ -222,6 +222,8 @@ def run(
                 agent.task_variant_start(
                     task_variant.task_label, task_variant.variant_label
                 )
+                # FIXME: This run function should handle the learning and eval, not the agent.
+                #   Move these methods out of the agent class. https://github.com/darpa-l2m/tella/issues/203
                 if is_learning_allowed:
                     agent.learn_task_variant(task_variant)
                 else:

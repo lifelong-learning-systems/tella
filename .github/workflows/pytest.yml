@@ -39,5 +39,5 @@ jobs:
           pytest tella
       - name: Run examples
         run: |
-          python examples/rl_minimal_agent.py --curriculum SimpleCartPole --num-parallel-envs 5
-          python examples/rl_logging_agent.py --curriculum SimpleMiniGrid
+          python ./tella/examples/rl_minimal_agent.py --curriculum SimpleCartPole --num-parallel-envs 5
+          python ./tella/examples/rl_logging_agent.py --curriculum SimpleMiniGrid

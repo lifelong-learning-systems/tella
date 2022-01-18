@@ -406,6 +406,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         self._env = None
         self._task_label = task_label
         self._variant_label = variant_label
+        self.is_learning_allowed = None
         self.rng_seed = rng_seed
         self.data_logger = None
         self.logger_info = None
@@ -496,7 +497,9 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
                 zip(
                     observations,
                     actions,
-                    rewards,
+                    rewards
+                    if self.is_learning_allowed
+                    else [None for i in range(self._num_envs)],
                     dones,
                     (
                         infos[i]["terminal_observation"]

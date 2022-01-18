@@ -215,10 +215,10 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
         Passes :meth:`ContinualRLAgent.choose_action` to :meth:`RLTaskVariant.generate`
         to generate the iterable of :class:`MDPTransition`.
         """
-        # FIXME: RNN agents need to know when an episode ends, and so need to see some
-        #  of the transition data even during eval. https://github.com/darpa-l2m/tella/issues/187
+        # This method is now identical to learn_task_variant. However,
+        #   `None` will be given in place of rewards during eval.
         for transitions in task_variant.generate(self.choose_actions):
-            pass
+            self.receive_transitions(transitions)
 
     @abc.abstractmethod
     def choose_actions(

@@ -210,6 +210,7 @@ def run(
         for task_block in block.task_blocks():
             agent.task_start(task_block.task_label)
             for task_variant in task_block.task_variants():
+                task_variant.is_learning_allowed = is_learning_allowed
                 task_variant.set_num_envs(num_envs)
                 # NOTE: assuming taskvariant has params
                 task_variant.set_logger_info(

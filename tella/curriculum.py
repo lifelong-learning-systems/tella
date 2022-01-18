@@ -406,6 +406,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         self._env = None
         self._task_label = task_label
         self._variant_label = variant_label
+        self._show_rewards = None
         self.rng_seed = rng_seed
         self.data_logger = None
         self.logger_info = None
@@ -416,6 +417,9 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
 
     def set_num_envs(self, num_envs):
         self._num_envs = num_envs
+
+    def set_show_rewards(self, show_rewards: bool):
+        self._show_rewards = show_rewards
 
     @property
     def total_episodes(self):
@@ -460,7 +464,9 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
     def info(self) -> gym.Env:
         return self._make_env()
 
-    def generate(self, action_fn: ActionFn) -> typing.Iterable[Transition]:
+    def generate(
+        self, action_fn: ActionFn
+    ) -> typing.Iterable[typing.List[typing.Optional[Transition]]]:
         vector_env_cls = gym.vector.AsyncVectorEnv
         if self._num_envs == 1:
             vector_env_cls = gym.vector.SyncVectorEnv
@@ -490,19 +496,28 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
             next_observations, rewards, dones, infos = env.step(unmasked_actions)
             if self.render:
                 env.envs[0].render()
-            # yield all the non masked transitions
-            for i in range(self._num_envs):
-                if not mask[i]:
-                    yield (
-                        observations[i],
-                        actions[i],
-                        rewards[i],
-                        dones[i],
+
+            # yield all the transitions of this step
+            unmasked_transitions = list(
+                zip(
+                    observations,
+                    actions,
+                    rewards
+                    if self._show_rewards
+                    else [None for _ in range(self._num_envs)],
+                    dones,
+                    (
                         infos[i]["terminal_observation"]
                         if dones[i]
-                        else next_observations[i],
-                    )
+                        else next_observations[i]
+                        for i in range(self._num_envs)
+                    ),
+                )
+            )
+            yield _where(mask, None, unmasked_transitions)
 
+            for i in range(self._num_envs):
+                if not mask[i]:
                     # increment episode ids if episode ended
                     if dones[i]:
                         num_episodes_finished += 1

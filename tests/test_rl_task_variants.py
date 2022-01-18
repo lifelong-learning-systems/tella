@@ -48,9 +48,9 @@ def random_action(
     return [None if obs is None else 0 for obs in observations]
 
 
-@pytest.mark.parametrize("num_envs", [1, 2, 3, 4])
+@pytest.mark.parametrize("num_envs", [1, 3])
 def test_num_episodes(num_envs: int):
-    for num_episodes in [1, 2, 3, 4, 5, 6, 7, 8]:
+    for num_episodes in [1, 3, 5]:
         exp = EpisodicTaskVariant(
             DummyEnv,
             num_episodes=num_episodes,

@@ -492,20 +492,21 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
                 env.envs[0].render()
 
             # yield all the transitions of this step
-            yield [
-                None
-                if mask[i]
-                else (
-                    observations[i],
-                    actions[i],
-                    rewards[i],
-                    dones[i],
-                    infos[i]["terminal_observation"]
-                    if dones[i]
-                    else next_observations[i],
+            unmasked_transitions = list(
+                zip(
+                    observations,
+                    actions,
+                    rewards,
+                    dones,
+                    (
+                        infos[i]["terminal_observation"]
+                        if dones[i]
+                        else next_observations[i]
+                        for i in range(self._num_envs)
+                    ),
                 )
-                for i in range(self._num_envs)
-            ]
+            )
+            yield _where(mask, None, unmasked_transitions)
 
             for i in range(self._num_envs):
                 if not mask[i]:

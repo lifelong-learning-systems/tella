@@ -41,8 +41,10 @@ class L2LoggerEnv(gym.Wrapper):
         self.data_logger = data_logger
         self.logger_info = logger_info
         self.total_episode_reward = 0.0
-        self.logger_info["reward"] = self.total_episode_reward
-        self.logger_info["exp_status"] = "incomplete"
+
+    def reset(self):
+        self.total_episode_reward = 0.0
+        return super().reset()
 
     def step(self, action):
         """
@@ -53,8 +55,7 @@ class L2LoggerEnv(gym.Wrapper):
         self.total_episode_reward += reward
         self.logger_info["reward"] = self.total_episode_reward
         self.logger_info["exp_status"] = "complete" if done else "incomplete"
-        self.data_logger.log_record(self.logger_info)
+        self.data_logger.log_record(self.logger_info.copy())
         if done:
             self.logger_info["exp_num"] += 1
-            self.total_episode_reward = 0.0
         return obs, reward, done, info

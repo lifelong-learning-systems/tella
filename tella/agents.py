@@ -31,9 +31,6 @@ from .curriculum import (
     TaskVariantType,
     Transition,
 )
-from .metrics import default_metrics, RLMetricAccumulator
-
-Metrics = typing.Dict[str, float]
 
 
 class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
@@ -103,25 +100,19 @@ class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
         pass
 
     @abc.abstractmethod
-    def learn_task_variant(self, task_variant: TaskVariantType) -> Metrics:
+    def learn_task_variant(self, task_variant: TaskVariantType) -> None:
         """
         Passes an object of type :class:`TaskVariantType` to the agent to consume for learning.
 
         The next method called would be :meth:`ContinualLearningAgent.task_variant_end()`.
-
-        :return: Dictionary with string keys, and float values. It represents
-            some generic metrics that were calculated across the experiences
         """
 
     @abc.abstractmethod
-    def eval_task_variant(self, task_variant: TaskVariantType) -> Metrics:
+    def eval_task_variant(self, task_variant: TaskVariantType) -> None:
         """
         Passes an object of type :class:`TaskVariantType` to the agent to consume for evaluation.
 
         The next method called would be :meth:`ContinualLearningAgent.task_variant_end()`.
-
-        :return: Dictionary with string keys, and float values. It represents
-            some generic metrics that were calculated across the experiences
         """
 
     def task_variant_end(
@@ -205,31 +196,27 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
         self.action_space = action_space
         self.num_envs = num_envs
         self.config_file = config_file
-        self.metric = default_metrics()
 
         # Set RNG seeds on observation and action spaces for .sample() method
         self.observation_space.seed(self.rng_seed)
         self.action_space.seed(self.rng_seed)
 
-    def learn_task_variant(self, task_variant: AbstractRLTaskVariant) -> Metrics:
+    def learn_task_variant(self, task_variant: AbstractRLTaskVariant) -> None:
         """
         Passes :meth:`ContinualRLAgent.choose_action` to :meth:`RLTaskVariant.generate`
         to generate the iterable of :class:`MDPTransition`, then each transition is
         passed to :meth:`ContinualRLAgent.receive_transition` for learning.
         """
         for transition in task_variant.generate(self.choose_action):
-            self.metric.track(transition)
             self.receive_transition(transition)
-        return self.metric.calculate()
 
-    def eval_task_variant(self, task_variant: AbstractRLTaskVariant) -> Metrics:
+    def eval_task_variant(self, task_variant: AbstractRLTaskVariant) -> None:
         """
         Passes :meth:`ContinualRLAgent.choose_action` to :meth:`RLTaskVariant.generate`
         to generate the iterable of :class:`MDPTransition`.
         """
         for transition in task_variant.generate(self.choose_action):
-            self.metric.track(transition)
-        return self.metric.calculate()
+            pass
 
     @abc.abstractmethod
     def choose_action(
@@ -247,7 +234,7 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
             ... = vector_env.step(actions)
 
         If there are environments that are done, but no more new steps can be taken
-        due to limitations from the curricula, a None will be passed inplace of
+        due to limitations from the curriculums, a None will be passed inplace of
         an observation. This is done to preserve the ordering of observations.
 
         In the case that `observations[i] is None`, then the i'th action returned

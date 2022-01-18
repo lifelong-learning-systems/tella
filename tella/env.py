@@ -34,12 +34,17 @@ class L2LoggerEnv(gym.Wrapper):
     def __init__(
         self,
         env: gym.Env,
-        data_logger: l2logger,
+        data_logger: l2logger.DataLogger,
         logger_info: typing.Dict[str, typing.Any],
     ):
         super().__init__(env)
         self.data_logger = data_logger
         self.logger_info = logger_info
+        self.total_episode_reward = 0.0
+
+    def reset(self):
+        self.total_episode_reward = 0.0
+        return super().reset()
 
     def step(self, action):
         """
@@ -47,14 +52,10 @@ class L2LoggerEnv(gym.Wrapper):
         Tracks exp_num via the done signal
         """
         obs, reward, done, info = super().step(action)
-        record = self.logger_info
-        if done:
-            status = "complete"
-        else:
-            status = "incomplete"
-        record.update({"reward": reward, "exp_status": status})
-        self.data_logger.log_record(record)
-        ##TODO solution to increment episodes
+        self.total_episode_reward += reward
+        self.logger_info["reward"] = self.total_episode_reward
+        self.logger_info["exp_status"] = "complete" if done else "incomplete"
+        self.data_logger.log_record(self.logger_info.copy())
         if done:
             self.logger_info["exp_num"] += 1
         return obs, reward, done, info

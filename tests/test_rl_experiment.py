@@ -1,10 +1,8 @@
 import argparse
 import csv
 import os
-import typing
-from unittest.mock import patch
-
-import pytest
+from unittest import mock
+from collections import defaultdict
 import gym
 from tella.experiment import rl_experiment, _spaces, run
 from l2logger.validate import run as l2logger_validate
@@ -208,11 +206,13 @@ def test_l2logger_directory_structure(tmpdir):
     assert tmpdir.join("logs").listdir()[0].basename.startswith("SimpleRLCurriculum")
 
     run_dir = tmpdir.join("logs").listdir()[0]
+    assert len(run_dir.listdir()) == 3
     assert run_dir.join("logger_info.json").check()
     assert run_dir.join("scenario_info.json").check()
     assert run_dir.join("worker-default").check()
 
     worker_dir = run_dir.join("worker-default")
+    assert len(worker_dir.listdir()) == 2
     assert worker_dir.join("0-train").check()
     assert worker_dir.join("1-test").check()
 
@@ -230,62 +230,64 @@ def test_l2logger_validation(tmpdir):
 
     rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs")
 
-    with patch(
+    with mock.patch(
         "argparse.ArgumentParser.parse_args",
         return_value=argparse.Namespace(log_dir=tmpdir.join("logs").listdir()[0]),
     ):
         l2logger_validate()
 
 
-def test_l2logger_tsv_contents(tmpdir):
+@mock.patch("l2logger.l2logger.DataLogger.log_record")
+def test_l2logger_tsv_num_episodes(log_record, tmpdir):
     tmpdir.chdir()
 
     rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs")
 
-    run_dir = tmpdir.join("logs").listdir()[0]
-    worker_dir = run_dir.join("worker-default")
-    block_0_dir = worker_dir.join("0-train")
-    block_1_dir = worker_dir.join("1-test")
-    block_0_tsv = block_0_dir.join("data-log.tsv")
-    block_1_tsv = block_1_dir.join("data-log.tsv")
-
-    with open(block_0_tsv) as fp:
-        _verify_tsv(
-            fp,
-            expected_num_completes=2,
-            expected_task_names={"CartPoleEnv_Default", "CartPoleEnv_Variant1"},
+    assert log_record.call_count > 0
+    completes_by_block = defaultdict(int)
+    for call in log_record.call_args_list:
+        (record,), _kwargs = call
+        completes_by_block[record["block_num"]] += int(
+            record["exp_status"] == "complete"
         )
 
-    with open(block_1_tsv) as fp:
-        _verify_tsv(
-            fp,
-            expected_num_completes=1,
-            expected_task_names={"CartPoleEnv_Default"},
-        )
+    assert len(completes_by_block) == 2
+    assert completes_by_block[0] == 2
+    assert completes_by_block[1] == 1
 
 
-def _verify_tsv(fp, expected_num_completes: int, expected_task_names: typing.Set[str]):
-    reader = csv.reader(fp, delimiter="\t")
+@mock.patch("l2logger.l2logger.DataLogger.log_record")
+def test_l2logger_tsv_task_names(log_record, tmpdir):
+    tmpdir.chdir()
 
-    header = next(reader)
-    assert header == [
-        "block_num",
-        "exp_num",
-        "worker_id",
-        "block_type",
-        "block_subtype",
-        "task_name",
-        "task_params",
-        "exp_status",
-        "timestamp",
-        "reward",
-    ]
-    num_completes = 0
-    task_names = set()
-    for row in reader:
-        assert len(row) == len(header)
-        if row[header.index("exp_status")] == "complete":
-            num_completes += 1
-        task_names.add(row[header.index("task_name")])
-    assert num_completes == expected_num_completes
-    assert task_names == expected_task_names
+    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs")
+
+    assert log_record.call_count > 0
+    task_names_by_block = defaultdict(set)
+    for call in log_record.call_args_list:
+        (record,), _kwargs = call
+        task_names_by_block[record["block_num"]].add(record["task_name"])
+
+    assert len(task_names_by_block) == 2
+    assert task_names_by_block[0] == {
+        "CartPoleEnv_Default",
+        "CartPoleEnv_Variant1",
+    }
+    assert task_names_by_block[1] == {"CartPoleEnv_Default"}
+
+
+@mock.patch("l2logger.l2logger.DataLogger.log_record")
+def test_l2logger_tsv_episode_reward(log_record, tmpdir):
+    tmpdir.chdir()
+
+    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs")
+
+    assert log_record.call_count > 0
+
+    expected_reward = 1.0
+    for call in log_record.call_args_list:
+        (record,), _kwargs = call
+        assert record["reward"] == expected_reward
+        expected_reward += 1.0  # NOTE: we can do this because we know cartpole always has a reward of 1.0
+        if record["exp_status"] == "complete":
+            expected_reward = 1.0

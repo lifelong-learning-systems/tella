@@ -175,11 +175,17 @@ class MinimalRlDqnAgent(tella.ContinualRLAgent):
 
     def learn_task_variant(
         self, task_variant: tella.AbstractRLTaskVariant
-    ) -> tella.Metrics:
-        logger.info("\tConsuming task variant")
+    ) -> None:
+        logger.info("\tLearning from task variant")
         return super().learn_task_variant(task_variant)
 
-    def choose_action(
+    def eval_task_variant(
+        self, task_variant: tella.AbstractRLTaskVariant
+    ) -> None:
+        logger.info("\tEvaluating a task variant")
+        return super().eval_task_variant(task_variant)
+
+    def choose_actions(
         self, observations: typing.List[typing.Optional[tella.Observation]]
     ) -> typing.List[typing.Optional[tella.Action]]:
         logger.debug(f"\t\t\tReturn {len(observations)} actions")
@@ -193,36 +199,37 @@ class MinimalRlDqnAgent(tella.ContinualRLAgent):
             for obs in observations
         ]
 
-    def receive_transition(self, transition: tella.Transition):
-        s, a, r, done, s_prime = transition
-        self.memory.put(
-            (s.flatten(), a, r / 100.0, s_prime.flatten(), 0.0 if done else 1.0)
-        )
-        logger.debug(f"\t\t\tReceived transition done={done}")
+    def receive_transitions(self, transitions: typing.List[typing.Optional[tella.Transition]]):
+        for transition in transitions:
+            if transition is not None:
+                s, a, r, done, s_prime = transition
+                self.memory.put(
+                    (s.flatten(), a, r / 100.0, s_prime.flatten(), 0.0 if done else 1.0)
+                )
+                logger.debug(f"\t\t\tReceived transition done={done}")
 
-        # Handle end-of-episode matters: training, logging, and annealing
-        if done:
-            self.num_eps_done += 1
+                # Handle end-of-episode matters: training, logging, and annealing
+                if done:
+                    self.num_eps_done += 1
 
-            logger.info(
-                f"\t\t"
-                f"n_episode: {self.num_eps_done}, "
-                f"score: {self.metric.calculate()['MeanEpisodeReward']:.1f}, "
-                f"n_buffer: {self.memory.size()}, "
-                f"eps: {self.epsilon*100:.1f}%"
-            )
+                    logger.info(
+                        f"\t\t"
+                        f"n_episode: {self.num_eps_done}, "
+                        f"n_buffer: {self.memory.size()}, "
+                        f"eps: {self.epsilon*100:.1f}%"
+                    )
 
-            if self.memory.size() > 100:  # was 2000 in minimalRL repo
-                logger.info(f"\t\tTraining Q network")
-                train(self.q, self.q_target, self.memory, self.optimizer)
+                    if self.memory.size() > 100:  # was 2000 in minimalRL repo
+                        logger.info(f"\t\tTraining Q network")
+                        train(self.q, self.q_target, self.memory, self.optimizer)
 
-            if self.num_eps_done % self.q_target_interval == 0:
-                logger.info(f"\t\tUpdating target Q network")
-                self.q_target.load_state_dict(self.q.state_dict())
+                    if self.num_eps_done % self.q_target_interval == 0:
+                        logger.info(f"\t\tUpdating target Q network")
+                        self.q_target.load_state_dict(self.q.state_dict())
 
-            self.epsilon = max(
-                0.01, 0.08 - 0.01 * (self.num_eps_done / 200)
-            )  # Linear annealing from 8% to 1%
+                    self.epsilon = max(
+                        0.01, 0.08 - 0.01 * (self.num_eps_done / 200)
+                    )  # Linear annealing from 8% to 1%
 
     def task_variant_end(
         self,

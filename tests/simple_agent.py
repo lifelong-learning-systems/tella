@@ -71,12 +71,12 @@ class SimpleRLAgent(ContinualRLAgent):
         )
         return super().eval_task_variant(task_variant)
 
-    def choose_action(
+    def choose_actions(
         self, observations: typing.List[typing.Optional[Observation]]
     ) -> typing.List[typing.Optional[Action]]:
         return [
             None if obs is None else self.action_space.sample() for obs in observations
         ]
 
-    def receive_transition(self, transition: Transition):
+    def receive_transitions(self, transitions: typing.List[typing.Optional[Transition]]):
         pass

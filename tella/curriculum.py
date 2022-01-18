@@ -460,7 +460,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
     def info(self) -> gym.Env:
         return self._make_env()
 
-    def generate(self, action_fn: ActionFn) -> typing.Iterable[Transition]:
+    def generate(self, action_fn: ActionFn) -> typing.Iterable[typing.List[Transition]]:
         vector_env_cls = gym.vector.AsyncVectorEnv
         if self._num_envs == 1:
             vector_env_cls = gym.vector.SyncVectorEnv
@@ -490,19 +490,22 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
             next_observations, rewards, dones, infos = env.step(unmasked_actions)
             if self.render:
                 env.envs[0].render()
-            # yield all the non masked transitions
+
+            # yield all the transitions of this step
+            yield [
+                None if mask[i] else (
+                    observations[i],
+                    actions[i],
+                    rewards[i],
+                    dones[i],
+                    infos[i]["terminal_observation"]
+                    if dones[i]
+                    else next_observations[i],
+                ) for i in range(self._num_envs)
+            ]
+
             for i in range(self._num_envs):
                 if not mask[i]:
-                    yield (
-                        observations[i],
-                        actions[i],
-                        rewards[i],
-                        dones[i],
-                        infos[i]["terminal_observation"]
-                        if dones[i]
-                        else next_observations[i],
-                    )
-
                     # increment episode ids if episode ended
                     if dones[i]:
                         num_episodes_finished += 1

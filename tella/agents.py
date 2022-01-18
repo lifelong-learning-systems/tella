@@ -207,8 +207,8 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
         to generate the iterable of :class:`MDPTransition`, then each transition is
         passed to :meth:`ContinualRLAgent.receive_transition` for learning.
         """
-        for transition in task_variant.generate(self.choose_action):
-            self.receive_transition(transition)
+        for transitions in task_variant.generate(self.choose_actions):
+            self.receive_transitions(transitions)
 
     def eval_task_variant(self, task_variant: AbstractRLTaskVariant) -> None:
         """
@@ -217,11 +217,11 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
         """
         # FIXME: RNN agents need to know when an episode ends, and so need to see some
         #  of the transition data even during eval. https://github.com/darpa-l2m/tella/issues/187
-        for transition in task_variant.generate(self.choose_action):
+        for transitions in task_variant.generate(self.choose_actions):
             pass
 
     @abc.abstractmethod
-    def choose_action(
+    def choose_actions(
         self, observations: typing.List[typing.Optional[Observation]]
     ) -> typing.List[typing.Optional[Action]]:
         """
@@ -232,7 +232,7 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
         .. e.g.
 
             observations = vector_env.reset()
-            actions = agent.choose_action(observations)
+            actions = agent.choose_actions(observations)
             ... = vector_env.step(actions)
 
         If there are environments that are done, but no more new steps can be taken
@@ -246,7 +246,7 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
 
             observations = ...
             observations[2] = None
-            actions = agent.choose_action(observations)
+            actions = agent.choose_actions(observations)
             assert actions[2] is None
 
         :param observations: The observations from the environment.
@@ -255,26 +255,18 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
         pass
 
     @abc.abstractmethod
-    def receive_transition(self, transition: Transition) -> None:
+    def receive_transitions(self, transitions: typing.List[typing.Optional[Transition]]) -> None:
         """
-        Gives the transition that results from calling :meth:`gym.Env.step()` with a given action.
+        Gives the transitions that result from calling :meth:`gym.Env.step()` with given actions.
 
         .. e.g.
 
-            action = ...
-            next_obs, reward, done, info = env.step(action)
-            transition = (obs, action, reward, done, next_obs)
-            agent.receive_transition(transition)
+            actions = agent.choose_actions(observations)
+            next_obs, rewards, dones, infos = vector_env.step(actions)
+            transitions = zip(observations, actions, rewards, dones, next_obs)
+            agent.receive_transitions(transitions)
 
-        NOTE: when using vectorized environments (i.e. when `Agent.choose_action`
-        receives multiple observations, or when `self.num_envs > 1`),
-        :meth:`Agent.step_transition` is called separately for each resulting
-        transition. I.e. :meth:`Agent.step_transition` is called `self.num_envs` times.
-
-        The next method called would be :meth:`Agent.choose_action()` if done is False,
-        otherwise :meth:`Agent.task_variant_end()`.
+        The next method called would be :meth:`Agent.task_variant_end()` if all episodes
+        have ended, otherwise :meth:`Agent.choose_actions()`.
         """
-        # FIXME: This method should take an iterable as an argument as does `choose_action`.
-        #  This would make their formatting match, https://github.com/darpa-l2m/tella/issues/189,
-        #  and simplify tracking multiple environments, https://github.com/darpa-l2m/tella/issues/196
         pass

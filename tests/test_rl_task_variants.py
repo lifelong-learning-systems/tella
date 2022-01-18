@@ -57,7 +57,8 @@ def test_num_episodes(num_envs: int):
             rng_seed=0,
         )
         exp.set_num_envs(num_envs)
-        steps = list(exp.generate(random_action))
+        masked_transitions = sum(exp.generate(random_action), [])
+        steps = [transition for transition in masked_transitions if transition is not None]
         assert len(steps) == 5 * num_episodes
         assert (
             sum([done for obs, action, reward, done, next_obs in steps]) == num_episodes
@@ -106,6 +107,27 @@ def test_validate():
     pass
 
 
+@pytest.mark.parametrize("num_envs", [1, 2])
+def test_generate_return_type(num_envs):
+    task_variant = EpisodicTaskVariant(
+        DummyEnv,
+        num_episodes=3,
+        params={"a": 1, "b": 3.0, "c": "a"},
+        rng_seed=0,
+    )
+    task_variant.set_num_envs(num_envs)
+    all_transitions = task_variant.generate(random_action)
+
+    assert isinstance(all_transitions, typing.Generator)
+    for step_transitions in all_transitions:
+        assert isinstance(step_transitions, typing.List)
+        assert len(step_transitions) == num_envs
+        for transition in step_transitions:
+            if transition is not None:
+                assert isinstance(transition, typing.Tuple)
+                assert len(transition) == 5
+
+
 def test_terminal_observations():
     task_variant = EpisodicTaskVariant(
         DummyEnv,
@@ -121,7 +143,7 @@ def test_terminal_observations():
         },
         rng_seed=0,
     )
-    transitions = list(task_variant.generate(random_action))
+    transitions = sum(task_variant.generate(random_action), [])
     assert len(transitions) == 3
     assert transitions[0][0] == 0
     assert transitions[0][-1] == 1

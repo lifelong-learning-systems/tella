@@ -200,34 +200,37 @@ class MinimalRlDqnAgent(tella.ContinualRLAgent):
     ):
         for transition in transitions:
             if transition is not None:
-                s, a, r, done, s_prime = transition
-                self.memory.put(
-                    (s.flatten(), a, r / 100.0, s_prime.flatten(), 0.0 if done else 1.0)
-                )
-                logger.debug(f"\t\t\tReceived transition done={done}")
+                self.receive_transition(transition)
 
-                # Handle end-of-episode matters: training, logging, and annealing
-                if done:
-                    self.num_eps_done += 1
+    def receive_transition(self, transition: tella.Transition):
+        s, a, r, done, s_prime = transition
+        self.memory.put(
+            (s.flatten(), a, r / 100.0, s_prime.flatten(), 0.0 if done else 1.0)
+        )
+        logger.debug(f"\t\t\tReceived transition done={done}")
 
-                    logger.info(
-                        f"\t\t"
-                        f"n_episode: {self.num_eps_done}, "
-                        f"n_buffer: {self.memory.size()}, "
-                        f"eps: {self.epsilon*100:.1f}%"
-                    )
+        # Handle end-of-episode matters: training, logging, and annealing
+        if done:
+            self.num_eps_done += 1
 
-                    if self.memory.size() > 100:  # was 2000 in minimalRL repo
-                        logger.info(f"\t\tTraining Q network")
-                        train(self.q, self.q_target, self.memory, self.optimizer)
+            logger.info(
+                f"\t\t"
+                f"n_episode: {self.num_eps_done}, "
+                f"n_buffer: {self.memory.size()}, "
+                f"eps: {self.epsilon*100:.1f}%"
+            )
 
-                    if self.num_eps_done % self.q_target_interval == 0:
-                        logger.info(f"\t\tUpdating target Q network")
-                        self.q_target.load_state_dict(self.q.state_dict())
+            if self.memory.size() > 100:  # was 2000 in minimalRL repo
+                logger.info(f"\t\tTraining Q network")
+                train(self.q, self.q_target, self.memory, self.optimizer)
 
-                    self.epsilon = max(
-                        0.01, 0.08 - 0.01 * (self.num_eps_done / 200)
-                    )  # Linear annealing from 8% to 1%
+            if self.num_eps_done % self.q_target_interval == 0:
+                logger.info(f"\t\tUpdating target Q network")
+                self.q_target.load_state_dict(self.q.state_dict())
+
+            self.epsilon = max(
+                0.01, 0.08 - 0.01 * (self.num_eps_done / 200)
+            )  # Linear annealing from 8% to 1%
 
     def task_variant_end(
         self,

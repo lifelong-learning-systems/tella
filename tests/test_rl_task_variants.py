@@ -160,3 +160,31 @@ def test_terminal_observations():
     assert transitions[1][-1] == 2
     assert transitions[2][0] == 2
     assert transitions[2][-1] == 3
+
+
+def test_show_rewards():
+    task_variant = EpisodicTaskVariant(
+        DummyEnv,
+        num_episodes=3,
+        params={"a": 1, "b": 3.0, "c": "a"},
+        rng_seed=0,
+    )
+    task_variant.set_show_rewards(True)
+    transitions = sum(task_variant.generate(random_action), [])
+    assert len(transitions) > 0
+    for obs, action, reward, done, next_obs in transitions:
+        assert reward is not None
+
+
+def test_hide_rewards():
+    task_variant = EpisodicTaskVariant(
+        DummyEnv,
+        num_episodes=3,
+        params={"a": 1, "b": 3.0, "c": "a"},
+        rng_seed=0,
+    )
+    task_variant.set_show_rewards(False)
+    transitions = sum(task_variant.generate(random_action), [])
+    assert len(transitions) > 0
+    for obs, action, reward, done, next_obs in transitions:
+        assert reward is None

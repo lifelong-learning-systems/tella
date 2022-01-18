@@ -26,7 +26,12 @@ import gym
 from l2logger import l2logger
 
 from .agents import ContinualRLAgent, ContinualLearningAgent, AbstractRLTaskVariant
-from .curriculum import AbstractCurriculum, AbstractTaskVariant, validate_curriculum, EpisodicTaskVariant
+from .curriculum import (
+    AbstractCurriculum,
+    AbstractTaskVariant,
+    validate_curriculum,
+    EpisodicTaskVariant,
+)
 
 
 logger = logging.getLogger(__name__)

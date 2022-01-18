@@ -61,7 +61,9 @@ class LoggingAgent(tella.ContinualRLAgent):
             None if obs is None else self.action_space.sample() for obs in observations
         ]
 
-    def receive_transitions(self, transitions: typing.List[typing.Optional[tella.Transition]]) -> None:
+    def receive_transitions(
+        self, transitions: typing.List[typing.Optional[tella.Transition]]
+    ) -> None:
         for transition in transitions:
             if transition is not None:
                 obs, action, reward, done, next_obs = transition

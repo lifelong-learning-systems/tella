@@ -493,7 +493,9 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
 
             # yield all the transitions of this step
             yield [
-                None if mask[i] else (
+                None
+                if mask[i]
+                else (
                     observations[i],
                     actions[i],
                     rewards[i],
@@ -501,7 +503,8 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
                     infos[i]["terminal_observation"]
                     if dones[i]
                     else next_observations[i],
-                ) for i in range(self._num_envs)
+                )
+                for i in range(self._num_envs)
             ]
 
             for i in range(self._num_envs):

@@ -173,15 +173,11 @@ class MinimalRlDqnAgent(tella.ContinualRLAgent):
             f"task_name={task_name} variant_name={variant_name}"
         )
 
-    def learn_task_variant(
-        self, task_variant: tella.AbstractRLTaskVariant
-    ) -> None:
+    def learn_task_variant(self, task_variant: tella.AbstractRLTaskVariant) -> None:
         logger.info("\tLearning from task variant")
         return super().learn_task_variant(task_variant)
 
-    def eval_task_variant(
-        self, task_variant: tella.AbstractRLTaskVariant
-    ) -> None:
+    def eval_task_variant(self, task_variant: tella.AbstractRLTaskVariant) -> None:
         logger.info("\tEvaluating a task variant")
         return super().eval_task_variant(task_variant)
 
@@ -199,7 +195,9 @@ class MinimalRlDqnAgent(tella.ContinualRLAgent):
             for obs in observations
         ]
 
-    def receive_transitions(self, transitions: typing.List[typing.Optional[tella.Transition]]):
+    def receive_transitions(
+        self, transitions: typing.List[typing.Optional[tella.Transition]]
+    ):
         for transition in transitions:
             if transition is not None:
                 s, a, r, done, s_prime = transition

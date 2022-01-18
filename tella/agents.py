@@ -255,7 +255,9 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
         pass
 
     @abc.abstractmethod
-    def receive_transitions(self, transitions: typing.List[typing.Optional[Transition]]) -> None:
+    def receive_transitions(
+        self, transitions: typing.List[typing.Optional[Transition]]
+    ) -> None:
         """
         Gives the transitions that result from calling :meth:`gym.Env.step()` with given actions.
 

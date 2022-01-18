@@ -58,7 +58,9 @@ def test_num_episodes(num_envs: int):
         )
         exp.set_num_envs(num_envs)
         masked_transitions = sum(exp.generate(random_action), [])
-        steps = [transition for transition in masked_transitions if transition is not None]
+        steps = [
+            transition for transition in masked_transitions if transition is not None
+        ]
         assert len(steps) == 5 * num_episodes
         assert (
             sum([done for obs, action, reward, done, next_obs in steps]) == num_episodes

@@ -18,6 +18,7 @@ from .simple_agent import SimpleRLAgent
         agent_seed=None,
         curriculum_seed=None,
         agent_config=None,
+        lifetime_idx=0,
     ),
 )
 def test_no_args(p, tmpdir):
@@ -36,6 +37,7 @@ def test_no_args(p, tmpdir):
         agent_seed=None,
         curriculum_seed=None,
         agent_config=None,
+        lifetime_idx=0,
     ),
 )
 def test_num_lifetimes(p, tmpdir):
@@ -54,6 +56,7 @@ def test_num_lifetimes(p, tmpdir):
         agent_seed=None,
         curriculum_seed=None,
         agent_config=None,
+        lifetime_idx=0,
     ),
 )
 def test_num_parallel_envs(p, tmpdir):
@@ -73,6 +76,7 @@ def test_num_parallel_envs(p, tmpdir):
         agent_seed=None,
         curriculum_seed=None,
         agent_config=None,
+        lifetime_idx=0,
     ),
 )
 def test_invalid_curriculum_name(p, tmpdir):
@@ -91,6 +95,7 @@ def test_invalid_curriculum_name(p, tmpdir):
         agent_seed=None,
         curriculum_seed=None,
         agent_config=None,
+        lifetime_idx=0,
     ),
 )
 @patch("tella.env.L2LoggerEnv.render")
@@ -110,6 +115,7 @@ def test_no_render(render_patch, argparse_patch, tmpdir):
         agent_seed=None,
         curriculum_seed=None,
         agent_config=None,
+        lifetime_idx=0,
     ),
 )
 @patch("tella.env.L2LoggerEnv.render")
@@ -129,6 +135,7 @@ def test_renders(render_patch, argparse_patch, tmpdir):
         agent_seed=None,
         curriculum_seed=None,
         agent_config="test",
+        lifetime_idx=0,
     ),
 )
 def test_agent_config(p, tmpdir):

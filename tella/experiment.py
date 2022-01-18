@@ -93,6 +93,7 @@ def rl_experiment(
     num_lifetimes: int,
     num_parallel_envs: int,
     log_dir: str,
+    lifetime_idx: int = 0,
     agent_seed: typing.Optional[int] = None,
     curriculum_seed: typing.Optional[int] = None,
     render: typing.Optional[bool] = False,
@@ -106,6 +107,8 @@ def rl_experiment(
     :param num_lifetimes: Number of times to call :func:`run()`.
     :param num_parallel_envs: TODO
     :param log_dir: The root log directory for l2logger.
+    :param lifetime_idx: The index of the lifetime to start running with.
+        This will skip the first N seeds of the RNGs, where N = `lifetime_idx`.
     :param agent_seed: The seed for the RNG for the agent or None for random seed.
     :param curriculum_seed: The seed for the RNG for the curriculum or None for random seed.
     :param render: Whether to render the environment for debugging or demonstrations.
@@ -125,9 +128,17 @@ def rl_experiment(
     logger.info(f"Experiment RNG seed for curriculums: {curriculum_seed}")
     curriculum_rng = np.random.default_rng(curriculum_seed)
 
+    for i_lifetime in range(lifetime_idx):
+        curriculum_seed = curriculum_rng.bit_generator.random_raw()
+        agent_seed = agent_rng.bit_generator.random_raw()
+        logger.info(
+            f"Skipping lifetime #{i_lifetime + 1} (lifetime_idx={i_lifetime}), "
+            f"curriculum_seed={curriculum_seed}, agent_seed={agent_seed}"
+        )
+
     # FIXME: multiprocessing https://github.com/darpa-l2m/tella/issues/44
-    for i_lifetime in range(num_lifetimes):
-        logger.info(f"Starting lifetime #{i_lifetime + 1}")
+    for i_lifetime in range(lifetime_idx, lifetime_idx + num_lifetimes):
+        logger.info(f"Starting lifetime #{i_lifetime + 1} (lifetime_idx={i_lifetime})")
 
         curriculum_seed = curriculum_rng.bit_generator.random_raw()
         curriculum = curriculum_factory(curriculum_seed)

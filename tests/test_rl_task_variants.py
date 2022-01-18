@@ -1,3 +1,4 @@
+import math
 import pytest
 import typing
 import gym
@@ -121,9 +122,15 @@ def test_generate_return_type(num_envs):
     all_transitions = task_variant.generate(random_action)
 
     assert isinstance(all_transitions, typing.Generator)
+
+    all_transitions = list(all_transitions)
+    expected_num = math.ceil(3 / num_envs) * 5
+    assert len(all_transitions) == expected_num
+
     for step_transitions in all_transitions:
         assert isinstance(step_transitions, typing.List)
         assert len(step_transitions) == num_envs
+
         for transition in step_transitions:
             if transition is not None:
                 assert isinstance(transition, typing.Tuple)

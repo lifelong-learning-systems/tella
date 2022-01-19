@@ -1,5 +1,4 @@
 import math
-from unittest import mock
 import pytest
 import typing
 import gym
@@ -105,6 +104,10 @@ def test_labels():
     )
     assert task_variant.task_label == "TaskLabel"
     assert task_variant.variant_label == "VariantLabel"
+
+
+def test_validate():
+    pass
 
 
 @pytest.mark.parametrize("num_envs", [1, 2])

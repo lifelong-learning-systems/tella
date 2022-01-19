@@ -46,4 +46,4 @@ jobs:
           pip install torch
       - name: Run example ${{ matrix.example-script }} on ${{ matrix.example-curriculum }}, ${{ matrix.num-envs }} envs
         run: |
-          python ./tella/examples/${{ matrix.example-script }}.py --curriculum ${{ matrix.example-curriculum } --num-parallel-envs ${{ matrix.num-envs }}
+          python ./tella/examples/${{ matrix.example-script }}.py --curriculum ${{ matrix.example-curriculum }} --num-parallel-envs ${{ matrix.num-envs }}

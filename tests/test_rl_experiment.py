@@ -301,20 +301,59 @@ def test_l2logger_tsv_task_names(log_record, tmpdir):
 
 
 @mock.patch("l2logger.l2logger.DataLogger.log_record")
+def test_l2logger_tsv_exp_status(log_record, tmpdir):
+    tmpdir.chdir()
+
+    rl_experiment(
+        SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs", curriculum_seed=0, agent_seed=1
+    )
+
+    assert log_record.call_count > 0
+    for call in log_record.call_args_list:
+        (record,), _kwargs = call
+        assert record["exp_status"] == "complete"
+
+
+@mock.patch("l2logger.l2logger.DataLogger.log_record")
 def test_l2logger_tsv_episode_reward(log_record, tmpdir):
     tmpdir.chdir()
 
-    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs")
+    rl_experiment(
+        SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs", curriculum_seed=0, agent_seed=1
+    )
 
     assert log_record.call_count > 0
 
-    expected_reward = 1.0
+    expected_rewards = [10.0, 14.0, 18.0]  # magic numbers from the seed
     for call in log_record.call_args_list:
         (record,), _kwargs = call
-        assert record["reward"] == expected_reward
-        expected_reward += 1.0  # NOTE: we can do this because we know cartpole always has a reward of 1.0
-        if record["exp_status"] == "complete":
-            expected_reward = 1.0
+        assert record["reward"] == expected_rewards.pop(0)
+
+
+@mock.patch("l2logger.l2logger.DataLogger.log_record")
+def test_l2logger_tsv_multi_episode_reward(log_record, tmpdir):
+    tmpdir.chdir()
+
+    rl_experiment(
+        SimpleRLAgent,
+        MultiEpisodeRLCurriculum,
+        1,
+        1,
+        "logs",
+        curriculum_seed=0,
+        agent_seed=1,
+    )
+
+    assert log_record.call_count > 0
+
+    # fmt: off
+    # magic numbers from the seeds
+    expected_rewards = [10.0, 13.0, 27.0, 12.0, 17.0, 14.0, 35.0, 21.0, 19.0, 14.0, 12.0, 17.0]
+    # fmt: on
+    for call in log_record.call_args_list:
+        (record,), _kwargs = call
+        assert record["reward"] == expected_rewards.pop(0)
+    assert len(expected_rewards) == 0
 
 
 @mock.patch("l2logger.l2logger.DataLogger.log_record")

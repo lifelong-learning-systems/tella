@@ -510,7 +510,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
             masked_transitions = _where(mask, None, list(unmasked_transitions))
             yield masked_transitions
 
-            self._log(episode_ids, cumulative_episode_rewards, masked_transitions)
+            self._log(cumulative_episode_rewards, masked_transitions)
 
             # increment episode ids if episode ended
             for i in range(self._num_envs):
@@ -526,7 +526,6 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
 
     def _log(
         self,
-        episode_ids: typing.List[int],
         episode_rewards: typing.List[float],
         transitions: typing.List[typing.Optional[Transition]],
     ):
@@ -537,19 +536,19 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         if len(transitions) == 1:
             worker_ids[0] = "worker-default"
 
-        for worker_id, episode_id, total_episode_reward, transition in zip(
-            worker_ids, episode_ids, episode_rewards, transitions
+        for worker_id, total_episode_reward, transition in zip(
+            worker_ids, episode_rewards, transitions
         ):
             if transition is None:
                 continue
             _obs, _action, _reward, done, _next_obs = transition
-            record = self.logger_info.copy()
-            # NOTE: += to keep the base episodes already ran
-            record["exp_num"] += episode_id
-            record["exp_status"] = "complete" if done else "incomplete"
-            record["worker_id"] = worker_id
-            record["reward"] = total_episode_reward
-            self.data_logger.log_record(record)
+            if done:
+                record = self.logger_info.copy()
+                record["exp_status"] = "complete" if done else "incomplete"
+                record["worker_id"] = worker_id
+                record["reward"] = total_episode_reward
+                self.data_logger.log_record(record)
+                self.logger_info["exp_num"] += 1
 
 
 def _where(

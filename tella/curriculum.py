@@ -28,8 +28,6 @@ import warnings
 import numpy as np
 import gym
 
-from .env import L2LoggerEnv
-
 # key: curriculum name, value: AbstractCurriculum class object or factory
 curriculum_registry = {}
 
@@ -440,13 +438,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         """
         Initializes the gym environment object and wraps in the L2MEnv to log rewards
         """
-        if self.data_logger is not None:
-            return L2LoggerEnv(
-                self._task_cls(**self._params), self.data_logger, self.logger_info
-            )
-        else:
-            # FIXME: remove this after #31. this is to support getting spaces without setting l2logger info
-            return self._task_cls(**self._params)
+        return self._task_cls(**self._params)
 
     def set_logger_info(
         self, data_logger, block_num: int, is_learning_allowed: bool, exp_num: int
@@ -470,13 +462,21 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         vector_env_cls = gym.vector.AsyncVectorEnv
         if self._num_envs == 1:
             vector_env_cls = gym.vector.SyncVectorEnv
-        env = vector_env_cls([self._make_env for _ in range(self._num_envs)])
+
+        # NOTE: copying these to local variables avoids python trying to pickle this whole object
+        task_cls = self._task_cls
+        params = self._params
+        env = vector_env_cls(
+            [lambda: task_cls(**params) for _ in range(self._num_envs)]
+        )
+
         env.seed(self.rng_seed)
         num_episodes_finished = 0
 
         # data to keep track of which observations to mask out (set to None)
         episode_ids = list(range(self._num_envs))
         next_episode_id = episode_ids[-1] + 1
+        cumulative_episode_rewards = [0.0] * self._num_envs
 
         observations = env.reset()
         while num_episodes_finished < self._num_episodes:
@@ -497,36 +497,59 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
             if self.render:
                 env.envs[0].render()
 
-            # yield all the transitions of this step
-            unmasked_transitions = list(
-                zip(
-                    observations,
-                    actions,
-                    rewards
-                    if self._show_rewards
-                    else [None for _ in range(self._num_envs)],
-                    dones,
-                    (
-                        infos[i]["terminal_observation"]
-                        if dones[i]
-                        else next_observations[i]
-                        for i in range(self._num_envs)
-                    ),
-                )
-            )
-            yield _where(mask, None, unmasked_transitions)
+            for i, r in enumerate(rewards):
+                cumulative_episode_rewards[i] += r
 
+            # yield all the transitions of this step
+            resulting_obs = [
+                info["terminal_observation"] if done else next_obs
+                for info, done, next_obs in zip(infos, dones, next_observations)
+            ]
+            rs = [r if self._show_rewards else None for r in rewards]
+            unmasked_transitions = zip(observations, actions, rs, dones, resulting_obs)
+            masked_transitions = _where(mask, None, list(unmasked_transitions))
+            yield masked_transitions
+
+            self._log(episode_ids, cumulative_episode_rewards, masked_transitions)
+
+            # increment episode ids if episode ended
             for i in range(self._num_envs):
-                if not mask[i]:
-                    # increment episode ids if episode ended
-                    if dones[i]:
-                        num_episodes_finished += 1
-                        episode_ids[i] = next_episode_id
-                        next_episode_id += 1
+                if not mask[i] and dones[i]:
+                    num_episodes_finished += 1
+                    episode_ids[i] = next_episode_id
+                    cumulative_episode_rewards[i] = 0
+                    next_episode_id += 1
 
             observations = next_observations
         env.close()
         del env
+
+    def _log(
+        self,
+        episode_ids: typing.List[int],
+        episode_rewards: typing.List[float],
+        transitions: typing.List[typing.Optional[Transition]],
+    ):
+        if self.logger_info is None:
+            return
+
+        worker_ids = [f"worker-{i}" for i in range(len(transitions))]
+        if len(transitions) == 1:
+            worker_ids[0] = "worker-default"
+
+        for worker_id, episode_id, total_episode_reward, transition in zip(
+            worker_ids, episode_ids, episode_rewards, transitions
+        ):
+            if transition is None:
+                continue
+            _obs, _action, _reward, done, _next_obs = transition
+            record = self.logger_info.copy()
+            # NOTE: += to keep the base episodes already ran
+            record["exp_num"] += episode_id
+            record["exp_status"] = "complete" if done else "incomplete"
+            record["worker_id"] = worker_id
+            record["reward"] = total_episode_reward
+            self.data_logger.log_record(record)
 
 
 def _where(

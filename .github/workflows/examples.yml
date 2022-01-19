@@ -7,6 +7,9 @@ jobs:
     strategy:
       matrix:
         python-version: [3.7, 3.8, 3.9]
+        example-script: [rl_minimal_agent, rl_logging_agent, rl_dqn_agent]
+        example-curriculum: [SimpleCartPole, SimpleMiniGrid]
+        num-envs: [1, 3]
     steps:
       - name: Checkout tella
         uses: actions/checkout@v2
@@ -33,8 +36,14 @@ jobs:
           pip install pytest wheel
           pip install ./l2logger
           pip install ./tella
-          pip install gym-minigrid==1.0.2
-      - name: Run examples
+      - name: Install minigrid
+        if: ${{ matrix.example-curriculum }} == SimpleMiniGrid
         run: |
-          python ./tella/examples/rl_minimal_agent.py --curriculum SimpleCartPole --num-parallel-envs 5
-          python ./tella/examples/rl_logging_agent.py --curriculum SimpleMiniGrid
+          pip install gym-minigrid==1.0.2
+      - name: Install pytorch
+        if: ${{ matrix.example-script }} == rl_dqn_agent
+        run: |
+          pip install torch
+      - name: Run example ${{ matrix.example-script }} on ${{ matrix.example-curriculum }}, ${{ matrix.num-envs }} envs
+        run: |
+          python ./tella/examples/${{ matrix.example-script }}.py --curriculum ${{ matrix.example-curriculum } --num-parallel-envs ${{ matrix.num-envs }}

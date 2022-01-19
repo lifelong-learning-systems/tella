@@ -53,7 +53,7 @@ class LoggingAgent(tella.ContinualRLAgent):
         logger.info("\tConsuming task variant")
         return super().learn_task_variant(task_variant)
 
-    def choose_action(
+    def choose_actions(
         self, observations: typing.List[typing.Optional[tella.Observation]]
     ) -> typing.List[typing.Optional[tella.Action]]:
         logger.debug(f"\t\t\tReturn {len(observations)} random actions")
@@ -61,9 +61,13 @@ class LoggingAgent(tella.ContinualRLAgent):
             None if obs is None else self.action_space.sample() for obs in observations
         ]
 
-    def receive_transition(self, transition: tella.Transition) -> None:
-        obs, action, reward, done, next_obs = transition
-        logger.debug(f"\t\t\tReceived transition done={done}")
+    def receive_transitions(
+        self, transitions: typing.List[typing.Optional[tella.Transition]]
+    ) -> None:
+        for transition in transitions:
+            if transition is not None:
+                obs, action, reward, done, next_obs = transition
+                logger.debug(f"\t\t\tReceived transition done={done}")
 
     def task_end(
         self,

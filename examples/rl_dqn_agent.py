@@ -173,13 +173,15 @@ class MinimalRlDqnAgent(tella.ContinualRLAgent):
             f"task_name={task_name} variant_name={variant_name}"
         )
 
-    def learn_task_variant(
-        self, task_variant: tella.AbstractRLTaskVariant
-    ) -> tella.Metrics:
-        logger.info("\tConsuming task variant")
+    def learn_task_variant(self, task_variant: tella.AbstractRLTaskVariant) -> None:
+        logger.info("\tLearning from task variant")
         return super().learn_task_variant(task_variant)
 
-    def choose_action(
+    def eval_task_variant(self, task_variant: tella.AbstractRLTaskVariant) -> None:
+        logger.info("\tEvaluating a task variant")
+        return super().eval_task_variant(task_variant)
+
+    def choose_actions(
         self, observations: typing.List[typing.Optional[tella.Observation]]
     ) -> typing.List[typing.Optional[tella.Action]]:
         logger.debug(f"\t\t\tReturn {len(observations)} actions")
@@ -192,6 +194,15 @@ class MinimalRlDqnAgent(tella.ContinualRLAgent):
             )
             for obs in observations
         ]
+
+    def receive_transitions(
+        self, transitions: typing.List[typing.Optional[tella.Transition]]
+    ):
+        if not self.is_learning_allowed:
+            return
+        for transition in transitions:
+            if transition is not None:
+                self.receive_transition(transition)
 
     def receive_transition(self, transition: tella.Transition):
         s, a, r, done, s_prime = transition
@@ -207,7 +218,6 @@ class MinimalRlDqnAgent(tella.ContinualRLAgent):
             logger.info(
                 f"\t\t"
                 f"n_episode: {self.num_eps_done}, "
-                f"score: {self.metric.calculate()['MeanEpisodeReward']:.1f}, "
                 f"n_buffer: {self.memory.size()}, "
                 f"eps: {self.epsilon*100:.1f}%"
             )

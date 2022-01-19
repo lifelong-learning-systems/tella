@@ -1,5 +1,5 @@
 # From: https://docs.github.com/actions/automating-builds-and-tests/building-and-testing-nodejs-or-python?langId=py
-name: Test
+name: Examples
 on: [push]
 jobs:
   build:
@@ -34,6 +34,7 @@ jobs:
           pip install ./l2logger
           pip install ./tella
           pip install gym-minigrid==1.0.2
-      - name: Test with pytest
+      - name: Run examples
         run: |
-          pytest tella
+          python ./tella/examples/rl_minimal_agent.py --curriculum SimpleCartPole --num-parallel-envs 5
+          python ./tella/examples/rl_logging_agent.py --curriculum SimpleMiniGrid

@@ -117,7 +117,7 @@ The seeds used will be logged using the python logging package.
 
 To run an agent through multiple lifetimes of a curriculum, use the `--num-lifetimes`
 flag. If you want to run a specific lifetime (useful for running on a cluster),
-use the `--lifetime-idx` flag. Note that seeds must be provided to use `--lifetime-idx`.
+use the `--lifetime-idx` flag. Note that the curriculum seed must be provided to use `--lifetime-idx`.
 
 To view a rendering of the agent learning, set the `--render` flag.
 This will render the first environment in the list.

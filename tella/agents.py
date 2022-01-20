@@ -99,22 +99,6 @@ class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
         """
         pass
 
-    @abc.abstractmethod
-    def learn_task_variant(self, task_variant: TaskVariantType) -> None:
-        """
-        Passes an object of type :class:`TaskVariantType` to the agent to consume for learning.
-
-        The next method called would be :meth:`ContinualLearningAgent.task_variant_end()`.
-        """
-
-    @abc.abstractmethod
-    def eval_task_variant(self, task_variant: TaskVariantType) -> None:
-        """
-        Passes an object of type :class:`TaskVariantType` to the agent to consume for evaluation.
-
-        The next method called would be :meth:`ContinualLearningAgent.task_variant_end()`.
-        """
-
     def task_variant_end(
         self,
         task_name: typing.Optional[str],
@@ -200,25 +184,6 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
         # Set RNG seeds on observation and action spaces for .sample() method
         self.observation_space.seed(self.rng_seed)
         self.action_space.seed(self.rng_seed)
-
-    def learn_task_variant(self, task_variant: AbstractRLTaskVariant) -> None:
-        """
-        Passes :meth:`ContinualRLAgent.choose_action` to :meth:`RLTaskVariant.generate`
-        to generate the iterable of :class:`MDPTransition`, then each transition is
-        passed to :meth:`ContinualRLAgent.receive_transition` for learning.
-        """
-        for transitions in task_variant.generate(self.choose_actions):
-            self.receive_transitions(transitions)
-
-    def eval_task_variant(self, task_variant: AbstractRLTaskVariant) -> None:
-        """
-        Passes :meth:`ContinualRLAgent.choose_action` to :meth:`RLTaskVariant.generate`
-        to generate the iterable of :class:`MDPTransition`.
-        """
-        # This method is now identical to learn_task_variant. However,
-        #   `None` will be given in place of rewards during eval.
-        for transitions in task_variant.generate(self.choose_actions):
-            self.receive_transitions(transitions)
 
     @abc.abstractmethod
     def choose_actions(

@@ -1,7 +1,7 @@
 import typing
 import tella
 import gym
-from tella.curriculum import AbstractTaskVariant, Transition
+from tella.curriculum import Transition
 from tella.agents import ContinualRLAgent, Observation, Action
 
 
@@ -50,26 +50,6 @@ class SimpleRLAgent(ContinualRLAgent):
     ) -> None:
         self.all_events.append((self.task_variant_end, task_name, variant_name))
         return super().task_variant_end(task_name, variant_name)
-
-    def learn_task_variant(self, task_variant: AbstractTaskVariant):
-        self.all_events.append(
-            (
-                self.learn_task_variant,
-                task_variant.task_label,
-                task_variant.variant_label,
-            )
-        )
-        return super().learn_task_variant(task_variant)
-
-    def eval_task_variant(self, task_variant: AbstractTaskVariant):
-        self.all_events.append(
-            (
-                self.eval_task_variant,
-                task_variant.task_label,
-                task_variant.variant_label,
-            )
-        )
-        return super().eval_task_variant(task_variant)
 
     def choose_actions(
         self, observations: typing.List[typing.Optional[Observation]]

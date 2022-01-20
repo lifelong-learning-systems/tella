@@ -1,6 +1,7 @@
 import argparse
 import csv
 import os
+import pytest
 from unittest import mock
 from collections import defaultdict
 import gym
@@ -26,6 +27,49 @@ def test_rl_experiment(tmpdir):
         num_lifetimes=1,
         num_parallel_envs=1,
         log_dir=tmpdir,
+    )
+
+
+def test_lifetime_idx_no_seed(tmpdir):
+    with pytest.raises(ValueError) as err:
+        rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, tmpdir, lifetime_idx=1)
+    assert err.match(
+        "Both agent_seed and curriculum_seed must be specified when using lifetime_idx > 0."
+        "Found agent_seed=None, curriculum_seed=None."
+    )
+
+
+def test_lifetime_idx_no_agent_seed(tmpdir):
+    with pytest.raises(ValueError) as err:
+        rl_experiment(
+            SimpleRLAgent,
+            SimpleRLCurriculum,
+            1,
+            1,
+            tmpdir,
+            lifetime_idx=1,
+            curriculum_seed=0,
+        )
+    assert err.match(
+        "Both agent_seed and curriculum_seed must be specified when using lifetime_idx > 0."
+        "Found agent_seed=None, curriculum_seed=0."
+    )
+
+
+def test_lifetime_idx_no_curriculum_seed(tmpdir):
+    with pytest.raises(ValueError) as err:
+        rl_experiment(
+            SimpleRLAgent,
+            SimpleRLCurriculum,
+            1,
+            1,
+            tmpdir,
+            lifetime_idx=1,
+            agent_seed=0,
+        )
+    assert err.match(
+        "Both agent_seed and curriculum_seed must be specified when using lifetime_idx > 0."
+        "Found agent_seed=0, curriculum_seed=None."
     )
 
 

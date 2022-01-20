@@ -90,7 +90,7 @@ def _build_parser(require_curriculum: bool) -> argparse.ArgumentParser:
         "--lifetime-idx",
         default=0,
         type=int,
-        help="The index of the first lifetime to run."
+        help="The index, starting at zero, of the first lifetime to run."
         "Use this to skip lifetimes or run a specific lifetime other than the first.",
     )
     parser.add_argument(

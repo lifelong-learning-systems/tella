@@ -93,11 +93,11 @@ def rl_experiment(
     num_lifetimes: int,
     num_parallel_envs: int,
     log_dir: str,
-    lifetime_idx: int = 0,
     agent_seed: typing.Optional[int] = None,
     curriculum_seed: typing.Optional[int] = None,
     render: typing.Optional[bool] = False,
     agent_config: typing.Optional[str] = None,
+    lifetime_idx: int = 0,
 ) -> None:
     """
     Run an experiment with an RL agent and an RL curriculum.
@@ -115,6 +115,15 @@ def rl_experiment(
     :param agent_config: Optional path to a configuration file for the agent.
     :return: None
     """
+    if lifetime_idx < 0:
+        raise ValueError(f"lifetime_idx must be >= 0, found {lifetime_idx}")
+
+    if lifetime_idx > 0 and (agent_seed is None or curriculum_seed is None):
+        raise ValueError(
+            "Both agent_seed and curriculum_seed must be specified when using lifetime_idx > 0."
+            f"Found agent_seed={agent_seed}, curriculum_seed={curriculum_seed}."
+        )
+
     observation_space, action_space = _spaces(curriculum_factory)
 
     if agent_seed is None:

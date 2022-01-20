@@ -2,7 +2,7 @@ import math
 import pytest
 import typing
 import gym
-from tella.curriculum import EpisodicTaskVariant
+from tella.curriculum import EpisodicTaskVariant, _where
 
 
 class DummyEnv(gym.Env):
@@ -188,3 +188,23 @@ def test_hide_rewards():
     assert len(transitions) > 0
     for obs, action, reward, done, next_obs in transitions:
         assert reward is None
+
+
+def test_where():
+    original = [1, 1, 1, 1, 1]
+
+    mask = [False, False, False, False, False]
+    expected = [1, 1, 1, 1, 1]
+    assert _where(mask, 2, original) == expected
+
+    mask = [True, True, True, True, True]
+    expected = [2, 2, 2, 2, 2]
+    assert _where(mask, 2, original) == expected
+
+    mask = [False, False, True, False, True]
+    expected = [1, 1, 2, 1, 2]
+    assert _where(mask, 2, original) == expected
+
+    mask = [False, True, False, True, True]
+    expected = [1, None, 1, None, None]
+    assert _where(mask, None, original) == expected

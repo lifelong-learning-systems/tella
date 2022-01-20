@@ -34,7 +34,7 @@ jobs:
           pip install ./l2logger
           pip install ./tella
           pip install gym-minigrid==1.0.2
+          pip install torch
       - name: Run examples
-        run: |
-          python ./tella/examples/rl_minimal_agent.py --curriculum SimpleCartPole --num-parallel-envs 5
-          python ./tella/examples/rl_logging_agent.py --curriculum SimpleMiniGrid
+        working-directory: ./tella
+        run: ./.github/run_examples.sh

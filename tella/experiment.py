@@ -26,7 +26,12 @@ import gym
 from l2logger import l2logger
 
 from .agents import ContinualRLAgent, ContinualLearningAgent, AbstractRLTaskVariant
-from .curriculum import AbstractCurriculum, AbstractTaskVariant, validate_curriculum
+from .curriculum import (
+    AbstractCurriculum,
+    AbstractTaskVariant,
+    validate_curriculum,
+    EpisodicTaskVariant,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -201,7 +206,7 @@ def _spaces(
 
 def run(
     agent: ContinualLearningAgent[AbstractTaskVariant],
-    curriculum: AbstractCurriculum[AbstractTaskVariant],
+    curriculum: AbstractCurriculum[EpisodicTaskVariant],
     render: typing.Optional[bool],
     log_dir: str,
     num_envs: typing.Optional[int] = 1,
@@ -230,6 +235,7 @@ def run(
         for task_block in block.task_blocks():
             agent.task_start(task_block.task_label)
             for task_variant in task_block.task_variants():
+                task_variant.set_show_rewards(is_learning_allowed)
                 task_variant.set_num_envs(num_envs)
                 # NOTE: assuming taskvariant has params
                 task_variant.set_logger_info(
@@ -242,6 +248,8 @@ def run(
                 agent.task_variant_start(
                     task_variant.task_label, task_variant.variant_label
                 )
+                # FIXME: This run function should handle the learning and eval, not the agent.
+                #   Move these methods out of the agent class. https://github.com/darpa-l2m/tella/issues/203
                 if is_learning_allowed:
                     agent.learn_task_variant(task_variant)
                 else:

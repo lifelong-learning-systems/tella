@@ -55,7 +55,7 @@ The event handlers are
  * block_start() and block_end()
  * task_start() and task_end()
  * task_variant_start() and task_variant_end()
- * choose_action() and receive_transition()
+ * choose_actions() and receive_transitions()
 
 A learning block or evaluation block consists of 1 or more tasks.
 The agent is notified of the start of the block and the start of each task.
@@ -64,9 +64,9 @@ The agent is also notified of the end of the block and the end of each task.
 
 A task consists of multiple episodes.
 The agent is notified of the start and end of the episode.
-During the episode the agent is called through choose_action() with an observation and must return an action.
-After the environment is updated with the action, the reward is passed to the agent by calling receive_transition().
-The receive_transition() method also received the previous observation and new observation.
+During the episode the agent is called through choose_actions() with an observation and must return an action.
+After the environment is updated with the action, the reward is passed to the agent by calling receive_transitions().
+The receive_transitions() method also received the previous observation and new observation.
 These calls continue until the episode is complete.
 
 Here is a minimal agent that takes random agents:
@@ -75,13 +75,13 @@ import tella
 
 
 class MinimalRandomAgent(tella.ContinualRLAgent):
-    def choose_action(self, observations):
+    def choose_actions(self, observations):
         """Loop over the environments' observations and select action"""
         return [
             None if obs is None else self.action_space.sample() for obs in observations
         ]
 
-    def receive_transition(self, transition):
+    def receive_transitions(self, transitions):
         """Do nothing here since we are not learning"""
         pass
 

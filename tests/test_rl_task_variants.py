@@ -246,38 +246,35 @@ def test_vec_env_mask(num_episodes: int):
     masked = [[transition is None for transition in batch] for batch in transitions]
 
     expected = {
-        1:
-            [
-                [False, True, True],
-                [False, True, True],
-                [False, True, True],
-                [False, True, True],
-            ],
-        3:
-            [
-                [False, False, False],
-                [False, False, False],
-                [False, False, False],
-                [False, False, False],
-                [True, False, False],
-                [True, False, False],
-                [True, True, False],
-            ],
-        5:
-            [
-                [False, False, False],
-                [False, False, False],
-                [False, False, False],
-                [False, False, False],
-                [False, False, False],
-                [False, False, False],
-                [False, False, False],
-                [False, False, True],
-                [True, False, True],
-                [True, False, True],
-                [True, False, True],
-                [True, False, True],
-            ],
+        1: [
+            [False, True, True],
+            [False, True, True],
+            [False, True, True],
+            [False, True, True],
+        ],
+        3: [
+            [False, False, False],
+            [False, False, False],
+            [False, False, False],
+            [False, False, False],
+            [True, False, False],
+            [True, False, False],
+            [True, True, False],
+        ],
+        5: [
+            [False, False, False],
+            [False, False, False],
+            [False, False, False],
+            [False, False, False],
+            [False, False, False],
+            [False, False, False],
+            [False, False, False],
+            [False, False, True],
+            [True, False, True],
+            [True, False, True],
+            [True, False, True],
+            [True, False, True],
+        ],
     }
 
     assert masked == expected[num_episodes]

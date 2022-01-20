@@ -34,25 +34,8 @@ def test_lifetime_idx_no_seed(tmpdir):
     with pytest.raises(ValueError) as err:
         rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, tmpdir, lifetime_idx=1)
     assert err.match(
-        "Both agent_seed and curriculum_seed must be specified when using lifetime_idx > 0."
-        "Found agent_seed=None, curriculum_seed=None."
-    )
-
-
-def test_lifetime_idx_no_agent_seed(tmpdir):
-    with pytest.raises(ValueError) as err:
-        rl_experiment(
-            SimpleRLAgent,
-            SimpleRLCurriculum,
-            1,
-            1,
-            tmpdir,
-            lifetime_idx=1,
-            curriculum_seed=0,
-        )
-    assert err.match(
-        "Both agent_seed and curriculum_seed must be specified when using lifetime_idx > 0."
-        "Found agent_seed=None, curriculum_seed=0."
+        "curriculum_seed must be specified when using lifetime_idx > 0."
+        "Found curriculum_seed=None."
     )
 
 
@@ -68,8 +51,8 @@ def test_lifetime_idx_no_curriculum_seed(tmpdir):
             agent_seed=0,
         )
     assert err.match(
-        "Both agent_seed and curriculum_seed must be specified when using lifetime_idx > 0."
-        "Found agent_seed=0, curriculum_seed=None."
+        "curriculum_seed must be specified when using lifetime_idx > 0."
+        "Found curriculum_seed=None."
     )
 
 

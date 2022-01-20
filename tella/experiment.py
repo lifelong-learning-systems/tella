@@ -28,7 +28,7 @@ from l2logger import l2logger
 from .agents import ContinualRLAgent, AbstractRLTaskVariant
 from .curriculum import (
     AbstractCurriculum,
-    InterleavedEvalCurriculum,
+    EpisodicTaskVariant,
     validate_curriculum,
 )
 
@@ -185,7 +185,7 @@ def _spaces(
 
 def run(
     agent: ContinualRLAgent,
-    curriculum: InterleavedEvalCurriculum,
+    curriculum: AbstractCurriculum[EpisodicTaskVariant],
     render: typing.Optional[bool],
     log_dir: str,
     num_envs: typing.Optional[int] = 1,

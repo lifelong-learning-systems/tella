@@ -470,6 +470,16 @@ def test_gym_sync_vec_env_seeds(seed, tmpdir):
         rng_seeds.add(rng_seed)
     assert len(rng_seeds) == expected_num
 
+    seed.reset_mock()
+    rl_experiment(
+        SimpleRLAgent, MultiEpisodeRLCurriculum, 1, num_parallel_envs=1, log_dir=tmpdir
+    )
+    assert seed.call_count == expected_num
+    for call in seed.call_args_list:
+        (rng_seed,), _kwargs = call
+        rng_seeds.add(rng_seed)
+    assert len(rng_seeds) == expected_num * 2
+
 
 @mock.patch("gym.vector.AsyncVectorEnv.seed")
 def test_gym_async_vec_env_seeds(seed, tmpdir):
@@ -484,3 +494,13 @@ def test_gym_async_vec_env_seeds(seed, tmpdir):
         (rng_seed,), _kwargs = call
         rng_seeds.add(rng_seed)
     assert len(rng_seeds) == expected_num
+
+    seed.reset_mock()
+    rl_experiment(
+        SimpleRLAgent, MultiEpisodeRLCurriculum, 1, num_parallel_envs=5, log_dir=tmpdir
+    )
+    assert seed.call_count == expected_num
+    for call in seed.call_args_list:
+        (rng_seed,), _kwargs = call
+        rng_seeds.add(rng_seed)
+    assert len(rng_seeds) == expected_num * 2

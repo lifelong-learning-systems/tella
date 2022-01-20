@@ -41,6 +41,10 @@ class DummyEnv(gym.Env):
         )
         return obs, 0.0, done, {}
 
+    def seed(self, seed=None):
+        self.observation_space.seed(seed)
+        self.action_space.seed(seed)
+
 
 def choose_action_zero(
     observations: typing.List[typing.Optional[int]],
@@ -231,3 +235,26 @@ def test_vec_env_mask(num_envs: int, num_episodes: int):
         expected.extend([batch_mask] * 5)  # 5 steps per episode
 
     assert masked == expected
+
+
+def unmasked_choose_action_zero(
+    observations: typing.List[typing.Optional[int]],
+) -> typing.List[typing.Optional[int]]:
+    return [0 for _ in observations]
+
+
+def test_ignore_unmasked_actions():
+    def identical_task_variant():
+        task_variant = EpisodicTaskVariant(
+            DummyEnv,
+            num_episodes=5,
+            params={"a": 1, "b": 3.0, "c": "a"},
+            rng_seed=0,
+        )
+        task_variant.set_num_envs(3)
+        return task_variant
+
+    masked_actions_transitions = list(identical_task_variant().generate(choose_action_zero))
+    unmasked_actions_transitions = list(identical_task_variant().generate(unmasked_choose_action_zero))
+
+    assert masked_actions_transitions == unmasked_actions_transitions

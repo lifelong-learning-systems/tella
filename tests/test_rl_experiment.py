@@ -1,6 +1,7 @@
 import argparse
 import csv
 import os
+import pytest
 from unittest import mock
 from collections import defaultdict
 import gym
@@ -20,7 +21,86 @@ def test_space_extraction():
 def test_rl_experiment(tmpdir):
     # TODO what should this test other than being runnable?
     # TODO rl experiment isn't really unit testable since it doesn't have outputs...
-    rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, tmpdir)
+    rl_experiment(
+        SimpleRLAgent,
+        SimpleRLCurriculum,
+        num_lifetimes=1,
+        num_parallel_envs=1,
+        log_dir=tmpdir,
+    )
+
+
+def test_lifetime_idx_no_seed(tmpdir):
+    with pytest.raises(ValueError) as err:
+        rl_experiment(SimpleRLAgent, SimpleRLCurriculum, 1, 1, tmpdir, lifetime_idx=1)
+    assert err.match(
+        "curriculum_seed must be specified when using lifetime_idx > 0."
+        "Found curriculum_seed=None."
+    )
+
+
+def test_lifetime_idx_no_curriculum_seed(tmpdir):
+    with pytest.raises(ValueError) as err:
+        rl_experiment(
+            SimpleRLAgent,
+            SimpleRLCurriculum,
+            1,
+            1,
+            tmpdir,
+            lifetime_idx=1,
+            agent_seed=0,
+        )
+    assert err.match(
+        "curriculum_seed must be specified when using lifetime_idx > 0."
+        "Found curriculum_seed=None."
+    )
+
+
+def test_lifetime_idx(tmpdir):
+    agent_params = []
+
+    def agent_factory(*args, **kwargs):
+        agent_params.append((args, kwargs))
+        return SimpleRLAgent(*args, **kwargs)
+
+    curriculum_params = []
+
+    def curriculum_factory(*args, **kwargs):
+        curriculum_params.append((args, kwargs))
+        return SimpleRLCurriculum(*args, **kwargs)
+
+    rl_experiment(
+        agent_factory,
+        curriculum_factory,
+        lifetime_idx=0,
+        num_lifetimes=5,
+        num_parallel_envs=1,
+        log_dir=tmpdir,
+        agent_seed=0,
+        curriculum_seed=1,
+    )
+
+    assert len(agent_params) == 5
+    # NOTE: +1 because we have to construct curriculum to get spaces
+    assert len(curriculum_params) == len(agent_params) + 1
+
+    rl_experiment(
+        agent_factory,
+        curriculum_factory,
+        lifetime_idx=3,
+        num_lifetimes=2,
+        num_parallel_envs=1,
+        log_dir=tmpdir,
+        agent_seed=0,
+        curriculum_seed=1,
+    )
+
+    assert len(agent_params) == 7
+    # NOTE: +1 because we have to construct curriculum to get spaces
+    assert len(curriculum_params) == len(agent_params) + 1 + 1
+
+    assert agent_params[3:5] == agent_params[5:7]
+    assert curriculum_params[4:6] == curriculum_params[7:9]
 
 
 def test_reproducible_experiment_filestructure(tmpdir):

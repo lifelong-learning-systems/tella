@@ -42,7 +42,7 @@ class DummyEnv(gym.Env):
         return obs, 0.0, done, {}
 
 
-def random_action(
+def choose_action_zero(
     observations: typing.List[typing.Optional[int]],
 ) -> typing.List[typing.Optional[int]]:
     return [None if obs is None else 0 for obs in observations]
@@ -58,7 +58,7 @@ def test_num_episodes(num_envs: int, num_episodes: int):
         rng_seed=0,
     )
     exp.set_num_envs(num_envs)
-    masked_transitions = sum(exp.generate(random_action), [])
+    masked_transitions = sum(exp.generate(choose_action_zero), [])
     steps = [transition for transition in masked_transitions if transition is not None]
     assert len(steps) == 5 * num_episodes
     assert sum([done for obs, action, reward, done, next_obs in steps]) == num_episodes
@@ -115,7 +115,7 @@ def test_generate_return_type(num_envs):
         rng_seed=0,
     )
     task_variant.set_num_envs(num_envs)
-    all_transitions = task_variant.generate(random_action)
+    all_transitions = task_variant.generate(choose_action_zero)
 
     assert isinstance(all_transitions, typing.Generator)
 
@@ -148,7 +148,7 @@ def test_terminal_observations():
         },
         rng_seed=0,
     )
-    transitions = sum(task_variant.generate(random_action), [])
+    transitions = sum(task_variant.generate(choose_action_zero), [])
     assert len(transitions) == 3
     assert transitions[0][0] == 0
     assert transitions[0][-1] == 1
@@ -166,7 +166,7 @@ def test_show_rewards():
         rng_seed=0,
     )
     task_variant.set_show_rewards(True)
-    transitions = sum(task_variant.generate(random_action), [])
+    transitions = sum(task_variant.generate(choose_action_zero), [])
     assert len(transitions) > 0
     for obs, action, reward, done, next_obs in transitions:
         assert reward is not None
@@ -180,7 +180,7 @@ def test_hide_rewards():
         rng_seed=0,
     )
     task_variant.set_show_rewards(False)
-    transitions = sum(task_variant.generate(random_action), [])
+    transitions = sum(task_variant.generate(choose_action_zero), [])
     assert len(transitions) > 0
     for obs, action, reward, done, next_obs in transitions:
         assert reward is None
@@ -216,7 +216,7 @@ def test_vec_env_mask(num_envs: int, num_episodes: int):
         rng_seed=0,
     )
     task_variant.set_num_envs(num_envs)
-    transitions = list(task_variant.generate(random_action))
+    transitions = list(task_variant.generate(choose_action_zero))
     masked = [[transition is None for transition in batch] for batch in transitions]
 
     expected = []

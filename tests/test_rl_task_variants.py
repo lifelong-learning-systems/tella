@@ -2,7 +2,6 @@ import math
 import pytest
 import typing
 import gym
-from gym.envs.classic_control import CartPoleEnv
 from tella.curriculum import EpisodicTaskVariant, _where
 
 
@@ -211,28 +210,77 @@ def test_where():
     assert _where(mask, None, original) == expected
 
 
-@pytest.mark.parametrize("num_envs", [1, 3])
-@pytest.mark.parametrize("num_episodes", [1, 3, 5])
-def test_vec_env_mask(num_envs: int, num_episodes: int):
+def test_single_env_mask():
     task_variant = EpisodicTaskVariant(
-        CartPoleEnv,
-        num_episodes=num_episodes,
+        DummyEnv,
+        num_episodes=5,
+        params={"a": 1, "b": 3.0, "c": "a"},
         rng_seed=0,
+    )
+    transitions = sum(task_variant.generate(choose_action_zero), [])
+    assert not any(transition is None for transition in transitions)
+
+
+@pytest.mark.parametrize("num_episodes", [1, 3, 5])
+def test_vec_env_mask(num_episodes: int):
+    num_envs = 3
+    task_rng_seed = 0
+    episode_lengths = [4, 6, 7]
+
+    class IndexedDummyEnv(DummyEnv):
+        def seed(self, seed=None):
+            super().seed(seed)
+            # AsyncVectorEnv increments the rng seed for each env, so it can be
+            #   used as an index to give each a unique, predicatble max_steps
+            index = seed - task_rng_seed
+            self.max_steps = episode_lengths[index]
+
+    task_variant = EpisodicTaskVariant(
+        IndexedDummyEnv,
+        num_episodes=num_episodes,
+        params={"a": 1, "b": 3.0, "c": "a"},
+        rng_seed=task_rng_seed,
     )
     task_variant.set_num_envs(num_envs)
     transitions = list(task_variant.generate(choose_action_zero))
+    masked = [[transition is None for transition in batch] for batch in transitions]
 
-    episode_id = [i for i in range(num_envs)]
-    next_episode_id = num_envs
-    for batch in transitions:
-        for n, transition in enumerate(batch):
-            if transition is not None:
-                obs, action, reward, done, next_obs = transition
-                if done:
-                    episode_id[n] = next_episode_id
-                    next_episode_id += 1
-            else:
-                assert episode_id[n] >= num_episodes
+    expected = {
+        1:
+            [
+                [False, True, True],
+                [False, True, True],
+                [False, True, True],
+                [False, True, True],
+            ],
+        3:
+            [
+                [False, False, False],
+                [False, False, False],
+                [False, False, False],
+                [False, False, False],
+                [True, False, False],
+                [True, False, False],
+                [True, True, False],
+            ],
+        5:
+            [
+                [False, False, False],
+                [False, False, False],
+                [False, False, False],
+                [False, False, False],
+                [False, False, False],
+                [False, False, False],
+                [False, False, False],
+                [False, False, True],
+                [True, False, True],
+                [True, False, True],
+                [True, False, True],
+                [True, False, True],
+            ],
+    }
+
+    assert masked == expected[num_episodes]
 
 
 def unmasked_choose_action_zero(

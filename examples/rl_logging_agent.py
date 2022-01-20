@@ -49,10 +49,6 @@ class LoggingAgent(tella.ContinualRLAgent):
             f"task_name={task_name} variant_name={variant_name}"
         )
 
-    def learn_task_variant(self, task_variant: tella.AbstractRLTaskVariant):
-        logger.info("\tConsuming task variant")
-        return super().learn_task_variant(task_variant)
-
     def choose_actions(
         self, observations: typing.List[typing.Optional[tella.Observation]]
     ) -> typing.List[typing.Optional[tella.Action]]:

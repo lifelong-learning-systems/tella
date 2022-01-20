@@ -98,7 +98,7 @@ def test_invalid_curriculum_name(p, tmpdir):
         lifetime_idx=0,
     ),
 )
-@patch("tella.env.L2LoggerEnv.render")
+@patch("gym.envs.classic_control.CartPoleEnv.render")
 def test_no_render(render_patch, argparse_patch, tmpdir):
     tmpdir.chdir()
     rl_cli(SimpleRLAgent, SimpleRLCurriculum)
@@ -118,7 +118,7 @@ def test_no_render(render_patch, argparse_patch, tmpdir):
         lifetime_idx=0,
     ),
 )
-@patch("tella.env.L2LoggerEnv.render")
+@patch("gym.envs.classic_control.CartPoleEnv.render")
 def test_renders(render_patch, argparse_patch, tmpdir):
     tmpdir.chdir()
     rl_cli(SimpleRLAgent, SimpleRLCurriculum)

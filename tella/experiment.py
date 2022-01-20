@@ -123,10 +123,10 @@ def rl_experiment(
     if lifetime_idx < 0:
         raise ValueError(f"lifetime_idx must be >= 0, found {lifetime_idx}")
 
-    if lifetime_idx > 0 and (agent_seed is None or curriculum_seed is None):
+    if lifetime_idx > 0 and curriculum_seed is None:
         raise ValueError(
-            "Both agent_seed and curriculum_seed must be specified when using lifetime_idx > 0."
-            f"Found agent_seed={agent_seed}, curriculum_seed={curriculum_seed}."
+            "curriculum_seed must be specified when using lifetime_idx > 0."
+            f"Found curriculum_seed={curriculum_seed}."
         )
 
     observation_space, action_space = _spaces(curriculum_factory)

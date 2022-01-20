@@ -208,3 +208,30 @@ def test_where():
     mask = [False, True, False, True, True]
     expected = [1, None, 1, None, None]
     assert _where(mask, None, original) == expected
+
+
+@pytest.mark.parametrize("num_envs", [1, 3])
+@pytest.mark.parametrize("num_episodes", [1, 3, 5])
+def test_vec_env_mask(num_envs: int, num_episodes: int):
+    task_variant = EpisodicTaskVariant(
+        DummyEnv,
+        num_episodes=num_episodes,
+        params={"a": 1, "b": 3.0, "c": "a"},
+        rng_seed=0,
+    )
+    task_variant.set_num_envs(num_envs)
+    transitions = list(task_variant.generate(random_action))
+    masked = [[transition is None for transition in batch] for batch in transitions]
+
+    expected = []
+    eps_remaining = num_episodes
+    while eps_remaining:
+        if eps_remaining < num_envs:
+            batch_mask = [False] * eps_remaining + [True] * (num_envs - eps_remaining)
+            eps_remaining = 0
+        else:
+            batch_mask = [False] * num_envs
+            eps_remaining -= num_envs
+        expected.extend([batch_mask] * 5)  # 5 steps per episode
+
+    assert masked == expected

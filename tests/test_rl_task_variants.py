@@ -254,7 +254,11 @@ def test_ignore_unmasked_actions():
         task_variant.set_num_envs(3)
         return task_variant
 
-    masked_actions_transitions = list(identical_task_variant().generate(choose_action_zero))
-    unmasked_actions_transitions = list(identical_task_variant().generate(unmasked_choose_action_zero))
+    masked_actions_transitions = list(
+        identical_task_variant().generate(choose_action_zero)
+    )
+    unmasked_actions_transitions = list(
+        identical_task_variant().generate(unmasked_choose_action_zero)
+    )
 
     assert masked_actions_transitions == unmasked_actions_transitions

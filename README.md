@@ -113,12 +113,12 @@ usage: my_agent.py [-h] [--lifetime-idx LIFETIME_IDX] [--num-lifetimes NUM_LIFET
 optional arguments:
   -h, --help            show this help message and exit
   --lifetime-idx LIFETIME_IDX
-                        The index, starting at zero, of the first lifetime to run.Use this to skip lifetimes or run a
+                        The index, starting at zero, of the first lifetime to run. Use this to skip lifetimes or run a
                         specific lifetime other than the first. (default: 0)
   --num-lifetimes NUM_LIFETIMES
                         Number of lifetimes to execute. (default: 1)
   --num-parallel-envs NUM_PARALLEL_ENVS
-                        Number of environments to run in parallel inside of task variant blocks.This enables the use
+                        Number of environments to run in parallel inside of task variant blocks. This enables the use
                         of multiple CPUs at the same time for running environment logic, via vectorized environments.
                         (default: 1)
   --log-dir LOG_DIR     The root directory for the l2logger logs produced. (default: ./logs)

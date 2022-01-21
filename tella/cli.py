@@ -90,7 +90,7 @@ def _build_parser(require_curriculum: bool) -> argparse.ArgumentParser:
         "--lifetime-idx",
         default=0,
         type=int,
-        help="The index, starting at zero, of the first lifetime to run."
+        help="The index, starting at zero, of the first lifetime to run. "
         "Use this to skip lifetimes or run a specific lifetime other than the first.",
     )
     parser.add_argument(
@@ -103,7 +103,7 @@ def _build_parser(require_curriculum: bool) -> argparse.ArgumentParser:
         "--num-parallel-envs",
         default=1,
         type=int,
-        help="Number of environments to run in parallel inside of task variant blocks."
+        help="Number of environments to run in parallel inside of task variant blocks. "
         "This enables the use of multiple CPUs at the same time for running environment logic,"
         " via vectorized environments.",
     )

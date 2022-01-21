@@ -1,6 +1,9 @@
 # From: https://docs.github.com/actions/automating-builds-and-tests/building-and-testing-nodejs-or-python?langId=py
 name: Examples
-on: [push]
+on:
+  push:
+    paths-ignore:
+      - 'tests/**'
 jobs:
   build:
     runs-on: ubuntu-latest

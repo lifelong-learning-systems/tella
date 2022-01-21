@@ -173,14 +173,6 @@ class MinimalRlDqnAgent(tella.ContinualRLAgent):
             f"task_name={task_name} variant_name={variant_name}"
         )
 
-    def learn_task_variant(self, task_variant: tella.AbstractRLTaskVariant) -> None:
-        logger.info("\tLearning from task variant")
-        return super().learn_task_variant(task_variant)
-
-    def eval_task_variant(self, task_variant: tella.AbstractRLTaskVariant) -> None:
-        logger.info("\tEvaluating a task variant")
-        return super().eval_task_variant(task_variant)
-
     def choose_actions(
         self, observations: typing.List[typing.Optional[tella.Observation]]
     ) -> typing.List[typing.Optional[tella.Action]]:

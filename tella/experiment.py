@@ -25,12 +25,11 @@ import numpy as np
 import gym
 from l2logger import l2logger
 
-from .agents import ContinualRLAgent, ContinualLearningAgent, AbstractRLTaskVariant
+from .agents import ContinualRLAgent, AbstractRLTaskVariant
 from .curriculum import (
     AbstractCurriculum,
-    AbstractTaskVariant,
-    validate_curriculum,
     EpisodicTaskVariant,
+    validate_curriculum,
 )
 
 
@@ -205,7 +204,7 @@ def _spaces(
 
 
 def run(
-    agent: ContinualLearningAgent[AbstractTaskVariant],
+    agent: ContinualRLAgent,
     curriculum: AbstractCurriculum[EpisodicTaskVariant],
     render: typing.Optional[bool],
     log_dir: str,
@@ -214,9 +213,6 @@ def run(
     """
     Run an agent through an entire curriculum. This assumes that the agent
     and the curriculum are both generic over the same type.
-
-    I.e. the curriculum will be generating task variants of type T, and the agent
-    will be consuming them via it's :meth:`ContinualLearningAgent.consume_task_variant`.
     """
     scenario_dir = curriculum.__class__.__name__
     scenario_info = {
@@ -248,12 +244,8 @@ def run(
                 agent.task_variant_start(
                     task_variant.task_label, task_variant.variant_label
                 )
-                # FIXME: This run function should handle the learning and eval, not the agent.
-                #   Move these methods out of the agent class. https://github.com/darpa-l2m/tella/issues/203
-                if is_learning_allowed:
-                    agent.learn_task_variant(task_variant)
-                else:
-                    agent.eval_task_variant(task_variant)
+                for transitions in task_variant.generate(agent.choose_actions):
+                    agent.receive_transitions(transitions)
                 agent.task_variant_end(
                     task_variant.task_label, task_variant.variant_label
                 )

@@ -103,8 +103,35 @@ python my_agent.py --curriculum SimpleCartPole
 ```
 
 To see all the command line options, run:
-```
-python my_agent.py --help
+```bash
+> python my_agent.py --help
+usage: my_agent.py [-h] [--lifetime-idx LIFETIME_IDX] [--num-lifetimes NUM_LIFETIMES]
+                           [--num-parallel-envs NUM_PARALLEL_ENVS] [--log-dir LOG_DIR] [--render] [--seed SEED]
+                           [--agent-seed AGENT_SEED] [--curriculum-seed CURRICULUM_SEED] [--agent-config AGENT_CONFIG]
+                           --curriculum {...}
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --lifetime-idx LIFETIME_IDX
+                        The index, starting at zero, of the first lifetime to run.Use this to skip lifetimes or run a
+                        specific lifetime other than the first. (default: 0)
+  --num-lifetimes NUM_LIFETIMES
+                        Number of lifetimes to execute. (default: 1)
+  --num-parallel-envs NUM_PARALLEL_ENVS
+                        Number of environments to run in parallel inside of task variant blocks.This enables the use
+                        of multiple CPUs at the same time for running environment logic, via vectorized environments.
+                        (default: 1)
+  --log-dir LOG_DIR     The root directory for the l2logger logs produced. (default: ./logs)
+  --render              Whether to render the environment (default: False)
+  --seed SEED           replaced by --agent-seed and --curriculum-seed (default: None)
+  --agent-seed AGENT_SEED
+                        The agent rng seed to use for reproducibility. (default: None)
+  --curriculum-seed CURRICULUM_SEED
+                        The curriculum rng seed to use for reproducibility. (default: None)
+  --agent-config AGENT_CONFIG
+                        Optional path to agent config file. (default: None)
+  --curriculum {...}
+                        Curriculum name for registry. (default: None)
 ```
 All the curriculums registered with tella are listed in the help.
 
@@ -115,6 +142,8 @@ For reproducing behavior, use the `--agent-seed`  and `--curriculum-seed` argume
 If a seed is not provided, a random seed is generated.
 The seeds used will be logged using the python logging package.
 
+For utilizing multiple cores, use the `--num-parallel-envs` flag.
+
 To run an agent through multiple lifetimes of a curriculum, use the `--num-lifetimes`
 flag. If you want to run a specific lifetime (useful for running on a cluster),
 use the `--lifetime-idx` flag. Note that the curriculum seed must be provided to use `--lifetime-idx`.
@@ -124,8 +153,6 @@ This will render the first environment in the list.
 
 To pass a configuration file to the agent, set the `--agent-config` argument.
 The format of the configuration file is determined by the specific agent.
-
-Parallel environments is not currently implemented.
 
 
 Bug Reports and Feature Requests

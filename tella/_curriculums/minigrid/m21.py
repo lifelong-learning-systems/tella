@@ -37,9 +37,9 @@ from gym_minigrid.wrappers import ImgObsWrapper
 
 from ...curriculum import *
 from .envs import (
-    CustomDynamicObstaclesS5N2,
-    CustomDynamicObstaclesS6N3,
-    CustomDynamicObstaclesS8N4,
+    CustomDynamicObstaclesS6N1,
+    CustomDynamicObstaclesS8N2,
+    CustomDynamicObstaclesS10N3,
     CustomFetchEnv5x5T1N2,
     CustomFetchEnv8x8T1N2,
     CustomFetchEnv16x16T2N4,
@@ -144,19 +144,19 @@ class DistShiftR3(_MiniGridLavaEnv):
         super().__init__(DistShift3)
 
 
-class DynObstaclesS5N2(_MiniGridDynObsEnv):
+class DynObstaclesS6N1(_MiniGridDynObsEnv):
     def __init__(self):
-        super().__init__(CustomDynamicObstaclesS5N2)
+        super().__init__(CustomDynamicObstaclesS6N1)
 
 
-class DynObstaclesS6N3(_MiniGridDynObsEnv):
+class DynObstaclesS8N2(_MiniGridDynObsEnv):
     def __init__(self):
-        super().__init__(CustomDynamicObstaclesS6N3)
+        super().__init__(CustomDynamicObstaclesS8N2)
 
 
-class DynObstaclesS8N4(_MiniGridDynObsEnv):
+class DynObstaclesS10N3(_MiniGridDynObsEnv):
     def __init__(self):
-        super().__init__(CustomDynamicObstaclesS8N4)
+        super().__init__(CustomDynamicObstaclesS10N3)
 
 
 class CustomFetchS5T1N2(_MiniGridEnv):
@@ -211,9 +211,9 @@ TASKS = [
     (DistShiftR2, "DistShift", "R2"),
     (DistShiftR5, "DistShift", "R5"),
     (DistShiftR3, "DistShift", "R3"),
-    (DynObstaclesS5N2, "DynObstacles", "S5N2"),
-    (DynObstaclesS6N3, "DynObstacles", "S6N3"),
-    (DynObstaclesS8N4, "DynObstacles", "S8N4"),
+    (DynObstaclesS6N1, "DynObstacles", "S6N1"),
+    (DynObstaclesS8N2, "DynObstacles", "S8N2"),
+    (DynObstaclesS10N3, "DynObstacles", "S10N3"),
     (CustomFetchS5T1N2, "CustomFetch", "S5T1N2"),
     (CustomFetchS8T1N2, "CustomFetch", "S8T1N2"),
     (CustomFetchS16T2N4, "CustomFetch", "S16T2N4"),
@@ -424,7 +424,7 @@ class MiniGridDistShiftR3(_MiniGridCurriculum):
         )
 
 
-class MiniGridDynObstaclesS5N2(_MiniGridCurriculum):
+class MiniGridDynObstaclesS6N1(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
@@ -434,9 +434,9 @@ class MiniGridDynObstaclesS5N2(_MiniGridCurriculum):
                     "DynObstacles",
                     [
                         EpisodicTaskVariant(
-                            DynObstaclesS5N2,
+                            DynObstaclesS6N1,
                             task_label="DynObstacles",
-                            variant_label="S5N2",
+                            variant_label="S6N1",
                             num_episodes=1000,
                             rng_seed=self.rng.bit_generator.random_raw(),
                         )
@@ -446,7 +446,7 @@ class MiniGridDynObstaclesS5N2(_MiniGridCurriculum):
         )
 
 
-class MiniGridDynObstaclesS6N3(_MiniGridCurriculum):
+class MiniGridDynObstaclesS8N2(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
@@ -456,9 +456,9 @@ class MiniGridDynObstaclesS6N3(_MiniGridCurriculum):
                     "DynObstacles",
                     [
                         EpisodicTaskVariant(
-                            DynObstaclesS6N3,
+                            DynObstaclesS8N2,
                             task_label="DynObstacles",
-                            variant_label="S6N3",
+                            variant_label="S8N2",
                             num_episodes=1000,
                             rng_seed=self.rng.bit_generator.random_raw(),
                         )
@@ -468,7 +468,7 @@ class MiniGridDynObstaclesS6N3(_MiniGridCurriculum):
         )
 
 
-class MiniGridDynObstaclesS8N4(_MiniGridCurriculum):
+class MiniGridDynObstaclesS10N3(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
@@ -478,9 +478,9 @@ class MiniGridDynObstaclesS8N4(_MiniGridCurriculum):
                     "DynObstacles",
                     [
                         EpisodicTaskVariant(
-                            DynObstaclesS8N4,
+                            DynObstaclesS10N3,
                             task_label="DynObstacles",
-                            variant_label="S8N4",
+                            variant_label="S10N3",
                             num_episodes=1000,
                             rng_seed=self.rng.bit_generator.random_raw(),
                         )

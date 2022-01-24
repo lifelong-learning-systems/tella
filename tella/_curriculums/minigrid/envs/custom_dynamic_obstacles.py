@@ -80,28 +80,28 @@ class CustomDynamicObstaclesEnv(DynamicObstaclesEnv):
             ball.can_pickup = no_obstacle_pickup
 
 
-class CustomDynamicObstaclesS5N2(CustomDynamicObstaclesEnv):
+class CustomDynamicObstaclesS6N1(CustomDynamicObstaclesEnv):
     def __init__(
         self,
         agent_start_pos=(1, 1),
         agent_start_dir=0,
     ):
-        super().__init__(5, agent_start_pos, agent_start_dir, 2)
+        super().__init__(6, agent_start_pos, agent_start_dir, 1)
 
 
-class CustomDynamicObstaclesS6N3(CustomDynamicObstaclesEnv):
+class CustomDynamicObstaclesS8N2(CustomDynamicObstaclesEnv):
     def __init__(
         self,
         agent_start_pos=(1, 1),
         agent_start_dir=0,
     ):
-        super().__init__(6, agent_start_pos, agent_start_dir, 3)
+        super().__init__(8, agent_start_pos, agent_start_dir, 2)
 
 
-class CustomDynamicObstaclesS8N4(CustomDynamicObstaclesEnv):
+class CustomDynamicObstaclesS10N3(CustomDynamicObstaclesEnv):
     def __init__(
         self,
         agent_start_pos=(1, 1),
         agent_start_dir=0,
     ):
-        super().__init__(8, agent_start_pos, agent_start_dir, 4)
+        super().__init__(10, agent_start_pos, agent_start_dir, 3)

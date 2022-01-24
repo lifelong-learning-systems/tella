@@ -45,9 +45,9 @@ def load_curriculum_registry():
             MiniGridDistShiftR2,
             MiniGridDistShiftR5,
             MiniGridDistShiftR3,
-            MiniGridDynObstaclesS5N2,
-            MiniGridDynObstaclesS6N3,
-            MiniGridDynObstaclesS8N4,
+            MiniGridDynObstaclesS6N1,
+            MiniGridDynObstaclesS8N2,
+            MiniGridDynObstaclesS10N3,
             MiniGridCustomFetchS5T1N2,
             MiniGridCustomFetchS8T1N2,
             MiniGridCustomFetchS16T2N4,
@@ -72,9 +72,9 @@ def load_curriculum_registry():
         curriculum_registry["MiniGridDistShiftR2"] = MiniGridDistShiftR2
         curriculum_registry["MiniGridDistShiftR5"] = MiniGridDistShiftR5
         curriculum_registry["MiniGridDistShiftR3"] = MiniGridDistShiftR3
-        curriculum_registry["MiniGridDynObstaclesS5N2"] = MiniGridDynObstaclesS5N2
-        curriculum_registry["MiniGridDynObstaclesS6N3"] = MiniGridDynObstaclesS6N3
-        curriculum_registry["MiniGridDynObstaclesS8N4"] = MiniGridDynObstaclesS8N4
+        curriculum_registry["MiniGridDynObstaclesS6N1"] = MiniGridDynObstaclesS6N1
+        curriculum_registry["MiniGridDynObstaclesS8N2"] = MiniGridDynObstaclesS8N2
+        curriculum_registry["MiniGridDynObstaclesS10N3"] = MiniGridDynObstaclesS10N3
         curriculum_registry["MiniGridCustomFetchS5T1N2"] = MiniGridCustomFetchS5T1N2
         curriculum_registry["MiniGridCustomFetchS8T1N2"] = MiniGridCustomFetchS8T1N2
         curriculum_registry["MiniGridCustomFetchS16T2N4"] = MiniGridCustomFetchS16T2N4

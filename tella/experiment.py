@@ -30,6 +30,8 @@ from .curriculum import (
     AbstractCurriculum,
     EpisodicTaskVariant,
     validate_curriculum,
+    ActionFn,
+    Transition,
 )
 
 
@@ -221,34 +223,174 @@ def run(
         "difficulty": "2-medium",
         "scenario_type": "custom",
     }
-    logger_info = {"metrics_columns": ["reward"], "log_format_version": "1.0"}
-    data_logger = l2logger.DataLogger(log_dir, scenario_dir, logger_info, scenario_info)
-    total_episodes = 0
-    for i_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks()):
+    data_logger = L2Logger(log_dir, scenario_dir, scenario_info, num_envs)
+    for block in curriculum.learn_blocks_and_eval_blocks():
         is_learning_allowed = agent.is_learning_allowed = block.is_learning_allowed
         block_type = "Learning" if is_learning_allowed else "Evaluating"
+        data_logger.block_start(is_learning_allowed)
         agent.block_start(is_learning_allowed)
         for task_block in block.task_blocks():
             agent.task_start(task_block.task_label)
             for task_variant in task_block.task_variants():
-                task_variant.set_show_rewards(is_learning_allowed)
-                task_variant.set_num_envs(num_envs)
-                # NOTE: assuming taskvariant has params
-                task_variant.set_logger_info(
-                    data_logger, i_block, is_learning_allowed, total_episodes
-                )
-                task_variant.set_render(render)
                 logger.info(
                     f"{block_type} TaskVariant {task_variant.task_label}-{task_variant.variant_label}"
                 )
+                data_logger.task_variant_start(task_variant)
                 agent.task_variant_start(
                     task_variant.task_label, task_variant.variant_label
                 )
-                for transitions in task_variant.generate(agent.choose_actions):
-                    agent.receive_transitions(transitions)
+                for transitions in transition_generator(
+                    task_variant, agent.choose_actions, num_envs, render
+                ):
+                    data_logger.receive_transitions(transitions)
+                    agent.receive_transitions(
+                        transitions
+                        if is_learning_allowed
+                        else hide_rewards(transitions)
+                    )
                 agent.task_variant_end(
                     task_variant.task_label, task_variant.variant_label
                 )
-                total_episodes += task_variant.total_episodes
             agent.task_end(task_block.task_label)
         agent.block_end(block.is_learning_allowed)
+
+
+class L2Logger:
+    def __init__(
+        self,
+        log_dir: str,
+        scenario_dir: str,
+        scenario_info: typing.Dict[str, str],
+        num_envs: int,
+    ) -> None:
+        self.data_logger = l2logger.DataLogger(
+            log_dir,
+            scenario_dir,
+            {"metrics_columns": ["reward"], "log_format_version": "1.0"},
+            scenario_info,
+        )
+        self.block_num = -1
+        self.block_type = None
+        self.task_name = None
+        self.task_params = None
+        self.total_episodes = 0
+        self.num_envs = num_envs
+        self.cumulative_episode_rewards = [0.0] * num_envs
+
+    def block_start(self, is_learning_allowed: bool) -> None:
+        self.block_num += 1
+        self.block_type = "train" if is_learning_allowed else "test"
+
+    def task_variant_start(self, task_variant: EpisodicTaskVariant):
+        self.task_name = task_variant.task_label + "_" + task_variant.variant_label
+        self.task_params = task_variant.params
+        self.cumulative_episode_rewards = [0.0] * self.num_envs
+
+    def receive_transitions(
+        self, transitions: typing.List[typing.Optional[Transition]]
+    ) -> None:
+        for i, transition in enumerate(transitions):
+            if transition is None:
+                continue
+            _obs, _action, reward, done, _next_obs = transition
+            self.cumulative_episode_rewards[i] += reward
+            if done:
+                self.data_logger.log_record(
+                    {
+                        "block_num": self.block_num,
+                        "block_type": self.block_type,
+                        "task_name": self.task_name,
+                        "task_params": self.task_params,
+                        "worker_id": "worker-default",
+                        "exp_num": self.total_episodes,
+                        "reward": self.cumulative_episode_rewards[i],
+                        "exp_status": "complete",
+                    }
+                )
+                self.cumulative_episode_rewards[i] = 0
+                self.total_episodes += 1
+
+
+def transition_generator(
+    task_variant: EpisodicTaskVariant,
+    action_fn: ActionFn,
+    num_envs: int,
+    render: bool = False,
+) -> typing.Iterable[typing.List[typing.Optional[Transition]]]:
+    vector_env_cls = gym.vector.AsyncVectorEnv
+    if num_envs == 1:
+        vector_env_cls = gym.vector.SyncVectorEnv
+
+    env = vector_env_cls([task_variant.make_env for _ in range(num_envs)])
+
+    env.seed(task_variant.rng_seed)
+    num_episodes_finished = 0
+
+    # data to keep track of which observations to mask out (set to None)
+    episode_ids = list(range(num_envs))
+    next_episode_id = episode_ids[-1] + 1
+
+    observations = env.reset()
+    while num_episodes_finished < task_variant.num_episodes:
+        # mask out any environments that have episode id above max episodes
+        mask = [ep_id >= task_variant.num_episodes for ep_id in episode_ids]
+
+        # replace masked environment observations with None
+        masked_observations = _where(mask, None, observations)
+
+        # query for the actions
+        actions = action_fn(masked_observations)
+
+        # replace masked environment actions with random action
+        unmasked_actions = _where(mask, env.single_action_space.sample(), actions)
+
+        # step in the VectorEnv
+        next_observations, rewards, dones, infos = env.step(unmasked_actions)
+        if render:
+            env.envs[0].render()
+
+        # yield all the transitions of this step
+        resulting_obs = [
+            info["terminal_observation"] if done else next_obs
+            for info, done, next_obs in zip(infos, dones, next_observations)
+        ]
+        unmasked_transitions = list(
+            zip(observations, actions, rewards, dones, resulting_obs)
+        )
+        masked_transitions = _where(mask, None, unmasked_transitions)
+        yield masked_transitions
+
+        # increment episode ids if episode ended
+        for i in range(num_envs):
+            if not mask[i] and dones[i]:
+                num_episodes_finished += 1
+                episode_ids[i] = next_episode_id
+                next_episode_id += 1
+
+        observations = next_observations
+    env.close()
+    del env
+
+
+def hide_rewards(
+    transitions: typing.List[typing.Optional[Transition]],
+) -> typing.List[typing.Optional[Transition]]:
+    return [None if t is None else (t[0], t[1], None, t[3], t[4]) for t in transitions]
+
+
+def _where(
+    condition: typing.List[bool], replace_value: typing.Any, original_list: typing.List
+) -> typing.List:
+    """
+    Replaces elements in `original_list[i]` with `replace_value` where the `condition[i]`
+    is True.
+
+    :param condition: List of booleans indicating where to put replace_value
+    :param replace_value: The value to insert into the list
+    :param original_list: The list of values to modify
+    :return: A new list with replace_value inserted where condition elements are True
+    """
+    return [
+        replace_value if condition[i] else original_list[i]
+        for i in range(len(condition))
+    ]

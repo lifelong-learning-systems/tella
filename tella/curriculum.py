@@ -42,7 +42,7 @@ class ValidationError(ValueError):
     pass
 
 
-class AbstractTaskVariant(abc.ABC, typing.Generic[InputType, ExperienceType, InfoType]):
+class AbstractTaskVariant(abc.ABC):
     """
     A TaskVariant abstractly represents some amount of experience in a single task.
 
@@ -66,21 +66,6 @@ class AbstractTaskVariant(abc.ABC, typing.Generic[InputType, ExperienceType, Inf
         A method to validate that the experience is set up properly.
 
         Raises a ValidationError if the experience is not set up properly.
-        """
-
-    @abc.abstractmethod
-    def info(self) -> InfoType:
-        """
-        :return: The object of type `InfoType` associated with this experience.
-        """
-
-    @abc.abstractmethod
-    def generate(self, inp: InputType) -> ExperienceType:
-        """
-        The main method to generate the Experience data.
-
-        :param inp: The object of type InputType.
-        :return: The data for the experience.
         """
 
     @property
@@ -362,9 +347,7 @@ A function that takes a list of Observations and returns a list of Actions, one
 for each observation.
 """
 
-AbstractRLTaskVariant = AbstractTaskVariant[
-    ActionFn, typing.Iterable[Transition], gym.Env
-]
+AbstractRLTaskVariant = AbstractTaskVariant
 """
 An AbstractRLTaskVariant is an TaskVariant that takes an ActionFn as input
 and produces an Iterable[Transition]. It also  returns a :class:`gym.Env` as the
@@ -397,31 +380,12 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         if task_label is None:
             task_label = task_cls.__name__
         assert num_envs > 0
-        self._task_cls = task_cls
-        self._params = params
-        self._num_episodes = num_episodes
-        self._num_envs = num_envs
-        self._env = None
+        self.task_cls = task_cls
+        self.params = params
+        self.num_episodes = num_episodes
         self._task_label = task_label
         self._variant_label = variant_label
-        self._show_rewards = None
         self.rng_seed = rng_seed
-        self.data_logger = None
-        self.logger_info = None
-        self.render = False
-
-    def set_render(self, render):
-        self.render = render
-
-    def set_num_envs(self, num_envs):
-        self._num_envs = num_envs
-
-    def set_show_rewards(self, show_rewards: bool):
-        self._show_rewards = show_rewards
-
-    @property
-    def total_episodes(self):
-        return self._num_episodes
 
     @property
     def task_label(self) -> str:
@@ -432,145 +396,20 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         return self._variant_label
 
     def validate(self) -> None:
-        validate_params(self._task_cls, list(self._params.keys()))
+        validate_params(self.task_cls, list(self.params.keys()))
 
-    def _make_env(self) -> gym.Env:
+    def make_env(self) -> gym.Env:
         """
         Initializes the gym environment object and wraps in the L2MEnv to log rewards
         """
-        return self._task_cls(**self._params)
-
-    def set_logger_info(
-        self, data_logger, block_num: int, is_learning_allowed: bool, exp_num: int
-    ):
-        self.data_logger = data_logger
-        self.logger_info = {
-            "block_num": block_num,
-            "block_type": "train" if is_learning_allowed else "test",
-            "task_params": self._params,
-            "task_name": self.task_label + "_" + self.variant_label,
-            "worker_id": "worker-default",
-            "exp_num": exp_num,
-        }
+        return self.task_cls(**self.params)
 
     def info(self) -> gym.Env:
-        return self._make_env()
-
-    def generate(
-        self, action_fn: ActionFn
-    ) -> typing.Iterable[typing.List[typing.Optional[Transition]]]:
-        vector_env_cls = gym.vector.AsyncVectorEnv
-        if self._num_envs == 1:
-            vector_env_cls = gym.vector.SyncVectorEnv
-
-        # NOTE: copying these to local variables avoids python trying to pickle this whole object
-        task_cls = self._task_cls
-        params = self._params
-        env = vector_env_cls(
-            [lambda: task_cls(**params) for _ in range(self._num_envs)]
-        )
-
-        env.seed(self.rng_seed)
-        num_episodes_finished = 0
-
-        # data to keep track of which observations to mask out (set to None)
-        episode_ids = list(range(self._num_envs))
-        next_episode_id = episode_ids[-1] + 1
-        cumulative_episode_rewards = [0.0] * self._num_envs
-
-        observations = env.reset()
-        while num_episodes_finished < self._num_episodes:
-            # mask out any environments that have episode id above max episodes
-            mask = [ep_id >= self._num_episodes for ep_id in episode_ids]
-
-            # replace masked environment observations with None
-            masked_observations = _where(mask, None, observations)
-
-            # query for the actions
-            actions = action_fn(masked_observations)
-
-            # replace masked environment actions with random action
-            unmasked_actions = _where(mask, env.single_action_space.sample(), actions)
-
-            # step in the VectorEnv
-            next_observations, rewards, dones, infos = env.step(unmasked_actions)
-            if self.render:
-                env.envs[0].render()
-
-            for i, r in enumerate(rewards):
-                cumulative_episode_rewards[i] += r
-
-            # yield all the transitions of this step
-            resulting_obs = [
-                info["terminal_observation"] if done else next_obs
-                for info, done, next_obs in zip(infos, dones, next_observations)
-            ]
-            rs = [r if self._show_rewards else None for r in rewards]
-            unmasked_transitions = zip(observations, actions, rs, dones, resulting_obs)
-            masked_transitions = _where(mask, None, list(unmasked_transitions))
-            yield masked_transitions
-
-            self._log(cumulative_episode_rewards, masked_transitions)
-
-            # increment episode ids if episode ended
-            for i in range(self._num_envs):
-                if not mask[i] and dones[i]:
-                    num_episodes_finished += 1
-                    episode_ids[i] = next_episode_id
-                    cumulative_episode_rewards[i] = 0
-                    next_episode_id += 1
-
-            observations = next_observations
-        env.close()
-        del env
-
-    def _log(
-        self,
-        episode_rewards: typing.List[float],
-        transitions: typing.List[typing.Optional[Transition]],
-    ):
-        if self.logger_info is None:
-            return
-
-        worker_ids = [f"worker-{i}" for i in range(len(transitions))]
-        if len(transitions) == 1:
-            worker_ids[0] = "worker-default"
-
-        for worker_id, total_episode_reward, transition in zip(
-            worker_ids, episode_rewards, transitions
-        ):
-            if transition is None:
-                continue
-            _obs, _action, _reward, done, _next_obs = transition
-            if done:
-                record = self.logger_info.copy()
-                record["exp_status"] = "complete" if done else "incomplete"
-                record["worker_id"] = worker_id
-                record["reward"] = total_episode_reward
-                self.data_logger.log_record(record)
-                self.logger_info["exp_num"] += 1
-
-
-def _where(
-    condition: typing.List[bool], replace_value: typing.Any, original_list: typing.List
-) -> typing.List:
-    """
-    Replaces elements in `original_list[i]` with `replace_value` where the `condition[i]`
-    is True.
-
-    :param condition: List of booleans indicating where to put replace_value
-    :param replace_value: The value to insert into the list
-    :param original_list: The list of values to modify
-    :return: A new list with replace_value inserted where condition elements are True
-    """
-    return [
-        replace_value if condition[i] else original_list[i]
-        for i in range(len(condition))
-    ]
+        return self.make_env()
 
 
 def summarize_curriculum(
-    curriculum: AbstractCurriculum[AbstractTaskVariant],
+    curriculum: AbstractCurriculum[EpisodicTaskVariant],
 ) -> str:
     """
     Generate a detailed string summarizing the contents of the curriculum.
@@ -592,7 +431,7 @@ def summarize_curriculum(
                 variant_summary = (
                     f"\n\t\t\tTask variant {i_variant+1}, "
                     f"{task_variant.task_label} - {task_variant.variant_label}: "
-                    f"{maybe_plural(task_variant.total_episodes, 'episode')}."
+                    f"{maybe_plural(task_variant.num_episodes, 'episode')}."
                 )
                 variant_summaries.append(variant_summary)
 

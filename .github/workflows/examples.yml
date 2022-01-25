@@ -1,0 +1,43 @@
+# From: https://docs.github.com/actions/automating-builds-and-tests/building-and-testing-nodejs-or-python?langId=py
+name: Examples
+on:
+  push:
+    paths-ignore:
+      - 'tests/**'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+    steps:
+      - name: Checkout tella
+        uses: actions/checkout@v2
+        with:
+          path: tella
+      - name: Checkout l2logger
+        uses: actions/checkout@v2
+        with:
+          repository: darpa-l2m/l2logger
+          ref: release-20211207
+          token: ${{ secrets.L2LOGGER_KEY }}
+          path: l2logger
+      - name: Directory structure
+        run: |
+          pwd
+          ls -al .
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest wheel
+          pip install ./l2logger
+          pip install ./tella
+          pip install gym-minigrid==1.0.2
+          pip install torch
+      - name: Run examples
+        working-directory: ./tella
+        run: ./.github/run_examples.sh

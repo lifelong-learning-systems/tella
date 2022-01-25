@@ -2,7 +2,8 @@ import math
 import pytest
 import typing
 import gym
-from tella.curriculum import EpisodicTaskVariant
+from gym.envs.classic_control import CartPoleEnv
+from tella.curriculum import EpisodicTaskVariant, _where
 
 
 class DummyEnv(gym.Env):
@@ -41,31 +42,31 @@ class DummyEnv(gym.Env):
         )
         return obs, 0.0, done, {}
 
+    def seed(self, seed=None):
+        self.observation_space.seed(seed)
+        self.action_space.seed(seed)
 
-def random_action(
+
+def choose_action_zero(
     observations: typing.List[typing.Optional[int]],
 ) -> typing.List[typing.Optional[int]]:
     return [None if obs is None else 0 for obs in observations]
 
 
-@pytest.mark.parametrize("num_envs", [1, 2, 3, 4])
-def test_num_episodes(num_envs: int):
-    for num_episodes in [1, 2, 3, 4, 5, 6, 7, 8]:
-        exp = EpisodicTaskVariant(
-            DummyEnv,
-            num_episodes=num_episodes,
-            params={"a": 1, "b": 3.0, "c": "a"},
-            rng_seed=0,
-        )
-        exp.set_num_envs(num_envs)
-        masked_transitions = sum(exp.generate(random_action), [])
-        steps = [
-            transition for transition in masked_transitions if transition is not None
-        ]
-        assert len(steps) == 5 * num_episodes
-        assert (
-            sum([done for obs, action, reward, done, next_obs in steps]) == num_episodes
-        )
+@pytest.mark.parametrize("num_envs", [1, 3])
+@pytest.mark.parametrize("num_episodes", [1, 3, 5])
+def test_num_episodes(num_envs: int, num_episodes: int):
+    exp = EpisodicTaskVariant(
+        DummyEnv,
+        num_episodes=num_episodes,
+        params={"a": 1, "b": 3.0, "c": "a"},
+        rng_seed=0,
+    )
+    exp.set_num_envs(num_envs)
+    masked_transitions = sum(exp.generate(choose_action_zero), [])
+    steps = [transition for transition in masked_transitions if transition is not None]
+    assert len(steps) == 5 * num_episodes
+    assert sum([done for obs, action, reward, done, next_obs in steps]) == num_episodes
 
 
 def test_labels():
@@ -119,7 +120,7 @@ def test_generate_return_type(num_envs):
         rng_seed=0,
     )
     task_variant.set_num_envs(num_envs)
-    all_transitions = task_variant.generate(random_action)
+    all_transitions = task_variant.generate(choose_action_zero)
 
     assert isinstance(all_transitions, typing.Generator)
 
@@ -152,7 +153,7 @@ def test_terminal_observations():
         },
         rng_seed=0,
     )
-    transitions = sum(task_variant.generate(random_action), [])
+    transitions = sum(task_variant.generate(choose_action_zero), [])
     assert len(transitions) == 3
     assert transitions[0][0] == 0
     assert transitions[0][-1] == 1
@@ -170,7 +171,7 @@ def test_show_rewards():
         rng_seed=0,
     )
     task_variant.set_show_rewards(True)
-    transitions = sum(task_variant.generate(random_action), [])
+    transitions = sum(task_variant.generate(choose_action_zero), [])
     assert len(transitions) > 0
     for obs, action, reward, done, next_obs in transitions:
         assert reward is not None
@@ -184,7 +185,148 @@ def test_hide_rewards():
         rng_seed=0,
     )
     task_variant.set_show_rewards(False)
-    transitions = sum(task_variant.generate(random_action), [])
+    transitions = sum(task_variant.generate(choose_action_zero), [])
     assert len(transitions) > 0
     for obs, action, reward, done, next_obs in transitions:
         assert reward is None
+
+
+def test_where():
+    original = [1, 1, 1, 1, 1]
+
+    mask = [False, False, False, False, False]
+    expected = [1, 1, 1, 1, 1]
+    assert _where(mask, 2, original) == expected
+
+    mask = [True, True, True, True, True]
+    expected = [2, 2, 2, 2, 2]
+    assert _where(mask, 2, original) == expected
+
+    mask = [False, False, True, False, True]
+    expected = [1, 1, 2, 1, 2]
+    assert _where(mask, 2, original) == expected
+
+    mask = [False, True, False, True, True]
+    expected = [1, None, 1, None, None]
+    assert _where(mask, None, original) == expected
+
+
+def test_single_env_mask():
+    task_variant = EpisodicTaskVariant(
+        DummyEnv,
+        num_episodes=5,
+        params={"a": 1, "b": 3.0, "c": "a"},
+        rng_seed=0,
+    )
+    transitions = sum(task_variant.generate(choose_action_zero), [])
+    assert not any(transition is None for transition in transitions)
+
+
+@pytest.mark.parametrize("num_episodes", [1, 3, 5])
+def test_vec_cartpole_env_mask(num_episodes: int):
+    num_envs = 3
+    task_variant = EpisodicTaskVariant(
+        CartPoleEnv,
+        num_episodes=num_episodes,
+        rng_seed=0,
+    )
+    task_variant.set_num_envs(num_envs)
+    transitions = list(task_variant.generate(choose_action_zero))
+
+    episode_id = [i for i in range(num_envs)]
+    next_episode_id = num_envs
+    for batch in transitions:
+        for n, transition in enumerate(batch):
+            if transition is not None:
+                obs, action, reward, done, next_obs = transition
+                if done:
+                    episode_id[n] = next_episode_id
+                    next_episode_id += 1
+            else:
+                assert episode_id[n] >= num_episodes
+
+
+@pytest.mark.parametrize("num_episodes", [1, 3, 5])
+def test_vec_dummy_env_mask(num_episodes: int):
+    num_envs = 3
+    task_rng_seed = 0
+    episode_lengths = [4, 6, 7]
+
+    class IndexedDummyEnv(DummyEnv):
+        def seed(self, seed=None):
+            super().seed(seed)
+            # AsyncVectorEnv increments the rng seed for each env, so it can be
+            #   used as an index to give each a unique, predicatble max_steps
+            index = seed - task_rng_seed
+            self.max_steps = episode_lengths[index]
+
+    task_variant = EpisodicTaskVariant(
+        IndexedDummyEnv,
+        num_episodes=num_episodes,
+        params={"a": 1, "b": 3.0, "c": "a"},
+        rng_seed=task_rng_seed,
+    )
+    task_variant.set_num_envs(num_envs)
+    transitions = list(task_variant.generate(choose_action_zero))
+    masked = [[transition is None for transition in batch] for batch in transitions]
+
+    expected = {
+        1: [
+            [False, True, True],
+            [False, True, True],
+            [False, True, True],
+            [False, True, True],
+        ],
+        3: [
+            [False, False, False],
+            [False, False, False],
+            [False, False, False],
+            [False, False, False],
+            [True, False, False],
+            [True, False, False],
+            [True, True, False],
+        ],
+        5: [
+            [False, False, False],
+            [False, False, False],
+            [False, False, False],
+            [False, False, False],
+            [False, False, False],
+            [False, False, False],
+            [False, False, False],
+            [False, False, True],
+            [True, False, True],
+            [True, False, True],
+            [True, False, True],
+            [True, False, True],
+        ],
+    }
+
+    assert masked == expected[num_episodes]
+
+
+def unmasked_choose_action_zero(
+    observations: typing.List[typing.Optional[int]],
+) -> typing.List[typing.Optional[int]]:
+    return [0 for _ in observations]
+
+
+def test_ignore_unmasked_actions():
+    def identical_task_variant():
+        task_variant = EpisodicTaskVariant(
+            DummyEnv,
+            num_episodes=5,
+            params={"a": 1, "b": 3.0, "c": "a"},
+            rng_seed=0,
+        )
+        task_variant.set_num_envs(3)
+        return task_variant
+
+    masked_actions_transitions = list(
+        identical_task_variant().generate(choose_action_zero)
+    )
+    unmasked_actions_transitions = list(
+        identical_task_variant().generate(unmasked_choose_action_zero)
+    )
+
+    assert masked_actions_transitions == unmasked_actions_transitions

@@ -69,6 +69,7 @@ def rl_cli(
         num_lifetimes=args.num_lifetimes,
         num_parallel_envs=args.num_parallel_envs,
         log_dir=args.log_dir,
+        lifetime_idx=args.lifetime_idx,
         agent_seed=args.agent_seed,
         curriculum_seed=args.curriculum_seed,
         render=args.render,
@@ -86,6 +87,13 @@ def _build_parser(require_curriculum: bool) -> argparse.ArgumentParser:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
+        "--lifetime-idx",
+        default=0,
+        type=int,
+        help="The index, starting at zero, of the first lifetime to run. "
+        "Use this to skip lifetimes or run a specific lifetime other than the first.",
+    )
+    parser.add_argument(
         "--num-lifetimes",
         default=1,
         type=int,
@@ -95,7 +103,7 @@ def _build_parser(require_curriculum: bool) -> argparse.ArgumentParser:
         "--num-parallel-envs",
         default=1,
         type=int,
-        help="Number of environments to run in parallel inside of task variant blocks."
+        help="Number of environments to run in parallel inside of task variant blocks. "
         "This enables the use of multiple CPUs at the same time for running environment logic,"
         " via vectorized environments.",
     )

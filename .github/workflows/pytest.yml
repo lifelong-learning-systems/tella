@@ -12,13 +12,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: tella
-      - name: Checkout l2logger
-        uses: actions/checkout@v2
-        with:
-          repository: darpa-l2m/l2logger
-          ref: release-20211207
-          token: ${{ secrets.L2LOGGER_KEY }}
-          path: l2logger
       - name: Directory structure
         run: |
           pwd
@@ -31,7 +24,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pytest wheel
-          pip install ./l2logger
           pip install ./tella
           pip install gym-minigrid==1.0.2
       - name: Test with pytest

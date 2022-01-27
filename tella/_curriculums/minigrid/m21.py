@@ -217,397 +217,49 @@ class MiniGridDispersed(_MiniGridCurriculum):
                 )
 
 
-class MiniGridSimpleCrossingS9N1(_MiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        yield LearnBlock(
-            [
-                TaskBlock(
-                    "SimpleCrossing",
-                    [
-                        EpisodicTaskVariant(
-                            SimpleCrossingS9N1,
-                            task_label="SimpleCrossing",
-                            variant_label="S9N1",
-                            num_episodes=1000,
-                            rng_seed=self.rng.bit_generator.random_raw(),
-                        )
-                    ],
-                )
-            ]
-        )
+def _create_m21_ste_curriculum(
+    task_cls: typing.Type[gym.Env],
+    task_label: str,
+    variant_label: str,
+):
+    class _NewCurriculum(_MiniGridCurriculum):
+        def learn_blocks(
+            self,
+        ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+            yield LearnBlock(
+                [
+                    TaskBlock(
+                        task_label,
+                        [
+                            EpisodicTaskVariant(
+                                task_cls,
+                                task_label=task_label,
+                                variant_label=variant_label,
+                                num_episodes=1000,
+                                rng_seed=self.rng.bit_generator.random_raw(),
+                            )
+                        ],
+                    )
+                ]
+            )
+    return _NewCurriculum
 
 
-class MiniGridSimpleCrossingS9N2(_MiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        yield LearnBlock(
-            [
-                TaskBlock(
-                    "SimpleCrossing",
-                    [
-                        EpisodicTaskVariant(
-                            SimpleCrossingS9N2,
-                            task_label="SimpleCrossing",
-                            variant_label="S9N2",
-                            num_episodes=1000,
-                            rng_seed=self.rng.bit_generator.random_raw(),
-                        )
-                    ],
-                )
-            ]
-        )
-
-
-class MiniGridSimpleCrossingS9N3(_MiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        yield LearnBlock(
-            [
-                TaskBlock(
-                    "SimpleCrossing",
-                    [
-                        EpisodicTaskVariant(
-                            SimpleCrossingS9N3,
-                            task_label="SimpleCrossing",
-                            variant_label="S9N3",
-                            num_episodes=1000,
-                            rng_seed=self.rng.bit_generator.random_raw(),
-                        )
-                    ],
-                )
-            ]
-        )
-
-
-class MiniGridDistShiftR2(_MiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        yield LearnBlock(
-            [
-                TaskBlock(
-                    "DistShift",
-                    [
-                        EpisodicTaskVariant(
-                            DistShiftR2,
-                            task_label="DistShift",
-                            variant_label="R2",
-                            num_episodes=1000,
-                            rng_seed=self.rng.bit_generator.random_raw(),
-                        )
-                    ],
-                )
-            ]
-        )
-
-
-class MiniGridDistShiftR5(_MiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        yield LearnBlock(
-            [
-                TaskBlock(
-                    "DistShift",
-                    [
-                        EpisodicTaskVariant(
-                            DistShiftR5,
-                            task_label="DistShift",
-                            variant_label="R5",
-                            num_episodes=1000,
-                            rng_seed=self.rng.bit_generator.random_raw(),
-                        )
-                    ],
-                )
-            ]
-        )
-
-
-class MiniGridDistShiftR3(_MiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        yield LearnBlock(
-            [
-                TaskBlock(
-                    "DistShift",
-                    [
-                        EpisodicTaskVariant(
-                            DistShiftR3,
-                            task_label="DistShift",
-                            variant_label="R3",
-                            num_episodes=1000,
-                            rng_seed=self.rng.bit_generator.random_raw(),
-                        )
-                    ],
-                )
-            ]
-        )
-
-
-class MiniGridDynObstaclesS6N1(_MiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        yield LearnBlock(
-            [
-                TaskBlock(
-                    "DynObstacles",
-                    [
-                        EpisodicTaskVariant(
-                            DynObstaclesS6N1,
-                            task_label="DynObstacles",
-                            variant_label="S6N1",
-                            num_episodes=1000,
-                            rng_seed=self.rng.bit_generator.random_raw(),
-                        )
-                    ],
-                )
-            ]
-        )
-
-
-class MiniGridDynObstaclesS8N2(_MiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        yield LearnBlock(
-            [
-                TaskBlock(
-                    "DynObstacles",
-                    [
-                        EpisodicTaskVariant(
-                            DynObstaclesS8N2,
-                            task_label="DynObstacles",
-                            variant_label="S8N2",
-                            num_episodes=1000,
-                            rng_seed=self.rng.bit_generator.random_raw(),
-                        )
-                    ],
-                )
-            ]
-        )
-
-
-class MiniGridDynObstaclesS10N3(_MiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        yield LearnBlock(
-            [
-                TaskBlock(
-                    "DynObstacles",
-                    [
-                        EpisodicTaskVariant(
-                            DynObstaclesS10N3,
-                            task_label="DynObstacles",
-                            variant_label="S10N3",
-                            num_episodes=1000,
-                            rng_seed=self.rng.bit_generator.random_raw(),
-                        )
-                    ],
-                )
-            ]
-        )
-
-
-class MiniGridCustomFetchS5T1N2(_MiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        yield LearnBlock(
-            [
-                TaskBlock(
-                    "CustomFetch",
-                    [
-                        EpisodicTaskVariant(
-                            CustomFetchS5T1N2,
-                            task_label="CustomFetch",
-                            variant_label="S5T1N2",
-                            num_episodes=1000,
-                            rng_seed=self.rng.bit_generator.random_raw(),
-                        )
-                    ],
-                )
-            ]
-        )
-
-
-class MiniGridCustomFetchS8T1N2(_MiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        yield LearnBlock(
-            [
-                TaskBlock(
-                    "CustomFetch",
-                    [
-                        EpisodicTaskVariant(
-                            CustomFetchS8T1N2,
-                            task_label="CustomFetch",
-                            variant_label="S8T1N2",
-                            num_episodes=1000,
-                            rng_seed=self.rng.bit_generator.random_raw(),
-                        )
-                    ],
-                )
-            ]
-        )
-
-
-class MiniGridCustomFetchS16T2N4(_MiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        yield LearnBlock(
-            [
-                TaskBlock(
-                    "CustomFetch",
-                    [
-                        EpisodicTaskVariant(
-                            CustomFetchS16T2N4,
-                            task_label="CustomFetch",
-                            variant_label="S16T2N4",
-                            num_episodes=1000,
-                            rng_seed=self.rng.bit_generator.random_raw(),
-                        )
-                    ],
-                )
-            ]
-        )
-
-
-class MiniGridCustomUnlockS5(_MiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        yield LearnBlock(
-            [
-                TaskBlock(
-                    "CustomUnlock",
-                    [
-                        EpisodicTaskVariant(
-                            CustomUnlockS5,
-                            task_label="CustomUnlock",
-                            variant_label="S5",
-                            num_episodes=1000,
-                            rng_seed=self.rng.bit_generator.random_raw(),
-                        )
-                    ],
-                )
-            ]
-        )
-
-
-class MiniGridCustomUnlockS7(_MiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        yield LearnBlock(
-            [
-                TaskBlock(
-                    "CustomUnlock",
-                    [
-                        EpisodicTaskVariant(
-                            CustomUnlockS7,
-                            task_label="CustomUnlock",
-                            variant_label="S7",
-                            num_episodes=1000,
-                            rng_seed=self.rng.bit_generator.random_raw(),
-                        )
-                    ],
-                )
-            ]
-        )
-
-
-class MiniGridCustomUnlockS9(_MiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        yield LearnBlock(
-            [
-                TaskBlock(
-                    "CustomUnlock",
-                    [
-                        EpisodicTaskVariant(
-                            CustomUnlockS9,
-                            task_label="CustomUnlock",
-                            variant_label="S9",
-                            num_episodes=1000,
-                            rng_seed=self.rng.bit_generator.random_raw(),
-                        )
-                    ],
-                )
-            ]
-        )
-
-
-class MiniGridDoorKeyS5(_MiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        yield LearnBlock(
-            [
-                TaskBlock(
-                    "DoorKey",
-                    [
-                        EpisodicTaskVariant(
-                            DoorKeyS5,
-                            task_label="DoorKey",
-                            variant_label="S5",
-                            num_episodes=1000,
-                            rng_seed=self.rng.bit_generator.random_raw(),
-                        )
-                    ],
-                )
-            ]
-        )
-
-
-class MiniGridDoorKeyS6(_MiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        yield LearnBlock(
-            [
-                TaskBlock(
-                    "DoorKey",
-                    [
-                        EpisodicTaskVariant(
-                            DoorKeyS6,
-                            task_label="DoorKey",
-                            variant_label="S6",
-                            num_episodes=1000,
-                            rng_seed=self.rng.bit_generator.random_raw(),
-                        )
-                    ],
-                )
-            ]
-        )
-
-
-class MiniGridDoorKeyS8(_MiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        yield LearnBlock(
-            [
-                TaskBlock(
-                    "DoorKey",
-                    [
-                        EpisodicTaskVariant(
-                            DoorKeyS8,
-                            task_label="DoorKey",
-                            variant_label="S8",
-                            num_episodes=1000,
-                            rng_seed=self.rng.bit_generator.random_raw(),
-                        )
-                    ],
-                )
-            ]
-        )
+MiniGridSimpleCrossingS9N1 = _create_m21_ste_curriculum(SimpleCrossingS9N1, "SimpleCrossing", "S9N1")
+MiniGridSimpleCrossingS9N2 = _create_m21_ste_curriculum(SimpleCrossingS9N2, "SimpleCrossing", "S9N2")
+MiniGridSimpleCrossingS9N3 = _create_m21_ste_curriculum(SimpleCrossingS9N3, "SimpleCrossing", "S9N3")
+MiniGridDistShiftR2 = _create_m21_ste_curriculum(DistShiftR2, "DistShift", "R2")
+MiniGridDistShiftR5 = _create_m21_ste_curriculum(DistShiftR5, "DistShift", "R5")
+MiniGridDistShiftR3 = _create_m21_ste_curriculum(DistShiftR3, "DistShift", "R3")
+MiniGridDynObstaclesS6N1 = _create_m21_ste_curriculum(DynObstaclesS6N1, "DynObstacles", "S6N1")
+MiniGridDynObstaclesS8N2 = _create_m21_ste_curriculum(DynObstaclesS8N2, "DynObstacles", "S8N2")
+MiniGridDynObstaclesS10N3 = _create_m21_ste_curriculum(DynObstaclesS10N3, "DynObstacles", "S10N3")
+MiniGridCustomFetchS5T1N2 = _create_m21_ste_curriculum(CustomFetchS5T1N2, "CustomFetch", "S5T1N2")
+MiniGridCustomFetchS8T1N2 = _create_m21_ste_curriculum(CustomFetchS8T1N2, "CustomFetch", "S8T1N2")
+MiniGridCustomFetchS16T2N4 = _create_m21_ste_curriculum(CustomFetchS16T2N4, "CustomFetch", "S16T2N4")
+MiniGridCustomUnlockS5 = _create_m21_ste_curriculum(CustomUnlockS5, "CustomUnlock", "S5")
+MiniGridCustomUnlockS7 = _create_m21_ste_curriculum(CustomUnlockS7, "CustomUnlock", "S7")
+MiniGridCustomUnlockS9 = _create_m21_ste_curriculum(CustomUnlockS9, "CustomUnlock", "S9")
+MiniGridDoorKeyS5 = _create_m21_ste_curriculum(DoorKeyS5, "DoorKey", "S5")
+MiniGridDoorKeyS6 = _create_m21_ste_curriculum(DoorKeyS6, "DoorKey", "S6")
+MiniGridDoorKeyS8 = _create_m21_ste_curriculum(DoorKeyS8, "DoorKey", "S8")

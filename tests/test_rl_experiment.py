@@ -495,7 +495,7 @@ def test_masked_environments_worker_ids_single(log_record, tmpdir):
     for call in log_record.call_args_list:
         (record,), _kwargs = call
         worker_ids.add(record["worker_id"])
-    assert worker_ids == {"worker-0"}
+    assert worker_ids == {"worker-default"}
 
 
 @mock.patch("l2logger.l2logger.DataLogger.log_record")
@@ -505,32 +505,11 @@ def test_masked_environments_worker_ids_multiple(log_record, tmpdir):
     )
 
     assert log_record.call_count > 0
-    workers_by_variant = defaultdict(set)
+    worker_ids = set()
     for call in log_record.call_args_list:
         (record,), _kwargs = call
-        workers_by_variant[(record["block_num"], record["task_name"])].add(
-            record["worker_id"]
-        )
-
-    assert len(workers_by_variant) == 3
-    assert workers_by_variant[(0, "CartPoleEnv_Default")] == {
-        "worker-0",
-        "worker-1",
-        "worker-2",
-        "worker-3",
-        "worker-4",
-    }
-    assert workers_by_variant[(0, "CartPoleEnv_Variant1")] == {
-        "worker-0",
-        "worker-1",
-        "worker-2",
-        "worker-3",
-    }
-    assert workers_by_variant[(1, "CartPoleEnv_Default")] == {
-        "worker-0",
-        "worker-1",
-        "worker-2",
-    }
+        worker_ids.add(record["worker_id"])
+    assert worker_ids == {"worker-default"}
 
 
 @mock.patch("gym.vector.SyncVectorEnv.seed")

@@ -80,7 +80,7 @@ class MiniGridLavaPenaltyWrapper(gym.Wrapper):
         # Update the agent's position/direction
         obs, reward, done, info = self.env.step(action)
 
-        # If the agent tried to walk over an obstacle or wall
+        # If the agent tried to walk over lava
         if action == self.env.actions.forward and not_clear:
             reward = -1
             done = True
@@ -103,14 +103,6 @@ class _MiniGridLavaEnv(gym.Wrapper):
         env = ImgObsWrapper(env)
         env = MiniGridReducedActionSpaceWrapper(env, num_actions=6)
         env = MiniGridLavaPenaltyWrapper(env)
-        super().__init__(env)
-
-
-class _MiniGridDynObsEnv(gym.Wrapper):
-    def __init__(self, env_class: typing.Type[gym.Env]) -> None:
-        env = env_class()
-        env = ImgObsWrapper(env)
-        env = MiniGridReducedActionSpaceWrapper(env, num_actions=6)
         super().__init__(env)
 
 
@@ -144,17 +136,17 @@ class DistShiftR3(_MiniGridLavaEnv):
         super().__init__(DistShift3)
 
 
-class DynObstaclesS6N1(_MiniGridDynObsEnv):
+class DynObstaclesS6N1(_MiniGridEnv):
     def __init__(self):
         super().__init__(CustomDynamicObstaclesS6N1)
 
 
-class DynObstaclesS8N2(_MiniGridDynObsEnv):
+class DynObstaclesS8N2(_MiniGridEnv):
     def __init__(self):
         super().__init__(CustomDynamicObstaclesS8N2)
 
 
-class DynObstaclesS10N3(_MiniGridDynObsEnv):
+class DynObstaclesS10N3(_MiniGridEnv):
     def __init__(self):
         super().__init__(CustomDynamicObstaclesS10N3)
 

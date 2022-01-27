@@ -96,6 +96,13 @@ class _MiniGridEnv(gym.Wrapper):
         env = MiniGridReducedActionSpaceWrapper(env, num_actions=6)
         super().__init__(env)
 
+    @classmethod
+    def make(cls, env_class: typing.Type[gym.Env]):
+        class _SubClass(cls):
+            def __init__(self):
+                super().__init__(env_class)
+        return _SubClass
+
 
 class _MiniGridLavaEnv(gym.Wrapper):
     def __init__(self, env_class: typing.Type[gym.Env]) -> None:
@@ -105,95 +112,32 @@ class _MiniGridLavaEnv(gym.Wrapper):
         env = MiniGridLavaPenaltyWrapper(env)
         super().__init__(env)
 
-
-class SimpleCrossingS9N1(_MiniGridEnv):
-    def __init__(self):
-        super().__init__(SimpleCrossingEnv)
-
-
-class SimpleCrossingS9N2(_MiniGridEnv):
-    def __init__(self):
-        super().__init__(SimpleCrossingS9N2Env)
+    @classmethod
+    def make(cls, env_class: typing.Type[gym.Env]):
+        class _SubClass(cls):
+            def __init__(self):
+                super().__init__(env_class)
+        return _SubClass
 
 
-class SimpleCrossingS9N3(_MiniGridEnv):
-    def __init__(self):
-        super().__init__(SimpleCrossingS9N3Env)
-
-
-class DistShiftR2(_MiniGridLavaEnv):
-    def __init__(self):
-        super().__init__(DistShift1)
-
-
-class DistShiftR5(_MiniGridLavaEnv):
-    def __init__(self):
-        super().__init__(DistShift2)
-
-
-class DistShiftR3(_MiniGridLavaEnv):
-    def __init__(self):
-        super().__init__(DistShift3)
-
-
-class DynObstaclesS6N1(_MiniGridEnv):
-    def __init__(self):
-        super().__init__(CustomDynamicObstaclesS6N1)
-
-
-class DynObstaclesS8N2(_MiniGridEnv):
-    def __init__(self):
-        super().__init__(CustomDynamicObstaclesS8N2)
-
-
-class DynObstaclesS10N3(_MiniGridEnv):
-    def __init__(self):
-        super().__init__(CustomDynamicObstaclesS10N3)
-
-
-class CustomFetchS5T1N2(_MiniGridEnv):
-    def __init__(self):
-        super().__init__(CustomFetchEnv5x5T1N2)
-
-
-class CustomFetchS8T1N2(_MiniGridEnv):
-    def __init__(self):
-        super().__init__(CustomFetchEnv8x8T1N2)
-
-
-class CustomFetchS16T2N4(_MiniGridEnv):
-    def __init__(self):
-        super().__init__(CustomFetchEnv16x16T2N4)
-
-
-class CustomUnlockS5(_MiniGridEnv):
-    def __init__(self):
-        super().__init__(CustomUnlock5x5)
-
-
-class CustomUnlockS7(_MiniGridEnv):
-    def __init__(self):
-        super().__init__(CustomUnlock7x7)
-
-
-class CustomUnlockS9(_MiniGridEnv):
-    def __init__(self):
-        super().__init__(CustomUnlock9x9)
-
-
-class DoorKeyS5(_MiniGridEnv):
-    def __init__(self):
-        super().__init__(DoorKeyEnv5x5)
-
-
-class DoorKeyS6(_MiniGridEnv):
-    def __init__(self):
-        super().__init__(DoorKeyEnv6x6)
-
-
-class DoorKeyS8(_MiniGridEnv):
-    def __init__(self):
-        super().__init__(DoorKeyEnv)
+SimpleCrossingS9N1 = _MiniGridEnv.make(SimpleCrossingEnv)
+SimpleCrossingS9N2 = _MiniGridEnv.make(SimpleCrossingS9N2Env)
+SimpleCrossingS9N3 = _MiniGridEnv.make(SimpleCrossingS9N3Env)
+DistShiftR2 = _MiniGridLavaEnv.make(DistShift1)
+DistShiftR5 = _MiniGridLavaEnv.make(DistShift2)
+DistShiftR3 = _MiniGridLavaEnv.make(DistShift3)
+DynObstaclesS6N1 = _MiniGridEnv.make(CustomDynamicObstaclesS6N1)
+DynObstaclesS8N2 = _MiniGridEnv.make(CustomDynamicObstaclesS8N2)
+DynObstaclesS10N3 = _MiniGridEnv.make(CustomDynamicObstaclesS10N3)
+CustomFetchS5T1N2 = _MiniGridEnv.make(CustomFetchEnv5x5T1N2)
+CustomFetchS8T1N2 = _MiniGridEnv.make(CustomFetchEnv8x8T1N2)
+CustomFetchS16T2N4 = _MiniGridEnv.make(CustomFetchEnv16x16T2N4)
+CustomUnlockS5 = _MiniGridEnv.make(CustomUnlock5x5)
+CustomUnlockS7 = _MiniGridEnv.make(CustomUnlock7x7)
+CustomUnlockS9 = _MiniGridEnv.make(CustomUnlock9x9)
+DoorKeyS5 = _MiniGridEnv.make(DoorKeyEnv5x5)
+DoorKeyS6 = _MiniGridEnv.make(DoorKeyEnv6x6)
+DoorKeyS8 = _MiniGridEnv.make(DoorKeyEnv)
 
 
 TASKS = [

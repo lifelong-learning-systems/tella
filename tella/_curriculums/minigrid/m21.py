@@ -100,6 +100,7 @@ class _MiniGridEnv(gym.Wrapper):
         class _SubClass(cls):
             def __init__(self):
                 super().__init__(env_class)
+
         return _SubClass
 
 
@@ -217,7 +218,7 @@ class MiniGridDispersed(_MiniGridCurriculum):
                 )
 
 
-def _create_m21_ste_curriculum(
+def _ste(
     task_cls: typing.Type[gym.Env],
     task_label: str,
     variant_label: str,
@@ -242,24 +243,25 @@ def _create_m21_ste_curriculum(
                     )
                 ]
             )
+
     return _NewCurriculum
 
 
-MiniGridSimpleCrossingS9N1 = _create_m21_ste_curriculum(SimpleCrossingS9N1, "SimpleCrossing", "S9N1")
-MiniGridSimpleCrossingS9N2 = _create_m21_ste_curriculum(SimpleCrossingS9N2, "SimpleCrossing", "S9N2")
-MiniGridSimpleCrossingS9N3 = _create_m21_ste_curriculum(SimpleCrossingS9N3, "SimpleCrossing", "S9N3")
-MiniGridDistShiftR2 = _create_m21_ste_curriculum(DistShiftR2, "DistShift", "R2")
-MiniGridDistShiftR5 = _create_m21_ste_curriculum(DistShiftR5, "DistShift", "R5")
-MiniGridDistShiftR3 = _create_m21_ste_curriculum(DistShiftR3, "DistShift", "R3")
-MiniGridDynObstaclesS6N1 = _create_m21_ste_curriculum(DynObstaclesS6N1, "DynObstacles", "S6N1")
-MiniGridDynObstaclesS8N2 = _create_m21_ste_curriculum(DynObstaclesS8N2, "DynObstacles", "S8N2")
-MiniGridDynObstaclesS10N3 = _create_m21_ste_curriculum(DynObstaclesS10N3, "DynObstacles", "S10N3")
-MiniGridCustomFetchS5T1N2 = _create_m21_ste_curriculum(CustomFetchS5T1N2, "CustomFetch", "S5T1N2")
-MiniGridCustomFetchS8T1N2 = _create_m21_ste_curriculum(CustomFetchS8T1N2, "CustomFetch", "S8T1N2")
-MiniGridCustomFetchS16T2N4 = _create_m21_ste_curriculum(CustomFetchS16T2N4, "CustomFetch", "S16T2N4")
-MiniGridCustomUnlockS5 = _create_m21_ste_curriculum(CustomUnlockS5, "CustomUnlock", "S5")
-MiniGridCustomUnlockS7 = _create_m21_ste_curriculum(CustomUnlockS7, "CustomUnlock", "S7")
-MiniGridCustomUnlockS9 = _create_m21_ste_curriculum(CustomUnlockS9, "CustomUnlock", "S9")
-MiniGridDoorKeyS5 = _create_m21_ste_curriculum(DoorKeyS5, "DoorKey", "S5")
-MiniGridDoorKeyS6 = _create_m21_ste_curriculum(DoorKeyS6, "DoorKey", "S6")
-MiniGridDoorKeyS8 = _create_m21_ste_curriculum(DoorKeyS8, "DoorKey", "S8")
+MiniGridSimpleCrossingS9N1 = _ste(SimpleCrossingS9N1, "SimpleCrossing", "S9N1")
+MiniGridSimpleCrossingS9N2 = _ste(SimpleCrossingS9N2, "SimpleCrossing", "S9N2")
+MiniGridSimpleCrossingS9N3 = _ste(SimpleCrossingS9N3, "SimpleCrossing", "S9N3")
+MiniGridDistShiftR2 = _ste(DistShiftR2, "DistShift", "R2")
+MiniGridDistShiftR5 = _ste(DistShiftR5, "DistShift", "R5")
+MiniGridDistShiftR3 = _ste(DistShiftR3, "DistShift", "R3")
+MiniGridDynObstaclesS6N1 = _ste(DynObstaclesS6N1, "DynObstacles", "S6N1")
+MiniGridDynObstaclesS8N2 = _ste(DynObstaclesS8N2, "DynObstacles", "S8N2")
+MiniGridDynObstaclesS10N3 = _ste(DynObstaclesS10N3, "DynObstacles", "S10N3")
+MiniGridCustomFetchS5T1N2 = _ste(CustomFetchS5T1N2, "CustomFetch", "S5T1N2")
+MiniGridCustomFetchS8T1N2 = _ste(CustomFetchS8T1N2, "CustomFetch", "S8T1N2")
+MiniGridCustomFetchS16T2N4 = _ste(CustomFetchS16T2N4, "CustomFetch", "S16T2N4")
+MiniGridCustomUnlockS5 = _ste(CustomUnlockS5, "CustomUnlock", "S5")
+MiniGridCustomUnlockS7 = _ste(CustomUnlockS7, "CustomUnlock", "S7")
+MiniGridCustomUnlockS9 = _ste(CustomUnlockS9, "CustomUnlock", "S9")
+MiniGridDoorKeyS5 = _ste(DoorKeyS5, "DoorKey", "S5")
+MiniGridDoorKeyS6 = _ste(DoorKeyS6, "DoorKey", "S6")
+MiniGridDoorKeyS8 = _ste(DoorKeyS8, "DoorKey", "S8")

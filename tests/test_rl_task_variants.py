@@ -3,7 +3,8 @@ import pytest
 import typing
 import gym
 from gym.envs.classic_control import CartPoleEnv
-from tella.curriculum import EpisodicTaskVariant, _where
+from tella.curriculum import EpisodicTaskVariant
+from tella.experiment import transition_generator, _where
 
 
 class DummyEnv(gym.Env):
@@ -62,8 +63,9 @@ def test_num_episodes(num_envs: int, num_episodes: int):
         params={"a": 1, "b": 3.0, "c": "a"},
         rng_seed=0,
     )
-    exp.set_num_envs(num_envs)
-    masked_transitions = sum(exp.generate(choose_action_zero), [])
+    masked_transitions = sum(
+        transition_generator(exp, choose_action_zero, num_envs), []
+    )
     steps = [transition for transition in masked_transitions if transition is not None]
     assert len(steps) == 5 * num_episodes
     assert sum([done for obs, action, reward, done, next_obs in steps]) == num_episodes
@@ -107,10 +109,6 @@ def test_labels():
     assert task_variant.variant_label == "VariantLabel"
 
 
-def test_validate():
-    pass
-
-
 @pytest.mark.parametrize("num_envs", [1, 2])
 def test_generate_return_type(num_envs):
     task_variant = EpisodicTaskVariant(
@@ -119,8 +117,7 @@ def test_generate_return_type(num_envs):
         params={"a": 1, "b": 3.0, "c": "a"},
         rng_seed=0,
     )
-    task_variant.set_num_envs(num_envs)
-    all_transitions = task_variant.generate(choose_action_zero)
+    all_transitions = transition_generator(task_variant, choose_action_zero, num_envs)
 
     assert isinstance(all_transitions, typing.Generator)
 
@@ -153,7 +150,9 @@ def test_terminal_observations():
         },
         rng_seed=0,
     )
-    transitions = sum(task_variant.generate(choose_action_zero), [])
+    transitions = sum(
+        transition_generator(task_variant, choose_action_zero, num_envs=1), []
+    )
     assert len(transitions) == 3
     assert transitions[0][0] == 0
     assert transitions[0][-1] == 1
@@ -218,7 +217,9 @@ def test_single_env_mask():
         params={"a": 1, "b": 3.0, "c": "a"},
         rng_seed=0,
     )
-    transitions = sum(task_variant.generate(choose_action_zero), [])
+    transitions = sum(
+        transition_generator(task_variant, choose_action_zero, num_envs=1), []
+    )
     assert not any(transition is None for transition in transitions)
 
 
@@ -230,8 +231,7 @@ def test_vec_cartpole_env_mask(num_episodes: int):
         num_episodes=num_episodes,
         rng_seed=0,
     )
-    task_variant.set_num_envs(num_envs)
-    transitions = list(task_variant.generate(choose_action_zero))
+    transitions = list(transition_generator(task_variant, choose_action_zero, num_envs))
 
     episode_id = [i for i in range(num_envs)]
     next_episode_id = num_envs
@@ -266,8 +266,7 @@ def test_vec_dummy_env_mask(num_episodes: int):
         params={"a": 1, "b": 3.0, "c": "a"},
         rng_seed=task_rng_seed,
     )
-    task_variant.set_num_envs(num_envs)
-    transitions = list(task_variant.generate(choose_action_zero))
+    transitions = list(transition_generator(task_variant, choose_action_zero, num_envs))
     masked = [[transition is None for transition in batch] for batch in transitions]
 
     expected = {
@@ -319,14 +318,13 @@ def test_ignore_unmasked_actions():
             params={"a": 1, "b": 3.0, "c": "a"},
             rng_seed=0,
         )
-        task_variant.set_num_envs(3)
         return task_variant
 
     masked_actions_transitions = list(
-        identical_task_variant().generate(choose_action_zero)
+        transition_generator(identical_task_variant(), choose_action_zero, 3)
     )
     unmasked_actions_transitions = list(
-        identical_task_variant().generate(unmasked_choose_action_zero)
+        transition_generator(identical_task_variant(), unmasked_choose_action_zero, 3)
     )
 
     assert masked_actions_transitions == unmasked_actions_transitions

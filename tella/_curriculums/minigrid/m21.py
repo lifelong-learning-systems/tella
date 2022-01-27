@@ -53,7 +53,7 @@ from .envs import (
 class MiniGridReducedActionSpaceWrapper(gym.ActionWrapper):
     """Reduce the action space in environment to help learning."""
 
-    def __init__(self, env: gym.Env, num_actions: int) -> None:
+    def __init__(self, env: gym.Env, num_actions: int = 6) -> None:
         assert isinstance(env.action_space, gym.spaces.Discrete)
         assert num_actions <= env.action_space.n
         super().__init__(env)
@@ -91,10 +91,9 @@ class MiniGridLavaPenaltyWrapper(gym.Wrapper):
 
 class _MiniGridEnv(gym.Wrapper):
     def __init__(self, env_class: typing.Type[gym.Env]) -> None:
-        env = env_class()
-        env = ImgObsWrapper(env)
-        env = MiniGridReducedActionSpaceWrapper(env, num_actions=6)
-        super().__init__(env)
+        super().__init__(env_class())
+        self.env = ImgObsWrapper(self.env)
+        self.env = MiniGridReducedActionSpaceWrapper(self.env)
 
     @classmethod
     def make(cls, env_class: typing.Type[gym.Env]):
@@ -104,20 +103,10 @@ class _MiniGridEnv(gym.Wrapper):
         return _SubClass
 
 
-class _MiniGridLavaEnv(gym.Wrapper):
+class _MiniGridLavaEnv(_MiniGridEnv):
     def __init__(self, env_class: typing.Type[gym.Env]) -> None:
-        env = env_class()
-        env = ImgObsWrapper(env)
-        env = MiniGridReducedActionSpaceWrapper(env, num_actions=6)
-        env = MiniGridLavaPenaltyWrapper(env)
-        super().__init__(env)
-
-    @classmethod
-    def make(cls, env_class: typing.Type[gym.Env]):
-        class _SubClass(cls):
-            def __init__(self):
-                super().__init__(env_class)
-        return _SubClass
+        super().__init__(env_class)
+        self.env = MiniGridLavaPenaltyWrapper(self.env)
 
 
 SimpleCrossingS9N1 = _MiniGridEnv.make(SimpleCrossingEnv)

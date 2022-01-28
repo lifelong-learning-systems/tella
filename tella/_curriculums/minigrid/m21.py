@@ -111,34 +111,94 @@ class _MiniGridLavaEnv(_MiniGridEnv):
         self.env = MiniGridLavaPenaltyWrapper(self.env)
 
 
-def _wrap_minigrid_env(
-    env_class: typing.Type[gym.Env], wrapper_class: typing.Type[_MiniGridEnv]
-):
-    class _WrappedEnv(wrapper_class):
-        def __init__(self):
-            super().__init__(env_class)
-
-    return _WrappedEnv
+class SimpleCrossingS9N1(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(SimpleCrossingEnv)
 
 
-SimpleCrossingS9N1 = _wrap_minigrid_env(SimpleCrossingEnv, _MiniGridEnv)
-SimpleCrossingS9N2 = _wrap_minigrid_env(SimpleCrossingS9N2Env, _MiniGridEnv)
-SimpleCrossingS9N3 = _wrap_minigrid_env(SimpleCrossingS9N3Env, _MiniGridEnv)
-DistShiftR2 = _wrap_minigrid_env(DistShift1, _MiniGridLavaEnv)
-DistShiftR5 = _wrap_minigrid_env(DistShift2, _MiniGridLavaEnv)
-DistShiftR3 = _wrap_minigrid_env(DistShift3, _MiniGridLavaEnv)
-DynObstaclesS6N1 = _wrap_minigrid_env(CustomDynamicObstaclesS6N1, _MiniGridEnv)
-DynObstaclesS8N2 = _wrap_minigrid_env(CustomDynamicObstaclesS8N2, _MiniGridEnv)
-DynObstaclesS10N3 = _wrap_minigrid_env(CustomDynamicObstaclesS10N3, _MiniGridEnv)
-CustomFetchS5T1N2 = _wrap_minigrid_env(CustomFetchEnv5x5T1N2, _MiniGridEnv)
-CustomFetchS8T1N2 = _wrap_minigrid_env(CustomFetchEnv8x8T1N2, _MiniGridEnv)
-CustomFetchS16T2N4 = _wrap_minigrid_env(CustomFetchEnv16x16T2N4, _MiniGridEnv)
-CustomUnlockS5 = _wrap_minigrid_env(CustomUnlock5x5, _MiniGridEnv)
-CustomUnlockS7 = _wrap_minigrid_env(CustomUnlock7x7, _MiniGridEnv)
-CustomUnlockS9 = _wrap_minigrid_env(CustomUnlock9x9, _MiniGridEnv)
-DoorKeyS5 = _wrap_minigrid_env(DoorKeyEnv5x5, _MiniGridEnv)
-DoorKeyS6 = _wrap_minigrid_env(DoorKeyEnv6x6, _MiniGridEnv)
-DoorKeyS8 = _wrap_minigrid_env(DoorKeyEnv, _MiniGridEnv)
+class SimpleCrossingS9N2(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(SimpleCrossingS9N2Env)
+
+
+class SimpleCrossingS9N3(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(SimpleCrossingS9N3Env)
+
+
+class DistShiftR2(_MiniGridLavaEnv):
+    def __init__(self):
+        super().__init__(DistShift1)
+
+
+class DistShiftR5(_MiniGridLavaEnv):
+    def __init__(self):
+        super().__init__(DistShift2)
+
+
+class DistShiftR3(_MiniGridLavaEnv):
+    def __init__(self):
+        super().__init__(DistShift3)
+
+
+class DynObstaclesS6N1(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(CustomDynamicObstaclesS6N1)
+
+
+class DynObstaclesS8N2(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(CustomDynamicObstaclesS8N2)
+
+
+class DynObstaclesS10N3(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(CustomDynamicObstaclesS10N3)
+
+
+class CustomFetchS5T1N2(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(CustomFetchEnv5x5T1N2)
+
+
+class CustomFetchS8T1N2(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(CustomFetchEnv8x8T1N2)
+
+
+class CustomFetchS16T2N4(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(CustomFetchEnv16x16T2N4)
+
+
+class CustomUnlockS5(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(CustomUnlock5x5)
+
+
+class CustomUnlockS7(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(CustomUnlock7x7)
+
+
+class CustomUnlockS9(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(CustomUnlock9x9)
+
+
+class DoorKeyS5(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(DoorKeyEnv5x5)
+
+
+class DoorKeyS6(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(DoorKeyEnv6x6)
+
+
+class DoorKeyS8(_MiniGridEnv):
+    def __init__(self):
+        super().__init__(DoorKeyEnv)
 
 
 TASKS = [
@@ -229,86 +289,99 @@ class MiniGridDispersed(_MiniGridCurriculum):
                 )
 
 
-def _make_single_learning_task_minigrid_curriculum(
-    task_cls: typing.Type[gym.Env],
-    task_label: str,
-    variant_label: str,
-):
-    class _NewCurriculum(_MiniGridCurriculum):
-        def learn_blocks(
-            self,
-        ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-            yield LearnBlock(
-                [
-                    TaskBlock(
-                        task_label,
-                        [
-                            EpisodicTaskVariant(
-                                task_cls,
-                                task_label=task_label,
-                                variant_label=variant_label,
-                                num_episodes=1000,
-                                rng_seed=self.rng.bit_generator.random_raw(),
-                            )
-                        ],
-                    )
-                ]
-            )
+class _STECurriculum(_MiniGridCurriculum):
+    TASK_CLASS: typing.Type[gym.Env] = None
+    TASK_LABEL: str = None
+    VARIANT_LABEL: str = None
 
-    return _NewCurriculum
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+        yield LearnBlock(
+            [
+                TaskBlock(
+                    self.TASK_LABEL,
+                    [
+                        EpisodicTaskVariant(
+                            self.TASK_CLASS,
+                            task_label=self.TASK_LABEL,
+                            variant_label=self.VARIANT_LABEL,
+                            num_episodes=1000,
+                            rng_seed=self.rng.bit_generator.random_raw(),
+                        )
+                    ],
+                )
+            ]
+        )
 
 
-MiniGridSimpleCrossingS9N1 = _make_single_learning_task_minigrid_curriculum(
-    SimpleCrossingS9N1, "SimpleCrossing", "S9N1"
-)
-MiniGridSimpleCrossingS9N2 = _make_single_learning_task_minigrid_curriculum(
-    SimpleCrossingS9N2, "SimpleCrossing", "S9N2"
-)
-MiniGridSimpleCrossingS9N3 = _make_single_learning_task_minigrid_curriculum(
-    SimpleCrossingS9N3, "SimpleCrossing", "S9N3"
-)
-MiniGridDistShiftR2 = _make_single_learning_task_minigrid_curriculum(
-    DistShiftR2, "DistShift", "R2"
-)
-MiniGridDistShiftR5 = _make_single_learning_task_minigrid_curriculum(
-    DistShiftR5, "DistShift", "R5"
-)
-MiniGridDistShiftR3 = _make_single_learning_task_minigrid_curriculum(
-    DistShiftR3, "DistShift", "R3"
-)
-MiniGridDynObstaclesS6N1 = _make_single_learning_task_minigrid_curriculum(
-    DynObstaclesS6N1, "DynObstacles", "S6N1"
-)
-MiniGridDynObstaclesS8N2 = _make_single_learning_task_minigrid_curriculum(
-    DynObstaclesS8N2, "DynObstacles", "S8N2"
-)
-MiniGridDynObstaclesS10N3 = _make_single_learning_task_minigrid_curriculum(
-    DynObstaclesS10N3, "DynObstacles", "S10N3"
-)
-MiniGridCustomFetchS5T1N2 = _make_single_learning_task_minigrid_curriculum(
-    CustomFetchS5T1N2, "CustomFetch", "S5T1N2"
-)
-MiniGridCustomFetchS8T1N2 = _make_single_learning_task_minigrid_curriculum(
-    CustomFetchS8T1N2, "CustomFetch", "S8T1N2"
-)
-MiniGridCustomFetchS16T2N4 = _make_single_learning_task_minigrid_curriculum(
-    CustomFetchS16T2N4, "CustomFetch", "S16T2N4"
-)
-MiniGridCustomUnlockS5 = _make_single_learning_task_minigrid_curriculum(
-    CustomUnlockS5, "CustomUnlock", "S5"
-)
-MiniGridCustomUnlockS7 = _make_single_learning_task_minigrid_curriculum(
-    CustomUnlockS7, "CustomUnlock", "S7"
-)
-MiniGridCustomUnlockS9 = _make_single_learning_task_minigrid_curriculum(
-    CustomUnlockS9, "CustomUnlock", "S9"
-)
-MiniGridDoorKeyS5 = _make_single_learning_task_minigrid_curriculum(
-    DoorKeyS5, "DoorKey", "S5"
-)
-MiniGridDoorKeyS6 = _make_single_learning_task_minigrid_curriculum(
-    DoorKeyS6, "DoorKey", "S6"
-)
-MiniGridDoorKeyS8 = _make_single_learning_task_minigrid_curriculum(
-    DoorKeyS8, "DoorKey", "S8"
-)
+class MiniGridSimpleCrossingS9N1(_STECurriculum):
+    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = SimpleCrossingS9N1, "SimpleCrossing", "S9N1"
+
+
+class MiniGridSimpleCrossingS9N2(_STECurriculum):
+    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = SimpleCrossingS9N2, "SimpleCrossing", "S9N2"
+
+
+class MiniGridSimpleCrossingS9N3(_STECurriculum):
+    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = SimpleCrossingS9N3, "SimpleCrossing", "S9N3"
+
+
+class MiniGridDistShiftR2(_STECurriculum):
+    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = DistShiftR2, "DistShift", "R2"
+
+
+class MiniGridDistShiftR5(_STECurriculum):
+    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = DistShiftR5, "DistShift", "R5"
+
+
+class MiniGridDistShiftR3(_STECurriculum):
+    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = DistShiftR3, "DistShift", "R3"
+
+
+class MiniGridDynObstaclesS6N1(_STECurriculum):
+    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = DynObstaclesS6N1, "DynObstacles", "S6N1"
+
+
+class MiniGridDynObstaclesS8N2(_STECurriculum):
+    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = DynObstaclesS8N2, "DynObstacles", "S8N2"
+
+
+class MiniGridDynObstaclesS10N3(_STECurriculum):
+    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = DynObstaclesS10N3, "DynObstacles", "S10N3"
+
+
+class MiniGridCustomFetchS5T1N2(_STECurriculum):
+    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = CustomFetchS5T1N2, "CustomFetch", "S5T1N2"
+
+
+class MiniGridCustomFetchS8T1N2(_STECurriculum):
+    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = CustomFetchS8T1N2, "CustomFetch", "S8T1N2"
+
+
+class MiniGridCustomFetchS16T2N4(_STECurriculum):
+    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = CustomFetchS16T2N4, "CustomFetch", "S16T2N4"
+
+
+class MiniGridCustomUnlockS5(_STECurriculum):
+    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = CustomUnlockS5, "CustomUnlock", "S5"
+
+
+class MiniGridCustomUnlockS7(_STECurriculum):
+    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = CustomUnlockS7, "CustomUnlock", "S7"
+
+
+class MiniGridCustomUnlockS9(_STECurriculum):
+    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = CustomUnlockS9, "CustomUnlock", "S9"
+
+
+class MiniGridDoorKeyS5(_STECurriculum):
+    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = DoorKeyS5, "DoorKey", "S5"
+
+
+class MiniGridDoorKeyS6(_STECurriculum):
+    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = DoorKeyS6, "DoorKey", "S6"
+
+
+class MiniGridDoorKeyS8(_STECurriculum):
+    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = DoorKeyS8, "DoorKey", "S8"

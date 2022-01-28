@@ -4,7 +4,7 @@ import typing
 import gym
 from gym.envs.classic_control import CartPoleEnv
 from tella.curriculum import EpisodicTaskVariant
-from tella.experiment import transition_generator, _where
+from tella.experiment import generate_transitions, _where
 
 
 class DummyEnv(gym.Env):
@@ -64,7 +64,7 @@ def test_num_episodes(num_envs: int, num_episodes: int):
         rng_seed=0,
     )
     masked_transitions = sum(
-        transition_generator(exp, choose_action_zero, num_envs), []
+        generate_transitions(exp, choose_action_zero, num_envs), []
     )
     steps = [transition for transition in masked_transitions if transition is not None]
     assert len(steps) == 5 * num_episodes
@@ -117,7 +117,7 @@ def test_generate_return_type(num_envs):
         params={"a": 1, "b": 3.0, "c": "a"},
         rng_seed=0,
     )
-    all_transitions = transition_generator(task_variant, choose_action_zero, num_envs)
+    all_transitions = generate_transitions(task_variant, choose_action_zero, num_envs)
 
     assert isinstance(all_transitions, typing.Generator)
 
@@ -151,7 +151,7 @@ def test_terminal_observations():
         rng_seed=0,
     )
     transitions = sum(
-        transition_generator(task_variant, choose_action_zero, num_envs=1), []
+        generate_transitions(task_variant, choose_action_zero, num_envs=1), []
     )
     assert len(transitions) == 3
     assert transitions[0][0] == 0
@@ -160,34 +160,6 @@ def test_terminal_observations():
     assert transitions[1][-1] == 2
     assert transitions[2][0] == 2
     assert transitions[2][-1] == 3
-
-
-def test_show_rewards():
-    task_variant = EpisodicTaskVariant(
-        DummyEnv,
-        num_episodes=3,
-        params={"a": 1, "b": 3.0, "c": "a"},
-        rng_seed=0,
-    )
-    task_variant.set_show_rewards(True)
-    transitions = sum(task_variant.generate(choose_action_zero), [])
-    assert len(transitions) > 0
-    for obs, action, reward, done, next_obs in transitions:
-        assert reward is not None
-
-
-def test_hide_rewards():
-    task_variant = EpisodicTaskVariant(
-        DummyEnv,
-        num_episodes=3,
-        params={"a": 1, "b": 3.0, "c": "a"},
-        rng_seed=0,
-    )
-    task_variant.set_show_rewards(False)
-    transitions = sum(task_variant.generate(choose_action_zero), [])
-    assert len(transitions) > 0
-    for obs, action, reward, done, next_obs in transitions:
-        assert reward is None
 
 
 def test_where():
@@ -218,7 +190,7 @@ def test_single_env_mask():
         rng_seed=0,
     )
     transitions = sum(
-        transition_generator(task_variant, choose_action_zero, num_envs=1), []
+        generate_transitions(task_variant, choose_action_zero, num_envs=1), []
     )
     assert not any(transition is None for transition in transitions)
 
@@ -231,7 +203,7 @@ def test_vec_cartpole_env_mask(num_episodes: int):
         num_episodes=num_episodes,
         rng_seed=0,
     )
-    transitions = list(transition_generator(task_variant, choose_action_zero, num_envs))
+    transitions = list(generate_transitions(task_variant, choose_action_zero, num_envs))
 
     episode_id = [i for i in range(num_envs)]
     next_episode_id = num_envs
@@ -266,7 +238,7 @@ def test_vec_dummy_env_mask(num_episodes: int):
         params={"a": 1, "b": 3.0, "c": "a"},
         rng_seed=task_rng_seed,
     )
-    transitions = list(transition_generator(task_variant, choose_action_zero, num_envs))
+    transitions = list(generate_transitions(task_variant, choose_action_zero, num_envs))
     masked = [[transition is None for transition in batch] for batch in transitions]
 
     expected = {
@@ -321,10 +293,10 @@ def test_ignore_unmasked_actions():
         return task_variant
 
     masked_actions_transitions = list(
-        transition_generator(identical_task_variant(), choose_action_zero, 3)
+        generate_transitions(identical_task_variant(), choose_action_zero, 3)
     )
     unmasked_actions_transitions = list(
-        transition_generator(identical_task_variant(), unmasked_choose_action_zero, 3)
+        generate_transitions(identical_task_variant(), unmasked_choose_action_zero, 3)
     )
 
     assert masked_actions_transitions == unmasked_actions_transitions

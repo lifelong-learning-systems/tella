@@ -5,9 +5,14 @@ import pytest
 from unittest import mock
 from collections import defaultdict
 import gym
-from tella.experiment import rl_experiment, _spaces, run
+from tella.experiment import rl_experiment, _spaces, run, hide_rewards
 from l2logger.validate import run as l2logger_validate
-from .simple_curriculum import SimpleRLCurriculum, MultiEpisodeRLCurriculum
+from .simple_curriculum import (
+    SimpleRLCurriculum,
+    MultiEpisodeRLCurriculum,
+    LearnOnlyCurriculum,
+    EvalOnlyCurriculum,
+)
 from .simple_agent import SimpleRLAgent
 
 
@@ -560,3 +565,65 @@ def test_gym_async_vec_env_seeds(seed, tmpdir):
         (rng_seed,), _kwargs = call
         rng_seeds.add(rng_seed)
     assert len(rng_seeds) == expected_num * 2
+
+
+@mock.patch("tests.simple_agent.SimpleRLAgent.receive_transitions")
+def test_rewards_shown(transition_calls, tmpdir):
+    rl_experiment(
+        SimpleRLAgent,
+        LearnOnlyCurriculum,
+        num_lifetimes=1,
+        num_parallel_envs=1,
+        log_dir=tmpdir,
+    )
+
+    assert transition_calls.call_count > 0
+    for call in transition_calls.call_args_list:
+        (transitions,), _kwargs = call
+        for t in transitions:
+            if t is not None:
+                obs, action, reward, done, next_obs = t
+                assert reward is not None
+
+
+@mock.patch("tests.simple_agent.SimpleRLAgent.receive_transitions")
+def test_rewards_hidden(transition_calls, tmpdir):
+    rl_experiment(
+        SimpleRLAgent,
+        EvalOnlyCurriculum,
+        num_lifetimes=1,
+        num_parallel_envs=1,
+        log_dir=tmpdir,
+    )
+
+    assert transition_calls.call_count > 0
+    for call in transition_calls.call_args_list:
+        (transitions,), _kwargs = call
+        for t in transitions:
+            if t is not None:
+                obs, action, reward, done, next_obs = t
+                assert reward is None
+
+
+def test_hide_rewards():
+    t1 = ("obs", "action", 1.0, "done", "next_obs")
+    t2 = ("obs", "action", 2.0, "done", "next_obs")
+    t3 = ("obs", "action", 3.0, "done", "next_obs")
+
+    assert hide_rewards([]) == []
+    assert hide_rewards([None]) == [None]
+    assert hide_rewards([t1, t2, t3]) == [
+        ("obs", "action", None, "done", "next_obs"),
+        ("obs", "action", None, "done", "next_obs"),
+        ("obs", "action", None, "done", "next_obs"),
+    ]
+    assert hide_rewards([t1, t2, None]) == [
+        ("obs", "action", None, "done", "next_obs"),
+        ("obs", "action", None, "done", "next_obs"),
+        None,
+    ]
+    assert hide_rewards([None, t2, t3]) == [
+        None,
+        ("obs", "action", None, "done", "next_obs"),
+        ("obs", "action", None, "done", "next_obs"),
+    ]

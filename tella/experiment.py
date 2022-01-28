@@ -239,7 +239,7 @@ def run(
                 agent.task_variant_start(
                     task_variant.task_label, task_variant.variant_label
                 )
-                for transitions in transition_generator(
+                for transitions in generate_transitions(
                     task_variant, agent.choose_actions, num_envs, render
                 ):
                     data_logger.receive_transitions(transitions)
@@ -311,7 +311,7 @@ class L2Logger:
                 self.total_episodes += 1
 
 
-def transition_generator(
+def generate_transitions(
     task_variant: EpisodicTaskVariant,
     action_fn: ActionFn,
     num_envs: int,

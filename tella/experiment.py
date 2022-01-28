@@ -33,7 +33,7 @@ from .curriculum import (
     ActionFn,
     Transition,
 )
-
+from .vector_env import WorkerPool, PooledVectorEnv
 
 logger = logging.getLogger(__name__)
 
@@ -104,6 +104,7 @@ def rl_experiment(
     render: typing.Optional[bool] = False,
     agent_config: typing.Optional[str] = None,
     lifetime_idx: int = 0,
+    pool_workers: bool = True,
 ) -> None:
     """
     Run an experiment with an RL agent and an RL curriculum.
@@ -176,6 +177,7 @@ def rl_experiment(
             render=render,
             log_dir=log_dir,
             num_envs=num_parallel_envs,
+            pool_workers=pool_workers,
         )
 
 
@@ -211,6 +213,7 @@ def run(
     render: typing.Optional[bool],
     log_dir: str,
     num_envs: typing.Optional[int] = 1,
+    pool_workers: bool = True,
 ):
     """
     Run an agent through an entire curriculum. This assumes that the agent
@@ -224,6 +227,9 @@ def run(
         "scenario_type": "custom",
     }
     data_logger = L2Logger(log_dir, scenario_dir, scenario_info, num_envs)
+
+    worker_pool = WorkerPool(num_envs) if pool_workers else None
+
     for block in curriculum.learn_blocks_and_eval_blocks():
         is_learning_allowed = agent.is_learning_allowed = block.is_learning_allowed
         block_type = "Learning" if is_learning_allowed else "Evaluating"
@@ -240,7 +246,11 @@ def run(
                     task_variant.task_label, task_variant.variant_label
                 )
                 for transitions in generate_transitions(
-                    task_variant, agent.choose_actions, num_envs, render
+                    task_variant,
+                    agent.choose_actions,
+                    num_envs,
+                    worker_pool=worker_pool,
+                    render=render,
                 ):
                     data_logger.receive_transitions(transitions)
                     agent.receive_transitions(
@@ -328,6 +338,7 @@ def generate_transitions(
     action_fn: ActionFn,
     num_envs: int,
     render: bool = False,
+    worker_pool: typing.Optional[WorkerPool] = None,
 ) -> typing.Iterable[typing.List[typing.Optional[Transition]]]:
     """
     Yields markov transitions from the interaction between the `action_fn`
@@ -347,11 +358,12 @@ def generate_transitions(
     :param render: Whether to render the environment at each step.
     :return: A generator of transitions.
     """
-    vector_env_cls = gym.vector.AsyncVectorEnv
-    if num_envs == 1:
-        vector_env_cls = gym.vector.SyncVectorEnv
+    env = PooledVectorEnv(
+        env_fns=[task_variant.make_env for _ in range(num_envs)],
+        worker_pool=worker_pool,
+    )
 
-    env = vector_env_cls([task_variant.make_env for _ in range(num_envs)])
+    env.set_env(task_variant.make_env)
 
     env.seed(task_variant.rng_seed)
     num_episodes_finished = 0
@@ -377,7 +389,7 @@ def generate_transitions(
         # step in the VectorEnv
         next_observations, rewards, dones, infos = env.step(unmasked_actions)
         if render:
-            env.envs[0].render()
+            env.render()
 
         # yield all the transitions of this step
         resulting_obs = [

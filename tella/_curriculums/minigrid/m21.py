@@ -237,6 +237,23 @@ class _MiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
             for cls, task_label, variant_label in TASKS
         )
 
+    def episode_limit_from_config(self, task_label: str, variant_label: str):
+        """
+        Set variable lengths for task blocks based on optional configuration file.
+        """
+        task_variant_label = task_label + variant_label
+        if task_variant_label in self.config:
+            # TODO: move config validation elsewhere
+            assert isinstance(task_variant_label, int)
+            return self.config[task_variant_label]
+
+        elif task_label in self.config:
+            assert isinstance(task_label, int)
+            return self.config[task_label]
+
+        else:
+            return 1000
+
 
 class MiniGridCondensed(_MiniGridCurriculum):
     def learn_blocks(
@@ -252,7 +269,9 @@ class MiniGridCondensed(_MiniGridCurriculum):
                                 cls,
                                 task_label=task_label,
                                 variant_label=variant_label,
-                                num_episodes=1000,
+                                num_episodes=self.episode_limit_from_config(
+                                    task_label, variant_label
+                                ),
                                 rng_seed=self.rng.bit_generator.random_raw(),
                             )
                         ],
@@ -280,7 +299,10 @@ class MiniGridDispersed(_MiniGridCurriculum):
                                     cls,
                                     task_label=task_label,
                                     variant_label=variant_label,
-                                    num_episodes=1000 // self.num_repetitions,
+                                    num_episodes=self.episode_limit_from_config(
+                                        task_label, variant_label
+                                    )
+                                    // self.num_repetitions,
                                     rng_seed=self.rng.bit_generator.random_raw(),
                                 )
                             ],
@@ -306,7 +328,9 @@ class _STECurriculum(_MiniGridCurriculum):
                             self.TASK_CLASS,
                             task_label=self.TASK_LABEL,
                             variant_label=self.VARIANT_LABEL,
-                            num_episodes=1000,
+                            num_episodes=self.episode_limit_from_config(
+                                self.TASK_LABEL, self.VARIANT_LABEL
+                            ),
                             rng_seed=self.rng.bit_generator.random_raw(),
                         )
                     ],

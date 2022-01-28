@@ -95,14 +95,6 @@ class _MiniGridEnv(gym.Wrapper):
         self.env = ImgObsWrapper(self.env)
         self.env = MiniGridReducedActionSpaceWrapper(self.env)
 
-    @classmethod
-    def make(cls, env_class: typing.Type[gym.Env]):
-        class _SubClass(cls):
-            def __init__(self):
-                super().__init__(env_class)
-
-        return _SubClass
-
 
 class _MiniGridLavaEnv(_MiniGridEnv):
     def __init__(self, env_class: typing.Type[gym.Env]) -> None:
@@ -110,24 +102,34 @@ class _MiniGridLavaEnv(_MiniGridEnv):
         self.env = MiniGridLavaPenaltyWrapper(self.env)
 
 
-SimpleCrossingS9N1 = _MiniGridEnv.make(SimpleCrossingEnv)
-SimpleCrossingS9N2 = _MiniGridEnv.make(SimpleCrossingS9N2Env)
-SimpleCrossingS9N3 = _MiniGridEnv.make(SimpleCrossingS9N3Env)
-DistShiftR2 = _MiniGridLavaEnv.make(DistShift1)
-DistShiftR5 = _MiniGridLavaEnv.make(DistShift2)
-DistShiftR3 = _MiniGridLavaEnv.make(DistShift3)
-DynObstaclesS6N1 = _MiniGridEnv.make(CustomDynamicObstaclesS6N1)
-DynObstaclesS8N2 = _MiniGridEnv.make(CustomDynamicObstaclesS8N2)
-DynObstaclesS10N3 = _MiniGridEnv.make(CustomDynamicObstaclesS10N3)
-CustomFetchS5T1N2 = _MiniGridEnv.make(CustomFetchEnv5x5T1N2)
-CustomFetchS8T1N2 = _MiniGridEnv.make(CustomFetchEnv8x8T1N2)
-CustomFetchS16T2N4 = _MiniGridEnv.make(CustomFetchEnv16x16T2N4)
-CustomUnlockS5 = _MiniGridEnv.make(CustomUnlock5x5)
-CustomUnlockS7 = _MiniGridEnv.make(CustomUnlock7x7)
-CustomUnlockS9 = _MiniGridEnv.make(CustomUnlock9x9)
-DoorKeyS5 = _MiniGridEnv.make(DoorKeyEnv5x5)
-DoorKeyS6 = _MiniGridEnv.make(DoorKeyEnv6x6)
-DoorKeyS8 = _MiniGridEnv.make(DoorKeyEnv)
+def _wrap_minigrid_env(
+    env_class: typing.Type[gym.Env], wrapper_class: typing.Type[_MiniGridEnv]
+):
+    class _WrappedEnv(wrapper_class):
+        def __init__(self):
+            super().__init__(env_class)
+
+    return _WrappedEnv
+
+
+SimpleCrossingS9N1 = _wrap_minigrid_env(SimpleCrossingEnv, _MiniGridEnv)
+SimpleCrossingS9N2 = _wrap_minigrid_env(SimpleCrossingS9N2Env, _MiniGridEnv)
+SimpleCrossingS9N3 = _wrap_minigrid_env(SimpleCrossingS9N3Env, _MiniGridEnv)
+DistShiftR2 = _wrap_minigrid_env(DistShift1, _MiniGridLavaEnv)
+DistShiftR5 = _wrap_minigrid_env(DistShift2, _MiniGridLavaEnv)
+DistShiftR3 = _wrap_minigrid_env(DistShift3, _MiniGridLavaEnv)
+DynObstaclesS6N1 = _wrap_minigrid_env(CustomDynamicObstaclesS6N1, _MiniGridEnv)
+DynObstaclesS8N2 = _wrap_minigrid_env(CustomDynamicObstaclesS8N2, _MiniGridEnv)
+DynObstaclesS10N3 = _wrap_minigrid_env(CustomDynamicObstaclesS10N3, _MiniGridEnv)
+CustomFetchS5T1N2 = _wrap_minigrid_env(CustomFetchEnv5x5T1N2, _MiniGridEnv)
+CustomFetchS8T1N2 = _wrap_minigrid_env(CustomFetchEnv8x8T1N2, _MiniGridEnv)
+CustomFetchS16T2N4 = _wrap_minigrid_env(CustomFetchEnv16x16T2N4, _MiniGridEnv)
+CustomUnlockS5 = _wrap_minigrid_env(CustomUnlock5x5, _MiniGridEnv)
+CustomUnlockS7 = _wrap_minigrid_env(CustomUnlock7x7, _MiniGridEnv)
+CustomUnlockS9 = _wrap_minigrid_env(CustomUnlock9x9, _MiniGridEnv)
+DoorKeyS5 = _wrap_minigrid_env(DoorKeyEnv5x5, _MiniGridEnv)
+DoorKeyS6 = _wrap_minigrid_env(DoorKeyEnv6x6, _MiniGridEnv)
+DoorKeyS8 = _wrap_minigrid_env(DoorKeyEnv, _MiniGridEnv)
 
 
 TASKS = [

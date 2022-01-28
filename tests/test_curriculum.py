@@ -1,6 +1,6 @@
 import itertools
 import typing
-import numpy as np
+from unittest import mock
 from gym.envs.classic_control import CartPoleEnv, MountainCarEnv
 from tella.curriculum import (
     AbstractCurriculum,
@@ -380,3 +380,92 @@ def test_interleaved_structure():
         else:
             assert isinstance(blocks[i], AbstractLearnBlock)
     assert isinstance(blocks[-1], AbstractEvalBlock)
+
+
+class ConfigurableCurriculum(AbstractCurriculum[EpisodicTaskVariant]):
+    def learn_blocks_and_eval_blocks(
+        self,
+    ) -> typing.Iterable[
+        typing.Union[
+            "AbstractLearnBlock[EpisodicTaskVariant]",
+            "AbstractEvalBlock[EpisodicTaskVariant]",
+        ]
+    ]:
+        num_blocks = self.config.get("num learn blocks", 1)
+        num_episodes = self.config.get("num episodes", 1)
+        for _ in range(num_blocks):
+            yield simple_learn_block(
+                [
+                    EpisodicTaskVariant(
+                        CartPoleEnv,
+                        num_episodes=num_episodes,
+                        rng_seed=self.rng.bit_generator.random_raw(),
+                    )
+                ]
+            )
+        yield simple_eval_block(
+            [
+                EpisodicTaskVariant(
+                    CartPoleEnv,
+                    num_episodes=1,
+                    rng_seed=self.rng.bit_generator.random_raw(),
+                )
+            ]
+        )
+
+
+def test_curriculum_default_configuration():
+    curriculum = ConfigurableCurriculum(rng_seed=0)
+    task_info = [
+        (
+            n_block,
+            block.is_learning_allowed,
+            variant.task_label,
+            variant.variant_label,
+            variant.num_episodes,
+        )
+        for n_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks())
+        for task in block.task_blocks()
+        for variant in task.task_variants()
+    ]
+    expected_values = [
+        (0, True, "CartPoleEnv", "Default", 1),
+        (1, False, "CartPoleEnv", "Default", 1),
+    ]
+    assert task_info == expected_values
+
+
+@mock.patch(
+    "builtins.open",
+    mock.mock_open(
+        read_data=(
+            "# This is a fake yaml file to be loaded as a test config\n"
+            "---\n"
+            "num learn blocks: 3\n"
+            "num episodes: 10\n"
+        )
+    ),
+)
+def test_curriculum_file_configuration():
+    curriculum = ConfigurableCurriculum(
+        rng_seed=0, config_file="mocked.yaml"
+    )  # Filename doesn't matter here
+    task_info = [
+        (
+            n_block,
+            block.is_learning_allowed,
+            variant.task_label,
+            variant.variant_label,
+            variant.num_episodes,
+        )
+        for n_block, block in enumerate(curriculum.learn_blocks_and_eval_blocks())
+        for task in block.task_blocks()
+        for variant in task.task_variants()
+    ]
+    expected_values = [
+        (0, True, "CartPoleEnv", "Default", 10),
+        (1, True, "CartPoleEnv", "Default", 10),
+        (2, True, "CartPoleEnv", "Default", 10),
+        (3, False, "CartPoleEnv", "Default", 1),
+    ]
+    assert task_info == expected_values

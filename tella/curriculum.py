@@ -107,7 +107,7 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
 
         if config_file is not None:
             with open(config_file) as file:
-                self.config = yaml.load(file, yaml.Loader)
+                self.config = yaml.safe_load(file)
         else:
             self.config = {}
         self.config_file = config_file

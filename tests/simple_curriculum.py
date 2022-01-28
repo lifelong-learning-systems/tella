@@ -74,3 +74,55 @@ class MultiEpisodeRLCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
                 )
             ]
         )
+
+
+class LearnOnlyCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
+    def learn_blocks_and_eval_blocks(
+        self,
+    ) -> typing.Iterable[
+        typing.Union[
+            "AbstractLearnBlock[AbstractRLTaskVariant]",
+            "AbstractEvalBlock[AbstractRLTaskVariant]",
+        ]
+    ]:
+        yield simple_learn_block(
+            [
+                EpisodicTaskVariant(
+                    CartPoleEnv,
+                    num_episodes=1,
+                    rng_seed=self.rng.bit_generator.random_raw(),
+                ),
+                EpisodicTaskVariant(
+                    CartPoleEnv,
+                    num_episodes=1,
+                    variant_label="Variant1",
+                    rng_seed=self.rng.bit_generator.random_raw(),
+                ),
+            ]
+        )
+
+
+class EvalOnlyCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
+    def learn_blocks_and_eval_blocks(
+        self,
+    ) -> typing.Iterable[
+        typing.Union[
+            "AbstractLearnBlock[AbstractRLTaskVariant]",
+            "AbstractEvalBlock[AbstractRLTaskVariant]",
+        ]
+    ]:
+        yield simple_eval_block(
+            [
+                EpisodicTaskVariant(
+                    CartPoleEnv,
+                    num_episodes=1,
+                    rng_seed=self.rng.bit_generator.random_raw(),
+                ),
+                EpisodicTaskVariant(
+                    CartPoleEnv,
+                    num_episodes=1,
+                    variant_label="Variant1",
+                    rng_seed=self.rng.bit_generator.random_raw(),
+                ),
+            ]
+        )

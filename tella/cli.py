@@ -139,6 +139,12 @@ def _build_parser(require_curriculum: bool) -> argparse.ArgumentParser:
         type=str,
         help="Optional path to agent config file.",
     )
+    parser.add_argument(
+        "--curriculum-config",
+        default=None,
+        type=str,
+        help="Optional path to curriculum config file.",
+    )
     if require_curriculum:
         parser.add_argument(
             "--curriculum",

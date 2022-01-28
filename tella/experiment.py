@@ -67,12 +67,14 @@ A function can also be used as an AgentFactory:
     agent = agent_factory(rng_seed, observation_space, action_space, num_parallel_envs, config_file)
 """
 
-CurriculumFactory = typing.Callable[[int], AbstractCurriculum[AbstractRLTaskVariant]]
+CurriculumFactory = typing.Callable[[int, typing.Optional[str]], AbstractCurriculum[AbstractRLTaskVariant]]
 """
 CurriculumFactory is a type alias for a function or class that returns a
 :class:`AbstractCurriculum`.
 
-It takes 1 argument, an integer which is to be used for repeatable random number generation.
+It takes 2 arguments:
+    an integer which is to be used for repeatable random number generation,
+    and an option filepath to be loaded as a configuration dict.
 
 A concrete subclass of :class:`AbstractCurriculum` can be used as an CurriculumFactory:
 
@@ -103,6 +105,7 @@ def rl_experiment(
     curriculum_seed: typing.Optional[int] = None,
     render: typing.Optional[bool] = False,
     agent_config: typing.Optional[str] = None,
+    curriculum_config: typing.Optional[str] = None,
     lifetime_idx: int = 0,
 ) -> None:
     """
@@ -119,6 +122,7 @@ def rl_experiment(
     :param curriculum_seed: The seed for the RNG for the curriculum or None for random seed.
     :param render: Whether to render the environment for debugging or demonstrations.
     :param agent_config: Optional path to a configuration file for the agent.
+    :param curriculum_config: Optional path to a configuration file for the curriculum.
     :return: None
     """
     if lifetime_idx < 0:
@@ -156,7 +160,7 @@ def rl_experiment(
         logger.info(f"Starting lifetime #{i_lifetime + 1} (lifetime_idx={i_lifetime})")
 
         curriculum_seed = curriculum_rng.bit_generator.random_raw()
-        curriculum = curriculum_factory(curriculum_seed)
+        curriculum = curriculum_factory(curriculum_seed, curriculum_config)
         logger.info(f"Constructed curriculum {curriculum} with seed {curriculum_seed}")
 
         # FIXME: check for RL task variant https://github.com/darpa-l2m/tella/issues/53

@@ -240,19 +240,37 @@ class _MiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
     def episode_limit_from_config(self, task_label: str, variant_label: str):
         """
         Set variable lengths for task blocks based on optional configuration file.
+
+        Expecting a yaml following this format:
+        learn:  # All learning block limits belong under this header
+            default length: 999  # A new default task length can be specified using this key
+            CustomFetchS16T2N4: 1234  # Task lengths can be set for a specific task variant
+            SimpleCrossing: 42  # Or task lengths can be set for all variants of a task type
         """
-        task_variant_label = task_label + variant_label
-        if task_variant_label in self.config:
-            # TODO: move config validation elsewhere
-            assert isinstance(task_variant_label, int)
-            return self.config[task_variant_label]
+        default_length = 1000
+        if self.config is None:
+            return default_length
 
-        elif task_label in self.config:
-            assert isinstance(task_label, int)
-            return self.config[task_label]
+        if "learn" in self.config:
+            learn_config = self.config["learn"]
+            # If requested, overwrite default value
+            default_length = learn_config.get("default length", default_length)
 
-        else:
-            return 1000
+            task_variant_label = task_label + variant_label
+            if task_variant_label in learn_config:
+                length = learn_config[task_variant_label]
+                # TODO: move config validation elsewhere
+                assert isinstance(length, int)
+                return length
+
+            elif task_label in learn_config:
+                length = learn_config[task_label]
+                # TODO: move config validation elsewhere
+                assert isinstance(length, int)
+                return length
+
+        # Otherwise, resort to default
+        return default_length
 
 
 class MiniGridCondensed(_MiniGridCurriculum):
@@ -281,8 +299,13 @@ class MiniGridCondensed(_MiniGridCurriculum):
 
 
 class MiniGridDispersed(_MiniGridCurriculum):
-    def __init__(self, rng_seed: int, num_repetitions: int = 3):
-        super().__init__(rng_seed)
+    def __init__(
+        self,
+        rng_seed: int,
+        config_file: typing.Optional[str] = None,
+        num_repetitions: int = 3,
+    ):
+        super().__init__(rng_seed, config_file)
         self.num_repetitions = num_repetitions
 
     def learn_blocks(

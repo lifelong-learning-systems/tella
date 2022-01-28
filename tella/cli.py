@@ -74,6 +74,7 @@ def rl_cli(
         curriculum_seed=args.curriculum_seed,
         render=args.render,
         agent_config=args.agent_config,
+        curriculum_config=args.curriculum_config,
     )
 
 

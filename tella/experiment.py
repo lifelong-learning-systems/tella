@@ -256,6 +256,18 @@ def run(
 
 
 class L2Logger:
+    """
+    A utility class for handling logging with the l2logger package.
+
+    The l2logger package logs cumulative episode rewards when episodes finish,
+    and all of this can be achieved by tracking data from transitions via
+    the :meth:`L2Logger.receive_transitions()`.
+
+    Additionally, l2logger needs to track the global block number and task id
+    information, so :meth:`L2Logger.block_start()` and :meth:`L2Logger.task_variant_start()`
+    should be called at the appropriate times to track this information.
+    """
+
     def __init__(
         self,
         log_dir: str,
@@ -317,6 +329,24 @@ def generate_transitions(
     num_envs: int,
     render: bool = False,
 ) -> typing.Iterable[typing.List[typing.Optional[Transition]]]:
+    """
+    Yields markov transitions from the interaction between the `action_fn`
+    and the :class:`gym.Env` contained in :class:`EpisodicTaskVariant`.
+
+    **None transitions**
+    Extra data can be accessed when using num_envs > 1, if the data limits in
+    :class:`EpisodicTaskVariant` % num_envs != 0. For an example if the limit
+    is 4 episodes, and `num_envs` is 5, then this function will generate a whole
+    extra episode worth of transitions. In order to prevent the leak of extra data,
+    we mask out any transitions above the data limit by setting them to None.
+
+    :param task_variant: The task variant containing environment and seed information.
+    :param action_fn: Selects actions to take in the environment given an observation.
+    :param num_envs: Controls the amount of parallelization to use for this episodic task variant.
+        See :class:`gym.vector.VectorEnv` for more information.
+    :param render: Whether to render the environment at each step.
+    :return: A generator of transitions.
+    """
     vector_env_cls = gym.vector.AsyncVectorEnv
     if num_envs == 1:
         vector_env_cls = gym.vector.SyncVectorEnv
@@ -375,6 +405,13 @@ def generate_transitions(
 def hide_rewards(
     transitions: typing.List[typing.Optional[Transition]],
 ) -> typing.List[typing.Optional[Transition]]:
+    """
+    Masks out any rewards in the transitions passed in by setting the reward
+    field (the 3rd element) to None.
+
+    :param transitions: The transitions to hide the reward in
+    :return: The new list of transitions with all rewards set to None
+    """
     return [None if t is None else (t[0], t[1], None, t[3], t[4]) for t in transitions]
 
 

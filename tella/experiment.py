@@ -67,7 +67,9 @@ A function can also be used as an AgentFactory:
     agent = agent_factory(rng_seed, observation_space, action_space, num_parallel_envs, config_file)
 """
 
-CurriculumFactory = typing.Callable[[int, typing.Optional[str]], AbstractCurriculum[AbstractRLTaskVariant]]
+CurriculumFactory = typing.Callable[
+    [int, typing.Optional[str]], AbstractCurriculum[AbstractRLTaskVariant]
+]
 """
 CurriculumFactory is a type alias for a function or class that returns a
 :class:`AbstractCurriculum`.

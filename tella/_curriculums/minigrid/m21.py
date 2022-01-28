@@ -35,7 +35,16 @@ from gym_minigrid.envs import (
 )
 from gym_minigrid.wrappers import ImgObsWrapper
 
-from ...curriculum import *
+from ...curriculum import (
+    InterleavedEvalCurriculum,
+    AbstractLearnBlock,
+    LearnBlock,
+    AbstractEvalBlock,
+    simple_eval_block,
+    TaskBlock,
+    AbstractRLTaskVariant,
+    EpisodicTaskVariant,
+)
 from .envs import (
     CustomDynamicObstaclesS6N1,
     CustomDynamicObstaclesS8N2,

@@ -382,6 +382,7 @@ def test_interleaved_structure():
             assert isinstance(blocks[i], AbstractLearnBlock)
     assert isinstance(blocks[-1], AbstractEvalBlock)
 
+
 class SampleStepLimitCurriculum(SampleInterleavedCurriculum):
     def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
         yield simple_learn_block(
@@ -415,6 +416,7 @@ class SampleStepLimitCurriculum(SampleInterleavedCurriculum):
             ]
         )
 
+
 class BadDoubleLimitsCurriculum(SampleStepLimitCurriculum):
     def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
         yield simple_learn_block(
@@ -429,6 +431,7 @@ class BadDoubleLimitsCurriculum(SampleStepLimitCurriculum):
             ]
         )
 
+
 class BadNoLimitsCurriculum(SampleStepLimitCurriculum):
     def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
         yield simple_learn_block(
@@ -440,6 +443,7 @@ class BadNoLimitsCurriculum(SampleStepLimitCurriculum):
                 )
             ]
         )
+
 
 def test_step_limit_curriculum():
     curriculum = SampleStepLimitCurriculum(0)
@@ -453,6 +457,7 @@ def test_step_limit_curriculum():
         else:
             assert isinstance(blocks[i], AbstractLearnBlock)
     assert isinstance(blocks[-1], AbstractEvalBlock)
+
 
 def test_bad_limits_curriculum():
     err = 0
@@ -468,5 +473,3 @@ def test_bad_limits_curriculum():
     except ValidationError:
         err = 2
     assert err == 2
-
-    

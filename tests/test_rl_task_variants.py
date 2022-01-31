@@ -85,8 +85,8 @@ def test_num_steps(num_steps: int, num_envs: int):
     )
     steps = [transition for transition in masked_transitions if transition is not None]
     assert len(steps) == num_steps
-    #assert len(steps) == 5 * num_episodes
-    #assert sum([done for obs, action, reward, done, next_obs in steps]) == num_episodes
+    # assert len(steps) == 5 * num_episodes
+    # assert sum([done for obs, action, reward, done, next_obs in steps]) == num_episodes
 
 
 def test_labels():

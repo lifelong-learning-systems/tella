@@ -62,6 +62,8 @@ class SB3PPOAgent(tella.ContinualRLAgent):
         self.last_dones = [False] * self.num_envs
         self.ppo.rollout_buffer.reset()
         self.steps_since_last_train = 0
+        if self.ppo.use_sde:
+            self.ppo.policy.reset_noise(self.num_envs)
 
     def choose_actions(
         self, observations: typing.List[typing.Optional[tella.Observation]]
@@ -139,11 +141,22 @@ class SB3PPOAgent(tella.ContinualRLAgent):
         self.last_dones = dones
 
         if self.steps_since_last_train >= self.ppo.n_steps:
-            self.steps_since_last_train = 0
+            with torch.no_grad():
+                # Compute value for the last timestep
+                values = self.ppo.policy.predict_values(
+                    obs_as_tensor(next_obss, self.ppo.device)
+                )
+
+            self.ppo.rollout_buffer.compute_returns_and_advantage(
+                last_values=values, dones=dones
+            )
+
             self.ppo.train()
+
+            self.steps_since_last_train = 0
             self.ppo.rollout_buffer.reset()
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    tella.rl_cli(SB3PPOAgent, tella.curriculum.curriculum_registry["MiniGridCondensed"])
+    tella.rl_cli(SB3PPOAgent)

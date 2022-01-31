@@ -71,6 +71,24 @@ def test_num_episodes(num_envs: int, num_episodes: int):
     assert sum([done for obs, action, reward, done, next_obs in steps]) == num_episodes
 
 
+@pytest.mark.parametrize("num_envs", [1, 3, 8])
+@pytest.mark.parametrize("num_steps", [5, 10, 100])
+def test_num_steps(num_steps: int, num_envs: int):
+    exp = EpisodicTaskVariant(
+        DummyEnv,
+        num_steps=num_steps,
+        params={"a": 1, "b": 3.0, "c": "a"},
+        rng_seed=0,
+    )
+    masked_transitions = sum(
+        generate_transitions(exp, choose_action_zero, num_envs), []
+    )
+    steps = [transition for transition in masked_transitions if transition is not None]
+    assert len(steps) == num_steps
+    # assert len(steps) == 5 * num_episodes
+    # assert sum([done for obs, action, reward, done, next_obs in steps]) == num_episodes
+
+
 def test_labels():
     task_variant = EpisodicTaskVariant(
         DummyEnv,

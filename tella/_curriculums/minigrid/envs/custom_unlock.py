@@ -32,7 +32,7 @@ class CustomUnlock(RoomGrid):
             num_rows=num_rows,
             num_cols=num_cols,
             room_size=room_size,
-            max_steps=8 * room_size ** 2,
+            max_steps=8 * room_size**2,
             seed=seed,
         )
 

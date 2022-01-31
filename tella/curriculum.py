@@ -373,6 +373,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         params: typing.Optional[typing.Dict] = None,
         task_label: typing.Optional[str] = None,
         variant_label: typing.Optional[str] = "Default",
+        step_limit: typing.Optional[int] = None,
     ) -> None:
         num_envs = 1
         if params is None:
@@ -386,6 +387,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         self._task_label = task_label
         self._variant_label = variant_label
         self.rng_seed = rng_seed
+        self.step_limit = step_limit
 
     @property
     def task_label(self) -> str:

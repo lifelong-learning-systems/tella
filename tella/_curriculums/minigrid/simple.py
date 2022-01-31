@@ -101,3 +101,27 @@ class SimpleMiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant])
             )
             for cls, task_label, variant_label in TASKS
         )
+
+
+class SimpleStepMiniGridCurriculum(SimpleMiniGridCurriculum):
+    def learn_blocks(
+        self,
+    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+        for cls, task_label, variant_label in self.rng.permutation(TASKS):
+            yield LearnBlock(
+                [
+                    TaskBlock(
+                        task_label,
+                        [
+                            EpisodicTaskVariant(
+                                cls,
+                                task_label=task_label,
+                                variant_label=variant_label,
+                                num_episodes=5,
+                                rng_seed=self.rng.bit_generator.random_raw(),
+                                step_limit=5000,
+                            )
+                        ],
+                    )
+                ]
+            )

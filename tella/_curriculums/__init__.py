@@ -20,6 +20,8 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import logging
 
+from tella._curriculums.minigrid.simple import SimpleStepMiniGridCurriculum
+
 from ..curriculum import curriculum_registry
 from .cartpole import SimpleCartPoleCurriculum, CartPole1000Curriculum
 
@@ -37,6 +39,7 @@ def load_curriculum_registry():
     try:
         from .minigrid import (
             SimpleMiniGridCurriculum,
+            SimpleStepMiniGridCurriculum,
             MiniGridCondensed,
             MiniGridDispersed,
             MiniGridSimpleCrossingS9N1,
@@ -64,6 +67,7 @@ def load_curriculum_registry():
         )
     else:
         curriculum_registry["SimpleMiniGrid"] = SimpleMiniGridCurriculum
+        curriculum_registry["SimpleStepMiniGrid"] = SimpleStepMiniGridCurriculum
         curriculum_registry["MiniGridCondensed"] = MiniGridCondensed
         curriculum_registry["MiniGridDispersed"] = MiniGridDispersed
         curriculum_registry["MiniGridSimpleCrossingS9N1"] = MiniGridSimpleCrossingS9N1

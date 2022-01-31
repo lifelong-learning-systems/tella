@@ -9,7 +9,7 @@ def test_contents():
     except ImportError:
         pass
     else:
-        num_expected += 21
+        num_expected += 22
     assert len(curriculum_registry) == num_expected
 
 

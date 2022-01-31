@@ -3,6 +3,7 @@ import typing
 import gym
 import tella
 from stable_baselines3 import PPO
+from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.utils import obs_as_tensor
 from stable_baselines3.common.preprocessing import is_image_space
 import numpy as np
@@ -36,14 +37,9 @@ class _DummyEnv(gym.Env):
 
 
 def transpose_image(image: np.ndarray) -> np.ndarray:
-    """
-    Transpose an image or batch of images (re-order channels).
-
-    :param image:
-    :return:
-    """
     if len(image.shape) == 3:
         return np.transpose(image, (2, 0, 1))
+    assert len(image.shape) == 4, image.shape
     return np.transpose(image, (0, 3, 1, 2))
 
 
@@ -65,7 +61,12 @@ class SB3PPOAgent(tella.ContinualRLAgent):
         # NOTE: without wrapping rng_seed get this error "ValueError: Seed must be between 0 and 2**32 - 1"
         torch.use_deterministic_algorithms(True)
         self.ppo = PPO(
-            env=_DummyEnv(observation_space, action_space),
+            env=DummyVecEnv(
+                [
+                    lambda: _DummyEnv(observation_space, action_space)
+                    for _ in range(num_envs)
+                ]
+            ),
             seed=rng_seed % (2**32),
             verbose=1,
             device="cpu",
@@ -92,6 +93,8 @@ class SB3PPOAgent(tella.ContinualRLAgent):
     def choose_actions(
         self, observations: typing.List[typing.Optional[tella.Observation]]
     ) -> typing.List[typing.Optional[tella.Action]]:
+        assert all(o is not None for o in observations)
+
         self._last_obs = np.array(observations)
         if self.obs_is_image:
             self._last_obs = transpose_image(self._last_obs)

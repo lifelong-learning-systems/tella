@@ -10,6 +10,7 @@ from tella.curriculum import (
     AbstractRLTaskVariant,
     EpisodicTaskVariant,
     TaskVariantType,
+    ValidationError,
     simple_learn_block,
     simple_eval_block,
     validate_curriculum,
@@ -380,3 +381,92 @@ def test_interleaved_structure():
         else:
             assert isinstance(blocks[i], AbstractLearnBlock)
     assert isinstance(blocks[-1], AbstractEvalBlock)
+
+class SampleStepLimitCurriculum(SampleInterleavedCurriculum):
+    def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
+        yield simple_learn_block(
+            [
+                EpisodicTaskVariant(
+                    CartPoleEnv,
+                    num_steps=5000,
+                    task_label="Task1",
+                    rng_seed=self.rng.bit_generator.random_raw(),
+                ),
+            ]
+        )
+        yield simple_learn_block(
+            [
+                EpisodicTaskVariant(
+                    CartPoleEnv,
+                    num_steps=5,
+                    task_label="Task2",
+                    rng_seed=self.rng.bit_generator.random_raw(),
+                ),
+            ]
+        )
+        yield simple_learn_block(
+            [
+                EpisodicTaskVariant(
+                    CartPoleEnv,
+                    num_steps=5,
+                    task_label="Task3",
+                    rng_seed=self.rng.bit_generator.random_raw(),
+                )
+            ]
+        )
+
+class BadDoubleLimitsCurriculum(SampleStepLimitCurriculum):
+    def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
+        yield simple_learn_block(
+            [
+                EpisodicTaskVariant(
+                    CartPoleEnv,
+                    num_steps=5,
+                    num_episodes=5,
+                    task_label="Task3",
+                    rng_seed=self.rng.bit_generator.random_raw(),
+                )
+            ]
+        )
+
+class BadNoLimitsCurriculum(SampleStepLimitCurriculum):
+    def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
+        yield simple_learn_block(
+            [
+                EpisodicTaskVariant(
+                    CartPoleEnv,
+                    task_label="Task3",
+                    rng_seed=self.rng.bit_generator.random_raw(),
+                )
+            ]
+        )
+
+def test_step_limit_curriculum():
+    curriculum = SampleStepLimitCurriculum(0)
+    blocks = list(curriculum.learn_blocks_and_eval_blocks())
+
+    assert len(blocks) == 7
+    assert isinstance(blocks[0], AbstractEvalBlock)
+    for i in range(len(blocks)):
+        if i % 2 == 0:
+            assert isinstance(blocks[i], AbstractEvalBlock)
+        else:
+            assert isinstance(blocks[i], AbstractLearnBlock)
+    assert isinstance(blocks[-1], AbstractEvalBlock)
+
+def test_bad_limits_curriculum():
+    err = 0
+    try:
+        curriculum = BadDoubleLimitsCurriculum(0)
+        validate_curriculum(curriculum)
+    except ValidationError:
+        err = 1
+    assert err == 1
+    try:
+        curriculum = BadNoLimitsCurriculum(0)
+        validate_curriculum(curriculum)
+    except ValidationError:
+        err = 2
+    assert err == 2
+
+    

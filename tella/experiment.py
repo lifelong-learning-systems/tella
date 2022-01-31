@@ -365,12 +365,12 @@ def generate_transitions(
     continue_task = True
     while continue_task:
         # mask out any environments that have episode id above max episodes or steps above max steps
-        if not task_variant.step_limit:
+        if not task_variant.num_steps:
             mask = [ep_id >= task_variant.num_episodes for ep_id in episode_ids]
         else:
             ## Only step in a valid number of steps
             mask = [
-                (task_variant.step_limit - num_steps) < idx for idx in range(num_envs)
+                task_variant.num_steps - (num_steps+1) < idx for idx in range(num_envs)
             ]
 
         # replace masked environment observations with None
@@ -406,10 +406,10 @@ def generate_transitions(
                     num_episodes_finished += 1
                     episode_ids[i] = next_episode_id
                     next_episode_id += 1
-        if not task_variant.step_limit:
+        if not task_variant.num_steps:
             continue_task = num_episodes_finished < task_variant.num_episodes
         else:
-            continue_task = num_steps < task_variant.step_limit
+            continue_task = num_steps < task_variant.num_steps
         observations = next_observations
     env.close()
     del env

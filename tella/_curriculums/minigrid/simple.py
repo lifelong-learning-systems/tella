@@ -117,9 +117,8 @@ class SimpleStepMiniGridCurriculum(SimpleMiniGridCurriculum):
                                 cls,
                                 task_label=task_label,
                                 variant_label=variant_label,
-                                num_episodes=5,
                                 rng_seed=self.rng.bit_generator.random_raw(),
-                                step_limit=5000,
+                                num_steps=5000,
                             )
                         ],
                     )

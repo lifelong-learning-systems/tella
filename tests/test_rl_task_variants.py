@@ -72,7 +72,7 @@ def test_num_episodes(num_envs: int, num_episodes: int):
 
 
 @pytest.mark.parametrize("num_envs", [1, 3, 8])
-@pytest.mark.parametrize("num_steps", [5, 10, 5000])
+@pytest.mark.parametrize("num_steps", [5, 10, 100])
 def test_num_steps(num_steps: int, num_envs: int):
     exp = EpisodicTaskVariant(
         DummyEnv,

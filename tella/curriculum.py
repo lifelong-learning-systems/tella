@@ -386,9 +386,9 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
         self._task_label = task_label
         self._variant_label = variant_label
         self.rng_seed = rng_seed
-        if not num_episodes and not num_steps:
+        if num_episodes is None and num_steps is None:
             raise ValidationError("Neither num_episodes nor num_steps provided")
-        if num_episodes and num_steps:
+        if num_episodes is not None and num_steps is not None:
             raise ValidationError("Both num_episodes and num_steps provided")
         self.num_episodes = num_episodes
         self.num_steps = num_steps

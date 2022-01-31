@@ -370,7 +370,8 @@ def generate_transitions(
         else:
             ## Only step in a valid number of steps
             mask = [
-                task_variant.num_steps - (num_steps+1) < idx for idx in range(num_envs)
+                task_variant.num_steps - (num_steps + 1) < idx
+                for idx in range(num_envs)
             ]
 
         # replace masked environment observations with None

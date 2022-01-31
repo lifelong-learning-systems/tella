@@ -29,6 +29,7 @@ jobs:
           pip install pytest wheel
           pip install ./tella
           pip install gym-minigrid==1.0.2
+          pip install stable-baselines3==1.4.0
           pip install torch
       - name: Run examples
         working-directory: ./tella

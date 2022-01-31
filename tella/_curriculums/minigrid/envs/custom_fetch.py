@@ -39,7 +39,7 @@ class CustomFetchEnv(MiniGridEnv):
         self.target_color = target_color
         self.num_targets = num_targets
         self.num_objs = num_objs
-        max_steps = 5 * size ** 2
+        max_steps = 5 * size**2
         super().__init__(
             grid_size=size,
             max_steps=max_steps,

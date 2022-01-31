@@ -30,7 +30,7 @@ setuptools.setup(
     include_package_data=True,
     install_requires=requirements,
     extras_require={
-        "dev": ["pytest", "black"],
+        "dev": ["pytest", "black==22.1.0"],
         "minigrid": ["gym_minigrid", "matplotlib"],
     },
 )

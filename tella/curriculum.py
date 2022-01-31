@@ -25,12 +25,11 @@ import itertools
 import typing
 import warnings
 
+import yaml
 import numpy as np
 import gym
 
 # key: curriculum name, value: AbstractCurriculum class object or factory
-import yaml
-
 curriculum_registry = {}
 
 InputType = typing.TypeVar("InputType")

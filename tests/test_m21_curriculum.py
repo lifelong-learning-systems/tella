@@ -38,7 +38,7 @@ class TestMiniGridReducedActionSpaceWrapper:
 
 
 def test_curriculum_default_configuration():
-    curriculum = MiniGridDispersed(rng_seed=0, num_repetitions=1)
+    curriculum = MiniGridDispersed(rng_seed=0)
     task_info = [
         (
             block.is_learning_allowed,
@@ -51,7 +51,11 @@ def test_curriculum_default_configuration():
         for variant in task.task_variants()
     ]
     for is_learning_allowed, task_label, variant_label, num_episodes in task_info:
-        assert num_episodes == 1000 if is_learning_allowed else 100
+        assert (
+            num_episodes == 1000 // curriculum.DEFAULT_LEARN_BLOCKS
+            if is_learning_allowed
+            else 100
+        )
 
 
 @mock.patch(
@@ -64,12 +68,13 @@ def test_curriculum_default_configuration():
             "    default length: 999\n"
             "    CustomFetchS16T2N4: 1234\n"
             "    SimpleCrossing: 42\n"
+            "num learn blocks: 1\n"
         )
     ),
 )
 def test_curriculum_file_configuration():
     curriculum = MiniGridDispersed(
-        rng_seed=0, config_file="mocked.yaml", num_repetitions=1
+        rng_seed=0, config_file="mocked.yaml"
     )  # Filename doesn't matter here
     task_info = [
         (

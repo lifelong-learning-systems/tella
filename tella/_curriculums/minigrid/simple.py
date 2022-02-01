@@ -40,9 +40,7 @@ class _EasyMiniGrid(gym.Wrapper):
     def __init__(self, env_class: typing.Type[gym.Env]) -> None:
         env = env_class()
         env = ImgObsWrapper(env)
-        env = StateBonus(env)
-        env = ActionBonus(env)
-        env = RestrictedActions(env, num_actions=3)
+        env = RestrictedActions(env, num_actions=6)
         super().__init__(env)
 
 

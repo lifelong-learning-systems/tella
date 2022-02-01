@@ -1,6 +1,6 @@
 # Curriculum config to abbreviate all blocks for GitHub workflow
 num learn blocks: 1  # MiniGridDispersed will do all learning in one block
 learn:
-  default length: 5  # All task variants in learn blocks will run 5 episodes
+  default length: 1  # All task variants in learn blocks will run 1 episode
 eval:
-  default length: 5  # All task variants in eval blocks will run 5 episodes
+  default length: 1  # All task variants in eval blocks will run 1 episode

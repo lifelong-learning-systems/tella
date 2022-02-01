@@ -2,7 +2,7 @@
 set -e
 for FILE in ./examples/*.py
 do
-  for CURRICULUM in SimpleCartPole SimpleMiniGrid MiniGridCondensed MiniGridDispersed
+  for CURRICULUM in SimpleCartPole SimpleMiniGrid MiniGridDispersed
   do
     for NENV in 1 3
     do

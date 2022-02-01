@@ -334,7 +334,7 @@ class MiniGridDispersed(_MiniGridCurriculum):
                                     num_episodes=self.episode_limit_from_config(
                                         task_label, variant_label
                                     )
-                                    // self.num_repetitions,
+                                    // self.num_learn_blocks,
                                     rng_seed=self.rng.bit_generator.random_raw(),
                                 )
                             ],

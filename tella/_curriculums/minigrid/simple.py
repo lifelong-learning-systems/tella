@@ -19,50 +19,14 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import typing
-
-import gym
-import numpy as np
-from gym_minigrid.envs import DistShift1, SimpleCrossingEnv
-from gym_minigrid.wrappers import ImgObsWrapper, StateBonus, ActionBonus
-
-from .envs import CustomDynamicObstaclesS6N1
+from .m21 import SimpleCrossingS9N1, DistShiftR2, DynObstaclesS6N1
 from ...curriculum import *
 
 
-class RestrictedActions(gym.Wrapper):
-    def __init__(self, env: gym.Env, num_actions: int) -> None:
-        super().__init__(env)
-        assert isinstance(self.action_space, gym.spaces.Discrete)
-        self.action_space = gym.spaces.Discrete(num_actions)
-
-
-class _EasyMiniGrid(gym.Wrapper):
-    def __init__(self, env_class: typing.Type[gym.Env]) -> None:
-        env = env_class()
-        env = ImgObsWrapper(env)
-        env = RestrictedActions(env, num_actions=6)
-        super().__init__(env)
-
-
-class EasySimpleCrossing(_EasyMiniGrid):
-    def __init__(self):
-        super().__init__(SimpleCrossingEnv)
-
-
-class EasyDistShift1(_EasyMiniGrid):
-    def __init__(self):
-        super().__init__(DistShift1)
-
-
-class EasyDynamicObstacles(_EasyMiniGrid):
-    def __init__(self):
-        super().__init__(CustomDynamicObstaclesS6N1)
-
-
 TASKS = [
-    (EasySimpleCrossing, "EasySimpleCrossing", "Default"),
-    (EasyDistShift1, "EasyDistShift", "Default"),
-    (EasyDynamicObstacles, "EasyDynamicObstacles", "Default"),
+    (SimpleCrossingS9N1, "SimpleCrossing", "S9N1"),
+    (DistShiftR2, "DistShift", "R2"),
+    (DynObstaclesS6N1, "DynObstacles", "S6N1"),
 ]
 
 

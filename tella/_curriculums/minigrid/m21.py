@@ -224,6 +224,9 @@ TASKS = [
 
 
 class _MiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
+    DEFAULT_LEARN_BLOCK_LENGTH = 1000
+    DEFAULT_EVAL_BLOCK_LENGTH = 100
+
     def eval_block(self) -> AbstractEvalBlock[AbstractRLTaskVariant]:
         rng = np.random.default_rng(self.eval_rng_seed)
         return simple_eval_block(
@@ -231,11 +234,49 @@ class _MiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
                 cls,
                 task_label=task_label,
                 variant_label=variant_label,
-                num_episodes=100,
+                num_episodes=self.DEFAULT_EVAL_BLOCK_LENGTH,
                 rng_seed=rng.bit_generator.random_raw(),
             )
             for cls, task_label, variant_label in TASKS
         )
+
+    def episode_limit_from_config(self, task_label: str, variant_label: str):
+        """
+        Set variable lengths for task blocks based on optional configuration file.
+
+        Expecting a yaml following this format:
+        learn:  # All learning block limits belong under this header
+            default length: 999  # A new default task length can be specified using this key
+            CustomFetchS16T2N4: 1234  # Task lengths can be set for a specific task variant
+            SimpleCrossing: 42  # Or task lengths can be set for all variants of a task type
+        """
+        default_length = self.DEFAULT_LEARN_BLOCK_LENGTH
+        if "learn" in self.config:
+            learn_config = self.config["learn"]
+
+            # If length given for task + variant, use that
+            task_variant_label = task_label + variant_label
+            if task_variant_label in learn_config:
+                length = learn_config[task_variant_label]
+                # TODO: move config validation elsewhere
+                assert isinstance(length, int)
+                return length
+
+            # Otherwise, if length given for task, use that
+            if task_label in learn_config:
+                length = learn_config[task_label]
+                # TODO: move config validation elsewhere
+                assert isinstance(length, int)
+                return length
+
+            # If requested, overwrite default value
+            if "default length" in learn_config:
+                default_length = learn_config["default length"]
+                # TODO: move config validation elsewhere
+                assert isinstance(default_length, int)
+
+        # Otherwise, resort to default
+        return default_length
 
 
 class MiniGridCondensed(_MiniGridCurriculum):
@@ -252,7 +293,9 @@ class MiniGridCondensed(_MiniGridCurriculum):
                                 cls,
                                 task_label=task_label,
                                 variant_label=variant_label,
-                                num_episodes=1000,
+                                num_episodes=self.episode_limit_from_config(
+                                    task_label, variant_label
+                                ),
                                 rng_seed=self.rng.bit_generator.random_raw(),
                             )
                         ],
@@ -262,14 +305,22 @@ class MiniGridCondensed(_MiniGridCurriculum):
 
 
 class MiniGridDispersed(_MiniGridCurriculum):
-    def __init__(self, rng_seed: int, num_repetitions: int = 3):
-        super().__init__(rng_seed)
-        self.num_repetitions = num_repetitions
+    DEFAULT_LEARN_BLOCKS = 3
+
+    def __init__(
+        self,
+        rng_seed: int,
+        config_file: typing.Optional[str] = None,
+    ):
+        super().__init__(rng_seed, config_file)
+        self.num_learn_blocks = self.config.get(
+            "num learn blocks", self.DEFAULT_LEARN_BLOCKS
+        )
 
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        for _ in range(self.num_repetitions):
+        for _ in range(self.num_learn_blocks):
             for cls, task_label, variant_label in self.rng.permutation(TASKS):
                 yield LearnBlock(
                     [
@@ -280,7 +331,10 @@ class MiniGridDispersed(_MiniGridCurriculum):
                                     cls,
                                     task_label=task_label,
                                     variant_label=variant_label,
-                                    num_episodes=1000 // self.num_repetitions,
+                                    num_episodes=self.episode_limit_from_config(
+                                        task_label, variant_label
+                                    )
+                                    // self.num_learn_blocks,
                                     rng_seed=self.rng.bit_generator.random_raw(),
                                 )
                             ],
@@ -306,7 +360,9 @@ class _STECurriculum(_MiniGridCurriculum):
                             self.TASK_CLASS,
                             task_label=self.TASK_LABEL,
                             variant_label=self.VARIANT_LABEL,
-                            num_episodes=1000,
+                            num_episodes=self.episode_limit_from_config(
+                                self.TASK_LABEL, self.VARIANT_LABEL
+                            ),
                             rng_seed=self.rng.bit_generator.random_raw(),
                         )
                     ],

@@ -74,6 +74,7 @@ def rl_cli(
         curriculum_seed=args.curriculum_seed,
         render=args.render,
         agent_config=args.agent_config,
+        curriculum_config=args.curriculum_config,
     )
 
 
@@ -138,6 +139,12 @@ def _build_parser(require_curriculum: bool) -> argparse.ArgumentParser:
         default=None,
         type=str,
         help="Optional path to agent config file.",
+    )
+    parser.add_argument(
+        "--curriculum-config",
+        default=None,
+        type=str,
+        help="Optional path to curriculum config file.",
     )
     if require_curriculum:
         parser.add_argument(

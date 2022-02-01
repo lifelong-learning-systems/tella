@@ -2,11 +2,11 @@
 set -e
 for FILE in ./examples/*.py
 do
-  for CURRICULUM in SimpleCartPole SimpleMiniGrid MiniGridDispersed
+  for CURRICULUM in SimpleCartPole SimpleMiniGrid
   do
     for NENV in 1 3
     do
-      CMD="python $FILE --curriculum $CURRICULUM --num-parallel-envs $NENV --curriculum-config ./.github/example_config.yml"
+      CMD="python $FILE --curriculum $CURRICULUM --num-parallel-envs $NENV"
       echo "$CMD"
       eval "$CMD"
     done

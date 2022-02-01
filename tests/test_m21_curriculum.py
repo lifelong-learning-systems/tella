@@ -74,6 +74,54 @@ def test_curriculum_default_configuration():
             "# This is a fake yaml file to be loaded as a test config\n"
             "---\n"
             "learn:\n"
+            "    default unit: steps\n"
+        )
+    ),
+)
+def test_curriculum_file_configuration_step_limit():
+    curriculum = MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
+    task_info = [
+        (
+            block.is_learning_allowed,
+            variant.task_label,
+            variant.variant_label,
+            variant.num_episodes,
+            variant.num_steps,
+        )
+        for block in curriculum.learn_blocks_and_eval_blocks()
+        for task in block.task_blocks()
+        for variant in task.task_variants()
+    ]
+
+    expected_eval_episodes = 100
+    expected_learn_steps = 1000
+    num_learning_steps = Counter()
+    for (
+        is_learning_allowed,
+        task_label,
+        variant_label,
+        num_episodes,
+        num_steps,
+    ) in task_info:
+        if not is_learning_allowed:
+            assert num_episodes == expected_eval_episodes
+            assert num_steps is None
+        else:
+            assert num_episodes is None
+            num_learning_steps[(task_label, variant_label)] += num_steps
+
+    assert all(
+        num_steps == expected_learn_steps for num_steps in num_learning_steps.values()
+    )
+
+
+@mock.patch(
+    "builtins.open",
+    mock.mock_open(
+        read_data=(
+            "# This is a fake yaml file to be loaded as a test config\n"
+            "---\n"
+            "learn:\n"
             "    default length: 999\n"
             "    CustomFetchS16T2N4: 1234\n"
             "    SimpleCrossing: 42\n"
@@ -81,7 +129,7 @@ def test_curriculum_default_configuration():
         )
     ),
 )
-def test_curriculum_file_configuration():
+def test_curriculum_file_configuration_per_task():
     curriculum = MiniGridDispersed(
         rng_seed=0, config_file="mocked.yml"
     )  # Filename doesn't matter here

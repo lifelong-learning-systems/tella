@@ -1,3 +1,4 @@
+from collections import Counter
 import gym.error
 from unittest import mock
 import pytest
@@ -50,12 +51,20 @@ def test_curriculum_default_configuration():
         for task in block.task_blocks()
         for variant in task.task_variants()
     ]
+
+    expected_eval_episodes = 100
+    expected_learn_episodes = 1000
+    num_learning_episodes = Counter()
     for is_learning_allowed, task_label, variant_label, num_episodes in task_info:
-        assert (
-            num_episodes == 1000 // curriculum.DEFAULT_LEARN_BLOCKS
-            if is_learning_allowed
-            else 100
-        )
+        if not is_learning_allowed:
+            assert num_episodes == expected_eval_episodes
+        else:
+            num_learning_episodes[(task_label, variant_label)] += num_episodes
+
+    assert all(
+        num_episodes == expected_learn_episodes
+        for num_episodes in num_learning_episodes.values()
+    )
 
 
 @mock.patch(
@@ -68,7 +77,7 @@ def test_curriculum_default_configuration():
             "    default length: 999\n"
             "    CustomFetchS16T2N4: 1234\n"
             "    SimpleCrossing: 42\n"
-            "num learn blocks: 1\n"
+            "num learn blocks: 5\n"
         )
     ),
 )
@@ -87,13 +96,19 @@ def test_curriculum_file_configuration():
         for task in block.task_blocks()
         for variant in task.task_variants()
     ]
+
+    expected_eval_episodes = 100
+    num_learning_episodes = Counter()
     for is_learning_allowed, task_label, variant_label, num_episodes in task_info:
         if not is_learning_allowed:
-            assert num_episodes == 100
+            assert num_episodes == expected_eval_episodes
         else:
-            if task_label == "SimpleCrossing":
-                assert num_episodes == 42
-            elif task_label + variant_label == "CustomFetchS16T2N4":
-                assert num_episodes == 1234
-            else:
-                assert num_episodes == 999
+            num_learning_episodes[(task_label, variant_label)] += num_episodes
+
+    for (task_label, variant_label), num_episodes in num_learning_episodes.items():
+        if task_label == "SimpleCrossing":
+            assert num_episodes == 42
+        elif task_label + variant_label == "CustomFetchS16T2N4":
+            assert num_episodes == 1234
+        else:
+            assert num_episodes == 999

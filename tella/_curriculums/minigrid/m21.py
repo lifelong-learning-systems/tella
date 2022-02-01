@@ -320,8 +320,17 @@ class MiniGridDispersed(_MiniGridCurriculum):
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        for _ in range(self.num_learn_blocks):
+        for num_block in range(self.num_learn_blocks):
             for cls, task_label, variant_label in self.rng.permutation(TASKS):
+
+                num_total_episodes = self.episode_limit_from_config(
+                    task_label, variant_label
+                )
+                num_episodes_this_block = num_total_episodes // self.num_learn_blocks
+                # If total episodes does not evenly divide into num. blocks, increment up to mod.
+                if num_block < (num_total_episodes % self.num_learn_blocks):
+                    num_episodes_this_block += 1
+
                 yield LearnBlock(
                     [
                         TaskBlock(
@@ -331,10 +340,7 @@ class MiniGridDispersed(_MiniGridCurriculum):
                                     cls,
                                     task_label=task_label,
                                     variant_label=variant_label,
-                                    num_episodes=self.episode_limit_from_config(
-                                        task_label, variant_label
-                                    )
-                                    // self.num_learn_blocks,
+                                    num_episodes=num_episodes_this_block,
                                     rng_seed=self.rng.bit_generator.random_raw(),
                                 )
                             ],

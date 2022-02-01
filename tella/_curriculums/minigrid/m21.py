@@ -313,14 +313,14 @@ class MiniGridDispersed(_MiniGridCurriculum):
         config_file: typing.Optional[str] = None,
     ):
         super().__init__(rng_seed, config_file)
-        self.num_repetitions = self.config.get(
+        self.num_learn_blocks = self.config.get(
             "num learn blocks", self.DEFAULT_LEARN_BLOCKS
         )
 
     def learn_blocks(
         self,
     ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        for _ in range(self.num_repetitions):
+        for _ in range(self.num_learn_blocks):
             for cls, task_label, variant_label in self.rng.permutation(TASKS):
                 yield LearnBlock(
                     [

@@ -327,7 +327,9 @@ class MiniGridDispersed(_MiniGridCurriculum):
                     task_label, variant_label
                 )
                 num_episodes_this_block = num_total_episodes // self.num_learn_blocks
-                # If total episodes does not evenly divide into num. blocks, distribute the `remainder` (num_total_episodes % self.num_learn_blocks) over the first `remainder` blocks
+                # If total episodes does not evenly divide into num. blocks, distribute the
+                #   `remainder` = (num_total_episodes % self.num_learn_blocks) over the first
+                #   `remainder` blocks
                 if num_block < (num_total_episodes % self.num_learn_blocks):
                     num_episodes_this_block += 1
 

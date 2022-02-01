@@ -251,14 +251,8 @@ class _MiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
             SimpleCrossing: 42  # Or task lengths can be set for all variants of a task type
         """
         default_length = self.DEFAULT_LEARN_BLOCK_LENGTH
-        if self.config is not None and "learn" in self.config:
+        if "learn" in self.config:
             learn_config = self.config["learn"]
-
-            # If requested, overwrite default value
-            if "default length" in learn_config:
-                default_length = learn_config["default length"]
-                # TODO: move config validation elsewhere
-                assert isinstance(default_length, int)
 
             # If length given for task + variant, use that
             task_variant_label = task_label + variant_label
@@ -274,6 +268,12 @@ class _MiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
                 # TODO: move config validation elsewhere
                 assert isinstance(length, int)
                 return length
+
+            # If requested, overwrite default value
+            if "default length" in learn_config:
+                default_length = learn_config["default length"]
+                # TODO: move config validation elsewhere
+                assert isinstance(default_length, int)
 
         # Otherwise, resort to default
         return default_length

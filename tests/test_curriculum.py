@@ -449,7 +449,7 @@ def test_curriculum_default_configuration():
 )
 def test_curriculum_file_configuration():
     curriculum = ConfigurableCurriculum(
-        rng_seed=0, config_file="mocked.yaml"
+        rng_seed=0, config_file="mocked.yml"
     )  # Filename doesn't matter here
     task_info = [
         (

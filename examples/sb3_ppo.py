@@ -93,11 +93,16 @@ class SB3PPOAgent(tella.ContinualRLAgent):
     def choose_actions(
         self, observations: typing.List[typing.Optional[tella.Observation]]
     ) -> typing.List[typing.Optional[tella.Action]]:
-        assert all(o is not None for o in observations)
+        if self.is_learning_allowed and any(o is None for o in observations):
+            raise ValueError(
+                "SB3 PPO requires no Nones in transitions."
+                " Either ensure `task_variant.num_steps % num_envs == 0`,"
+                " or turn off vectorization."
+            )
 
-        self._last_obs = np.array(observations)
+        obs = np.array([o for o in observations if o is not None])
         if self.obs_is_image:
-            self._last_obs = transpose_image(self._last_obs)
+            obs = transpose_image(obs)
 
         if (
             self.is_learning_allowed
@@ -110,11 +115,9 @@ class SB3PPOAgent(tella.ContinualRLAgent):
 
         with torch.no_grad():
             # Convert to pytorch tensor or to TensorDict
-            obs_tensor = obs_as_tensor(self._last_obs, self.ppo.device)
+            obs_tensor = obs_as_tensor(obs, self.ppo.device)
             actions, self.last_values, self.last_log_probs = self.ppo.policy.forward(
-                obs_tensor,
-                deterministic=not self.is_learning_allowed
-                # TODO what should deterministic be?
+                obs_tensor, deterministic=not self.is_learning_allowed
             )
         actions = actions.cpu().numpy()
 
@@ -127,7 +130,8 @@ class SB3PPOAgent(tella.ContinualRLAgent):
                 actions, self.action_space.low, self.action_space.high
             )
 
-        return clipped_actions
+        clipped_actions = list(clipped_actions)
+        return [None if o is None else clipped_actions.pop(0) for o in observations]
 
     def receive_transitions(
         self, transitions: typing.List[typing.Optional[tella.Transition]]
@@ -135,7 +139,12 @@ class SB3PPOAgent(tella.ContinualRLAgent):
         if not self.is_learning_allowed:
             return
 
-        assert all(t is not None for t in transitions)
+        if any(t is None for t in transitions):
+            raise ValueError(
+                "SB3 PPO requires no Nones in transitions."
+                " Either ensure `task_variant.num_steps % num_envs == 0`,"
+                " or turn off vectorization."
+            )
 
         self.steps_since_last_train += 1
         self.num_timesteps += len(transitions)

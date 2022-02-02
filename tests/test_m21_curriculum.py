@@ -38,6 +38,42 @@ class TestMiniGridReducedActionSpaceWrapper:
             wrapper.action(3)
 
 
+CONFIG_STEP_LIMIT = """
+# This is a mocked YAML file to be loaded as a test config
+---
+learn:
+    default unit: steps
+"""
+
+
+CONFIG_PER_TASK = """
+# This is a mocked YAML file to be loaded as a test config
+---
+learn:
+    default length: 999
+    CustomFetchS16T2N4: 1234
+    SimpleCrossing: 42
+num learn blocks: 5
+"""
+
+
+CONFIG_FORMAT_ERROR = """
+# This is a mocked YAML file to be loaded as a test config
+---
+learn:
+    default length:
+        - This is not the expected format
+"""
+
+
+CONFIG_VALUE_ERROR = """
+# This is a mocked YAML file to be loaded as a test config
+---
+learn:
+    SimpleCrossing: This is not an integer
+"""
+
+
 def test_curriculum_default_configuration():
     curriculum = MiniGridDispersed(rng_seed=0)
     task_info = [
@@ -69,19 +105,50 @@ def test_curriculum_default_configuration():
 
 @mock.patch(
     "builtins.open",
-    mock.mock_open(
-        read_data=(
-            "# This is a fake yaml file to be loaded as a test config\n"
-            "---\n"
-            "learn:\n"
-            "    default length: 999\n"
-            "    CustomFetchS16T2N4: 1234\n"
-            "    SimpleCrossing: 42\n"
-            "num learn blocks: 5\n"
-        )
-    ),
+    mock.mock_open(read_data=CONFIG_STEP_LIMIT),
 )
-def test_curriculum_file_configuration():
+def test_curriculum_file_configuration_step_limit():
+    curriculum = MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
+    task_info = [
+        (
+            block.is_learning_allowed,
+            variant.task_label,
+            variant.variant_label,
+            variant.num_episodes,
+            variant.num_steps,
+        )
+        for block in curriculum.learn_blocks_and_eval_blocks()
+        for task in block.task_blocks()
+        for variant in task.task_variants()
+    ]
+
+    expected_eval_episodes = 100
+    expected_learn_steps = 1000
+    num_learning_steps = Counter()
+    for (
+        is_learning_allowed,
+        task_label,
+        variant_label,
+        num_episodes,
+        num_steps,
+    ) in task_info:
+        if not is_learning_allowed:
+            assert num_episodes == expected_eval_episodes
+            assert num_steps is None
+        else:
+            assert num_episodes is None
+            num_learning_steps[(task_label, variant_label)] += num_steps
+
+    assert all(
+        num_steps == expected_learn_steps for num_steps in num_learning_steps.values()
+    )
+
+
+@mock.patch(
+    "builtins.open",
+    mock.mock_open(read_data=CONFIG_PER_TASK),
+)
+def test_curriculum_file_configuration_per_task():
     curriculum = MiniGridDispersed(
         rng_seed=0, config_file="mocked.yml"
     )  # Filename doesn't matter here
@@ -112,3 +179,60 @@ def test_curriculum_file_configuration():
             assert num_episodes == 1234
         else:
             assert num_episodes == 999
+
+
+def test_default_block_limits():
+    curriculum = MiniGridDispersed(rng_seed=0)
+    default_block_limit = {
+        f"num_{curriculum.DEFAULT_BLOCK_LENGTH_UNIT}": curriculum.DEFAULT_LEARN_BLOCK_LENGTH
+    }
+    assert curriculum._block_limit_from_config("", "") == default_block_limit
+
+
+@mock.patch(
+    "builtins.open",
+    mock.mock_open(read_data=CONFIG_STEP_LIMIT),
+)
+def test_configured_block_limits_step_limit():
+    curriculum = MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
+    expected_block_limit = {"num_steps": curriculum.DEFAULT_LEARN_BLOCK_LENGTH}
+    assert curriculum._block_limit_from_config("", "") == expected_block_limit
+
+
+@mock.patch(
+    "builtins.open",
+    mock.mock_open(read_data=CONFIG_PER_TASK),
+)
+def test_configured_block_limits_per_task():
+    curriculum = MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
+    default_block_limit = {f"num_{curriculum.DEFAULT_BLOCK_LENGTH_UNIT}": 999}
+
+    assert curriculum._block_limit_from_config("", "") == default_block_limit
+
+    assert curriculum._block_limit_from_config("CustomFetch", "S16T2N4") == {
+        "num_episodes": 1234
+    }
+
+    assert curriculum._block_limit_from_config("SimpleCrossing", "") == {
+        "num_episodes": 42
+    }
+
+
+@mock.patch(
+    "builtins.open",
+    mock.mock_open(read_data=CONFIG_FORMAT_ERROR),
+)
+def test_configured_block_limits_format_error():
+    curriculum = MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
+    with pytest.raises(AssertionError):
+        curriculum._block_limit_from_config("", "")
+
+
+@mock.patch(
+    "builtins.open",
+    mock.mock_open(read_data=CONFIG_VALUE_ERROR),
+)
+def test_configured_block_limits_value_error():
+    curriculum = MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
+    with pytest.raises(ValueError):
+        curriculum._block_limit_from_config("SimpleCrossing", "")

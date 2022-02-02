@@ -1,0 +1,59 @@
+# A YAML config file formatted for M21 minigrid curriculums
+
+# This config is not meant to be used; instead it demonstrates
+#   the expected fields and formatting rules
+
+learn:  # Only learning block lengths are configurable. Use this header for all limits
+
+  # Task variants are limited by an integer length counted using the unit "episodes" or "steps"
+
+  default length: 12345  # Task variants without lengths given here use this length (default: 1000)
+  default unit: steps  # Task variants without units given here use this unit (default: episodes)
+
+  # Limits can be specified as an integer, in which case the default unit is used
+  SimpleCrossingS9N1: 1111
+
+  # Or limits can be specified as a dict, in which case the values of "length" and "unit" will be used if present
+  SimpleCrossingS9N2:
+    length: 2222  # Length still must be an integer
+    unit: episodes  # And unit must be "episodes" or "steps"
+  SimpleCrossingS9N3:
+    unit: episodes
+    length: 3333
+  DistShiftR2:
+    length: 4444
+  DistShiftR5:
+    unit: steps
+
+  # Limits can be specified for a task variant, or for a whole task, in which case all variants are affected
+  DistShiftR3: 6666
+  DynObstacles: 7777  # DynObstaclesS6N1, DynObstaclesS8N2, and DynObstaclesS10N3 will use this limit
+
+  # If limits are specified for a task and also a specific variant of that task, the variant values are used
+  CustomFetch: 1234  # CustomFetchS5T1N2 and CustomFetchS8T1N2 will use this limit
+  CustomFetchS16T2N4: 5678  # But CustomFetchS16T2N4 is set separately
+
+# Curriculums can define their own config interpreters. MiniGridDispersed accepts one additional field:
+num learn blocks: 5  # MiniGridDispersed splits learning into this many blocks (default 3)
+# Note that the specified limits above are also divided into this many blocks, so that the specified
+#   limit is the total reached over all learning blocks
+
+# For verification, here are the limits that each task variant would use under this config
+#  SimpleCrossingS9N1: 1111 steps
+#  SimpleCrossingS9N2: 2222 episodes
+#  SimpleCrossingS9N3: 3333 episodes
+#  DistShiftR2: 4444 steps
+#  DistShiftR5: 12345 steps
+#  DistShiftR3: 6666 steps
+#  DynObstaclesS6N1: 7777 steps
+#  DynObstaclesS8N2: 7777 steps
+#  DynObstaclesS10N3: 777 steps
+#  CustomFetchS5T1N2: 1234 steps
+#  CustomFetchS8T1N2: 1234 steps
+#  CustomFetchS16T2N4: 5678 steps
+#  CustomUnlockS5: 12345 steps
+#  CustomUnlockS7: 12345 steps
+#  CustomUnlockS9: 12345 steps
+#  DoorKeyS5: 12345 steps
+#  DoorKeyS6: 12345 steps
+#  DoorKeyS8: 12345 steps

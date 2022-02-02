@@ -240,13 +240,15 @@ def test_configured_block_limits_value_error():
         curriculum._block_limit_from_config("SimpleCrossing", "")
 
 
+EXAMPLE_CONFIGS = glob.glob("**/examples/configs/*.yml", recursive=True)
+
+
 def test_find_example_configs():
-    example_configs = glob.glob("examples/configs/*.yml")
     expected_number = 3  # Update if configs added or removed
-    assert len(example_configs) == expected_number
+    assert len(EXAMPLE_CONFIGS) == expected_number
 
 
-@pytest.mark.parametrize("config_file", glob.glob("examples/configs/*.yml"))
+@pytest.mark.parametrize("config_file", EXAMPLE_CONFIGS)
 def test_example_configurations(config_file: str):
     curriculum = MiniGridDispersed(rng_seed=0, config_file=config_file)
     validate_curriculum(curriculum)

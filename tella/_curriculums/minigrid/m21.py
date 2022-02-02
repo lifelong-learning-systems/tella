@@ -263,58 +263,33 @@ class _MiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
                 unit: steps
             CustomUnlock: 686  # Or task length can be provided using default units
         """
-        # define a helper function to parse explicit vs. implicit units
-        def parse_task_config(config, _default_length, _default_unit):
-            if isinstance(config, dict):
-                _length = config.get("length", _default_length)
-                _unit = config.get("unit", _default_unit)
-            elif isinstance(config, int):
-                _length = config
-                _unit = _default_unit
-            else:
-                raise ValueError(
-                    f"Curriculum config expected dict with keys 'unit' "
-                    f"and/or 'length' or a length int. Received {config}"
-                )
-            return _length, _unit
+        learn_config = self.config.get("learn", {})
 
-        if "learn" in self.config:
-            learn_config = self.config["learn"]
+        # If requested, overwrite default values
+        default_length = learn_config.get(
+            "default length", self.DEFAULT_LEARN_BLOCK_LENGTH
+        )
+        default_unit = learn_config.get("default unit", self.DEFAULT_BLOCK_LENGTH_UNIT)
 
-            # If requested, overwrite default values
-            default_length = learn_config.get(
-                "default length", self.DEFAULT_LEARN_BLOCK_LENGTH
-            )
-            default_unit = learn_config.get(
-                "default unit", self.DEFAULT_BLOCK_LENGTH_UNIT
-            )
+        # If length given for task + variant, use that
+        task_variant_label = task_label + variant_label
 
-            # If length given for task + variant, use that
-            task_variant_label = task_label + variant_label
-            if task_variant_label in learn_config:
-                length, unit = parse_task_config(
-                    learn_config[task_variant_label],
-                    default_length,
-                    default_unit,
-                )
+        label = task_variant_label
+        if task_variant_label not in learn_config and task_label in learn_config:
+            label = task_label
 
-            # Otherwise, if length given for task, use that
-            elif task_label in learn_config:
-                length, unit = parse_task_config(
-                    learn_config[task_label],
-                    default_length,
-                    default_unit,
-                )
-
-            # Otherwise, resort to default
-            else:
-                length = default_length
-                unit = default_unit
-
-        # Resort to defaults also if no config provided
+        config = learn_config.get(label, {})
+        if isinstance(config, dict):
+            length = config.get("length", default_length)
+            unit = config.get("unit", default_unit)
+        elif isinstance(config, int):
+            length = config
+            unit = default_unit
         else:
-            length = self.DEFAULT_LEARN_BLOCK_LENGTH
-            unit = self.DEFAULT_BLOCK_LENGTH_UNIT
+            raise ValueError(
+                f"Curriculum config expected dict with keys 'unit' "
+                f"and/or 'length' or a length int. Received {config}"
+            )
 
         # TODO: move config validation to curriculum validation method
         #   https://github.com/darpa-l2m/tella/issues/245

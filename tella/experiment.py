@@ -158,6 +158,7 @@ def rl_experiment(
         )
 
     # FIXME: multiprocessing https://github.com/darpa-l2m/tella/issues/44
+    lifetime_results = []
     for i_lifetime in range(lifetime_idx, lifetime_idx + num_lifetimes):
         logger.info(f"Starting lifetime #{i_lifetime + 1} (lifetime_idx={i_lifetime})")
 
@@ -183,6 +184,8 @@ def rl_experiment(
             log_dir=log_dir,
             num_envs=num_parallel_envs,
         )
+        lifetime_results.append(results)
+    return lifetime_results
 
 
 def _spaces(
@@ -232,11 +235,12 @@ def run(
         "agent_seed": agent.rng_seed,
     }
     data_logger = L2Logger(log_dir, scenario_dir, scenario_info, num_envs)
-    results = []
+    results = LocalResults()
     for block in curriculum.learn_blocks_and_eval_blocks():
         is_learning_allowed = agent.is_learning_allowed = block.is_learning_allowed
         block_type = "Learning" if is_learning_allowed else "Evaluating"
         data_logger.block_start(is_learning_allowed)
+        results.block_start(is_learning_allowed)
         agent.block_start(is_learning_allowed)
         for task_block in block.task_blocks():
             agent.task_start(task_block.task_label)
@@ -245,41 +249,67 @@ def run(
                     f"{block_type} TaskVariant {task_variant.task_label}-{task_variant.variant_label}"
                 )
                 data_logger.task_variant_start(task_variant)
+                results.task_variant_start(task_variant)
                 agent.task_variant_start(
                     task_variant.task_label, task_variant.variant_label
                 )
-                num_steps_finished = 0
-                num_episodes_finished = 0
-                rewards = []
                 for transitions in generate_transitions(
                     task_variant, agent.choose_actions, num_envs, render
                 ):
                     data_logger.receive_transitions(transitions)
-                    for transition in transitions:
-                        if transition is not None:
-                            num_steps_finished += 1
-                            if transition[1] == 1:
-                                num_episodes_finished += 1
-                                rewards.append(transition[2])
+                    results.receive_transitions(transitions)
                     agent.receive_transitions(
                         transitions
                         if is_learning_allowed
                         else hide_rewards(transitions)
                     )
-                title = f"{block_type}-{task_variant.task_label}-{task_variant.variant_label}"
-                record = {
-                    "Task Variant": title,
-                    "num_steps_finished": num_steps_finished,
-                    "num_episodes_finished": num_episodes_finished,
-                    "rewards": rewards,
-                }
-                results.append(record)
+
                 agent.task_variant_end(
                     task_variant.task_label, task_variant.variant_label
                 )
+                results.task_variant_end()
+
             agent.task_end(task_block.task_label)
         agent.block_end(block.is_learning_allowed)
     return results
+
+
+class LocalResults:
+    """
+    Utility class to store information to be returned within the code
+    as opposed to logged to output. Keeps track of per task variant episodes
+    and steps finished, as well as a running tally of per episode rewards.
+    """
+
+    def __init__(self):
+        self.results = []
+        self.block_num = -1
+        self.variant_num = -1
+        self.record = {}
+
+    def block_start(self, is_learning_allowed: bool) -> None:
+        self.block_num += 1
+
+    def task_variant_start(self, task_variant: EpisodicTaskVariant):
+        self.variant_num += 1
+        self.task_variant_title = f"{self.block_num}-{self.variant_num}-{task_variant.task_label}-{task_variant.variant_label}"
+        self.record = {
+            "Task Variant": self.task_variant_title,
+            "num_steps_finished": 0,
+            "num_episodes_finished": 0,
+            "rewards": [],
+        }
+
+    def receive_transitions(self, transitions):
+        for transition in transitions:
+            if transition is not None:
+                self.record["num_steps_finished"] += 1
+                if transition[1] == 1:
+                    self.record["num_episodes_finished"] += 1
+                    self.record["rewards"].append(transition[2])
+
+    def task_variant_end(self):
+        self.results.append(self.record)
 
 
 class L2Logger:

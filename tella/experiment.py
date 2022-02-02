@@ -176,7 +176,7 @@ def rl_experiment(
         logger.info(f"Constructed agent {agent} with seed {agent_seed}")
 
         # FIXME: pass num_parallel_envs to run https://github.com/darpa-l2m/tella/issues/32
-        run(
+        results = run(
             agent,
             curriculum,
             render=render,
@@ -228,8 +228,11 @@ def run(
         "complexity": "1-low",
         "difficulty": "2-medium",
         "scenario_type": "custom",
+        "curriculum_seed": curriculum.rng_seed,
+        "agent_seed": agent.rng_seed,
     }
     data_logger = L2Logger(log_dir, scenario_dir, scenario_info, num_envs)
+    results = []
     for block in curriculum.learn_blocks_and_eval_blocks():
         is_learning_allowed = agent.is_learning_allowed = block.is_learning_allowed
         block_type = "Learning" if is_learning_allowed else "Evaluating"
@@ -245,20 +248,38 @@ def run(
                 agent.task_variant_start(
                     task_variant.task_label, task_variant.variant_label
                 )
+                num_steps_finished = 0
+                num_episodes_finished = 0
+                rewards = []
                 for transitions in generate_transitions(
                     task_variant, agent.choose_actions, num_envs, render
                 ):
                     data_logger.receive_transitions(transitions)
+                    for transition in transitions:
+                        if transition is not None:
+                            num_steps_finished += 1
+                            if transition[1] == 1:
+                                num_episodes_finished += 1
+                                rewards.append(transition[2])
                     agent.receive_transitions(
                         transitions
                         if is_learning_allowed
                         else hide_rewards(transitions)
                     )
+                title = f"{block_type}-{task_variant.task_label}-{task_variant.variant_label}"
+                record = {
+                    "Task Variant": title,
+                    "num_steps_finished": num_steps_finished,
+                    "num_episodes_finished": num_episodes_finished,
+                    "rewards": rewards,
+                }
+                results.append(record)
                 agent.task_variant_end(
                     task_variant.task_label, task_variant.variant_label
                 )
             agent.task_end(task_block.task_label)
         agent.block_end(block.is_learning_allowed)
+    return results
 
 
 class L2Logger:

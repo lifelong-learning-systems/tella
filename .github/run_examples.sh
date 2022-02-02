@@ -6,7 +6,7 @@ do
   do
     for NENV in 1 3
     do
-      CMD="python $FILE --curriculum $CURRICULUM --num-parallel-envs $NENV"
+      CMD="python $FILE --curriculum $CURRICULUM --num-parallel-envs $NENV --curriculum-seed 0"
       echo "$CMD"
       eval "$CMD"
     done

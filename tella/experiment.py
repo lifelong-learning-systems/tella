@@ -294,6 +294,7 @@ class L2Logger:
         self.total_episodes = 0
         self.num_envs = num_envs
         self.cumulative_episode_rewards = [0.0] * num_envs
+        self.episode_step_counts = [0] * num_envs
 
     def block_start(self, is_learning_allowed: bool) -> None:
         self.block_num += 1
@@ -303,6 +304,7 @@ class L2Logger:
         self.task_name = task_variant.task_label + "_" + task_variant.variant_label
         self.task_params = task_variant.params
         self.cumulative_episode_rewards = [0.0] * self.num_envs
+        self.episode_step_counts = [0] * self.num_envs
 
     def receive_transitions(
         self, transitions: typing.List[typing.Optional[Transition]]
@@ -312,6 +314,7 @@ class L2Logger:
                 continue
             _obs, _action, reward, done, _next_obs = transition
             self.cumulative_episode_rewards[i] += reward
+            self.episode_step_counts[i] += 1
             if done:
                 self.data_logger.log_record(
                     {
@@ -323,9 +326,11 @@ class L2Logger:
                         "exp_num": self.total_episodes,
                         "reward": self.cumulative_episode_rewards[i],
                         "exp_status": "complete",
+                        "episode_step_count": self.episode_step_counts[i],
                     }
                 )
                 self.cumulative_episode_rewards[i] = 0
+                self.episode_step_counts[i] = 0
                 self.total_episodes += 1
 
 

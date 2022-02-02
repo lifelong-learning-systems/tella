@@ -13,14 +13,6 @@ logger = logging.getLogger("SB3 PPO")
 
 BASE_HYPERPARAMETERS = {
     "policy": "MlpPolicy",
-    "n_steps": 128,
-    "batch_size": 64,
-    "gae_lambda": 0.95,
-    "gamma": 0.99,
-    "n_epochs": 4,
-    "ent_coef": 0.0,
-    "learning_rate": 2.5e-4,
-    "clip_range": 0.2,
 }
 
 
@@ -82,7 +74,6 @@ class SB3PPOAgent(tella.ContinualRLAgent):
     def task_variant_start(
         self, task_name: typing.Optional[str], variant_name: typing.Optional[str]
     ) -> None:
-        logger.info(f"Starting rollout on {task_name} {variant_name}")
         self.last_dones = [True] * self.num_envs
         self.ppo.rollout_buffer.reset()
         self.steps_since_last_train = 0
@@ -117,7 +108,8 @@ class SB3PPOAgent(tella.ContinualRLAgent):
             # Convert to pytorch tensor or to TensorDict
             obs_tensor = obs_as_tensor(obs, self.ppo.device)
             actions, self.last_values, self.last_log_probs = self.ppo.policy.forward(
-                obs_tensor, deterministic=not self.is_learning_allowed
+                obs_tensor,
+                deterministic=False,  # not self.is_learning_allowed
             )
         actions = actions.cpu().numpy()
 

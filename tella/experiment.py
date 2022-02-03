@@ -289,10 +289,11 @@ class LocalResults:
 
     def block_start(self, is_learning_allowed: bool) -> None:
         self.block_num += 1
+        self.block_type = 'Training' if is_learning_allowed else 'Evaluating'
 
     def task_variant_start(self, task_variant: EpisodicTaskVariant):
         self.variant_num += 1
-        self.task_variant_title = f"{self.block_num}-{self.variant_num}-{task_variant.task_label}-{task_variant.variant_label}"
+        self.task_variant_title = f"{self.block_num}-{self.block_type}-{self.variant_num}-{task_variant.task_label}-{task_variant.variant_label}"
         self.record = {
             "Task Variant": self.task_variant_title,
             "num_steps_finished": 0,
@@ -303,10 +304,11 @@ class LocalResults:
     def receive_transitions(self, transitions):
         for transition in transitions:
             if transition is not None:
+                observation, action, reward, done, resulting_obs = transition 
                 self.record["num_steps_finished"] += 1
-                if transition[1] == 1:
+                if done == 1:
                     self.record["num_episodes_finished"] += 1
-                    self.record["rewards"].append(transition[2])
+                    self.record["rewards"].append(reward)
 
     def task_variant_end(self):
         self.results.append(self.record)

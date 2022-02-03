@@ -355,15 +355,6 @@ class Transition(typing.NamedTuple):
     done: Done
     next_observation: NextObservation
 
-    def without_reward(self):
-        return Transition(
-            self.observation,
-            self.action,
-            None,
-            self.done,
-            self.next_observation,
-        )
-
 
 ActionFn = typing.Callable[
     [typing.List[typing.Optional[Observation]]], typing.List[typing.Optional[Action]]

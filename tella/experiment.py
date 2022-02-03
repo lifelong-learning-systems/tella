@@ -442,7 +442,12 @@ def hide_rewards(
     :param transitions: The transitions to hide the reward in
     :return: The new list of transitions with all rewards set to None
     """
-    return [None if t is None else t.without_reward() for t in transitions]
+    return [
+        None
+        if t is None
+        else Transition(t.observation, t.action, None, t.done, t.next_observation)
+        for t in transitions
+    ]
 
 
 def _where(

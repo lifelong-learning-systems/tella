@@ -1,0 +1,8 @@
+# A YAML config file formatted for M21 minigrid curriculums
+
+# By specifying new default limits on learning blocks, this will cause
+#   all task variants in learning blocks to run for 50000 steps
+
+learn:
+  default length: 50000
+  default unit: steps

@@ -228,6 +228,8 @@ def run(
         "complexity": "1-low",
         "difficulty": "2-medium",
         "scenario_type": "custom",
+        "curriculum_seed": curriculum.rng_seed,
+        "agent_seed": agent.rng_seed,
     }
     data_logger = L2Logger(log_dir, scenario_dir, scenario_info, num_envs)
     for block in curriculum.learn_blocks_and_eval_blocks():

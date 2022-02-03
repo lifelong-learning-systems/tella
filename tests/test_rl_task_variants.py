@@ -154,11 +154,11 @@ def test_generate_return_type(num_envs):
 
                 # check data access patterns: unpacking, indexing, and keys
                 obs, action, reward, done, next_obs = transition
-                assert obs == transition[0] == transition.observation
-                assert action == transition[1] == transition.action
-                assert reward == transition[2] == transition.reward
-                assert done == transition[3] == transition.done
-                assert next_obs == transition[4] == transition.next_observation
+                assert obs is transition[0] is transition.observation
+                assert action is transition[1] is transition.action
+                assert reward is transition[2] is transition.reward
+                assert done is transition[3] is transition.done
+                assert next_obs is transition[4] is transition.next_observation
 
 
 def test_terminal_observations():

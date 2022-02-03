@@ -20,7 +20,6 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 import abc
-import dataclasses
 import inspect
 import itertools
 import typing
@@ -344,10 +343,9 @@ Done = bool
 NextObservation = Observation
 
 
-@dataclasses.dataclass
-class Transition:
+class Transition(typing.NamedTuple):
     """
-    A dataclass containing data from a single step in an MDP:
+    A named tuple containing data from a single step in an MDP:
     (observation, action, reward, done, next_observation)
     """
 
@@ -357,21 +355,14 @@ class Transition:
     done: Done
     next_observation: NextObservation
 
-    def __iter__(self):
-        # Giving this dataclass an iter method permits unpacking
-        return iter(dataclasses.astuple(self))
-
     def without_reward(self):
-        self.reward = None
-        return self
-
-    def __getitem__(self, item):
-        # Indexing into a Transition is not good practice, but permitting it makes this change non-breaking
-        return dataclasses.astuple(self)[item]
-
-    def __len__(self):
-        # As with __getitem__, this should not be used, but permitting it makes this change non-breaking
-        return len(dataclasses.astuple(self))
+        return Transition(
+            self.observation,
+            self.action,
+            None,
+            self.done,
+            self.next_observation,
+        )
 
 
 ActionFn = typing.Callable[

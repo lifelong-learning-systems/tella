@@ -289,7 +289,7 @@ class LocalResults:
 
     def block_start(self, is_learning_allowed: bool) -> None:
         self.block_num += 1
-        self.block_type = 'Training' if is_learning_allowed else 'Evaluating'
+        self.block_type = "Training" if is_learning_allowed else "Evaluating"
 
     def task_variant_start(self, task_variant: EpisodicTaskVariant):
         self.variant_num += 1
@@ -304,7 +304,7 @@ class LocalResults:
     def receive_transitions(self, transitions):
         for transition in transitions:
             if transition is not None:
-                observation, action, reward, done, resulting_obs = transition 
+                observation, action, reward, done, resulting_obs = transition
                 self.record["num_steps_finished"] += 1
                 if done == 1:
                     self.record["num_episodes_finished"] += 1

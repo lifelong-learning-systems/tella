@@ -20,6 +20,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 import abc
+import dataclasses
 import inspect
 import itertools
 import typing
@@ -342,12 +343,35 @@ Reward = float
 Done = bool
 NextObservation = Observation
 
-Transition = typing.Tuple[Observation, Action, Reward, Done, NextObservation]
-"""
-A tuple with data containing data from a single step in an MDP.
-The last item of the tuple is the observation resulting from applying the action
-to the observation (i.e. Next observation).
-"""
+
+@dataclasses.dataclass
+class Transition:
+    """
+    A dataclass containing data from a single step in an MDP:
+    (observation, action, reward, done, next_observation)
+    """
+    observation: Observation
+    action: Action
+    reward: typing.Optional[Reward]
+    done: Done
+    next_observation: NextObservation
+
+    def __iter__(self):
+        # Giving this dataclass an iter method permits unpacking
+        return iter(dataclasses.astuple(self))
+
+    def without_reward(self):
+        self.reward = None
+        return self
+
+    def __getitem__(self, item):
+        # Indexing into a Transition is not good practice, but permitting it makes this change non-breaking
+        return dataclasses.astuple(self)[item]
+
+    def __len__(self):
+        # As with __getitem__, this should not be used, but permitting it makes this change non-breaking
+        return len(dataclasses.astuple(self))
+
 
 ActionFn = typing.Callable[
     [typing.List[typing.Optional[Observation]]], typing.List[typing.Optional[Action]]

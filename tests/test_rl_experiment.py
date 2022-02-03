@@ -5,6 +5,7 @@ import pytest
 from unittest import mock
 from collections import defaultdict
 import gym
+from tella.curriculum import Transition
 from tella.experiment import rl_experiment, _spaces, run, hide_rewards
 from l2logger.validate import run as l2logger_validate
 from .simple_curriculum import (
@@ -606,24 +607,24 @@ def test_rewards_hidden(transition_calls, tmpdir):
 
 
 def test_hide_rewards():
-    t1 = ("obs", "action", 1.0, "done", "next_obs")
-    t2 = ("obs", "action", 2.0, "done", "next_obs")
-    t3 = ("obs", "action", 3.0, "done", "next_obs")
+    t1 = Transition("obs", "action", 1.0, True, "next_obs")
+    t2 = Transition("obs", "action", 2.0, True, "next_obs")
+    t3 = Transition("obs", "action", 3.0, True, "next_obs")
 
     assert hide_rewards([]) == []
     assert hide_rewards([None]) == [None]
     assert hide_rewards([t1, t2, t3]) == [
-        ("obs", "action", None, "done", "next_obs"),
-        ("obs", "action", None, "done", "next_obs"),
-        ("obs", "action", None, "done", "next_obs"),
+        Transition("obs", "action", None, True, "next_obs"),
+        Transition("obs", "action", None, True, "next_obs"),
+        Transition("obs", "action", None, True, "next_obs"),
     ]
     assert hide_rewards([t1, t2, None]) == [
-        ("obs", "action", None, "done", "next_obs"),
-        ("obs", "action", None, "done", "next_obs"),
+        Transition("obs", "action", None, True, "next_obs"),
+        Transition("obs", "action", None, True, "next_obs"),
         None,
     ]
     assert hide_rewards([None, t2, t3]) == [
         None,
-        ("obs", "action", None, "done", "next_obs"),
-        ("obs", "action", None, "done", "next_obs"),
+        Transition("obs", "action", None, True, "next_obs"),
+        Transition("obs", "action", None, True, "next_obs"),
     ]

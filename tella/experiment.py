@@ -406,8 +406,8 @@ def generate_transitions(
             for info, done, next_obs in zip(infos, dones, next_observations)
         ]
         unmasked_transitions = list(
-            Transition(*values) for values in
-            zip(observations, actions, rewards, dones, resulting_obs)
+            Transition(*values)
+            for values in zip(observations, actions, rewards, dones, resulting_obs)
         )
         masked_transitions = _where(mask, None, unmasked_transitions)
         yield masked_transitions

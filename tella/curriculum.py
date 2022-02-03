@@ -350,6 +350,7 @@ class Transition:
     A dataclass containing data from a single step in an MDP:
     (observation, action, reward, done, next_observation)
     """
+
     observation: Observation
     action: Action
     reward: typing.Optional[Reward]

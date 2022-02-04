@@ -53,13 +53,13 @@ def load_curriculum_registry():
             MiniGridDynObstaclesS10N3,
             MiniGridCustomFetchS5T1N2,
             MiniGridCustomFetchS8T1N2,
-            MiniGridCustomFetchS16T2N4,
+            MiniGridCustomFetchS10T2N4,
             MiniGridCustomUnlockS5,
             MiniGridCustomUnlockS7,
             MiniGridCustomUnlockS9,
             MiniGridDoorKeyS5,
             MiniGridDoorKeyS6,
-            MiniGridDoorKeyS8,
+            MiniGridDoorKeyS7,
         )
     except ImportError:
         logger.info(
@@ -81,10 +81,10 @@ def load_curriculum_registry():
         curriculum_registry["MiniGridDynObstaclesS10N3"] = MiniGridDynObstaclesS10N3
         curriculum_registry["MiniGridCustomFetchS5T1N2"] = MiniGridCustomFetchS5T1N2
         curriculum_registry["MiniGridCustomFetchS8T1N2"] = MiniGridCustomFetchS8T1N2
-        curriculum_registry["MiniGridCustomFetchS16T2N4"] = MiniGridCustomFetchS16T2N4
+        curriculum_registry["MiniGridCustomFetchS10T2N4"] = MiniGridCustomFetchS10T2N4
         curriculum_registry["MiniGridCustomUnlockS5"] = MiniGridCustomUnlockS5
         curriculum_registry["MiniGridCustomUnlockS7"] = MiniGridCustomUnlockS7
         curriculum_registry["MiniGridCustomUnlockS9"] = MiniGridCustomUnlockS9
         curriculum_registry["MiniGridDoorKeyS5"] = MiniGridDoorKeyS5
         curriculum_registry["MiniGridDoorKeyS6"] = MiniGridDoorKeyS6
-        curriculum_registry["MiniGridDoorKeyS8"] = MiniGridDoorKeyS8
+        curriculum_registry["MiniGridDoorKeyS7"] = MiniGridDoorKeyS7

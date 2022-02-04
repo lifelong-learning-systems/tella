@@ -34,11 +34,11 @@ from .m21 import (
     MiniGridDynObstaclesS10N3,
     MiniGridCustomFetchS5T1N2,
     MiniGridCustomFetchS8T1N2,
-    MiniGridCustomFetchS16T2N4,
+    MiniGridCustomFetchS10T2N4,
     MiniGridCustomUnlockS5,
     MiniGridCustomUnlockS7,
     MiniGridCustomUnlockS9,
     MiniGridDoorKeyS5,
     MiniGridDoorKeyS6,
-    MiniGridDoorKeyS8,
+    MiniGridDoorKeyS7,
 )

@@ -36,14 +36,14 @@ from gym_minigrid.envs import (
 from gym_minigrid.wrappers import ImgObsWrapper
 
 from ...curriculum import (
-    InterleavedEvalCurriculum,
-    AbstractLearnBlock,
-    LearnBlock,
     AbstractEvalBlock,
-    simple_eval_block,
-    TaskBlock,
+    AbstractLearnBlock,
     AbstractRLTaskVariant,
     EpisodicTaskVariant,
+    InterleavedEvalCurriculum,
+    LearnBlock,
+    TaskBlock,
+    simple_eval_block,
 )
 from .envs import (
     CustomDynamicObstaclesS6N1,
@@ -51,11 +51,13 @@ from .envs import (
     CustomDynamicObstaclesS10N3,
     CustomFetchEnv5x5T1N2,
     CustomFetchEnv8x8T1N2,
+    CustomFetchEnv10x10T2N4,
     CustomFetchEnv16x16T2N4,
     CustomUnlock5x5,
     CustomUnlock7x7,
     CustomUnlock9x9,
     DistShift3,
+    DoorKeyEnv7x7,
 )
 
 
@@ -166,9 +168,9 @@ class CustomFetchS8T1N2(_MiniGridEnv):
         super().__init__(CustomFetchEnv8x8T1N2)
 
 
-class CustomFetchS16T2N4(_MiniGridEnv):
+class CustomFetchS10T2N4(_MiniGridEnv):
     def __init__(self):
-        super().__init__(CustomFetchEnv16x16T2N4)
+        super().__init__(CustomFetchEnv10x10T2N4)
 
 
 class CustomUnlockS5(_MiniGridEnv):
@@ -196,9 +198,9 @@ class DoorKeyS6(_MiniGridEnv):
         super().__init__(DoorKeyEnv6x6)
 
 
-class DoorKeyS8(_MiniGridEnv):
+class DoorKeyS7(_MiniGridEnv):
     def __init__(self):
-        super().__init__(DoorKeyEnv)
+        super().__init__(DoorKeyEnv7x7)
 
 
 TASKS = [
@@ -213,13 +215,13 @@ TASKS = [
     (DynObstaclesS10N3, "DynObstacles", "S10N3"),
     (CustomFetchS5T1N2, "CustomFetch", "S5T1N2"),
     (CustomFetchS8T1N2, "CustomFetch", "S8T1N2"),
-    (CustomFetchS16T2N4, "CustomFetch", "S16T2N4"),
+    (CustomFetchS10T2N4, "CustomFetch", "S10T2N4"),
     (CustomUnlockS5, "CustomUnlock", "S5"),
     (CustomUnlockS7, "CustomUnlock", "S7"),
     (CustomUnlockS9, "CustomUnlock", "S9"),
     (DoorKeyS5, "DoorKey", "S5"),
     (DoorKeyS6, "DoorKey", "S6"),
-    (DoorKeyS8, "DoorKey", "S8"),
+    (DoorKeyS7, "DoorKey", "S7"),
 ]
 
 
@@ -251,7 +253,7 @@ class _MiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
         ---
         learn:  # All learning block limits belong under this header
             default length: 999  # A new default task length can be specified using this key
-            CustomFetchS16T2N4: 1234  # Task lengths can be set for a specific task variant
+            CustomFetchS10T2N4: 1234  # Task lengths can be set for a specific task variant
             SimpleCrossing: 42  # Or task lengths can be set for all variants of a task type
 
         Blocks can alternately be limited by total steps taken
@@ -455,8 +457,8 @@ class MiniGridCustomFetchS8T1N2(_STECurriculum):
     TASK_CLASS, TASK_LABEL, VARIANT_LABEL = CustomFetchS8T1N2, "CustomFetch", "S8T1N2"
 
 
-class MiniGridCustomFetchS16T2N4(_STECurriculum):
-    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = CustomFetchS16T2N4, "CustomFetch", "S16T2N4"
+class MiniGridCustomFetchS10T2N4(_STECurriculum):
+    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = CustomFetchS10T2N4, "CustomFetch", "S10T2N4"
 
 
 class MiniGridCustomUnlockS5(_STECurriculum):
@@ -479,5 +481,5 @@ class MiniGridDoorKeyS6(_STECurriculum):
     TASK_CLASS, TASK_LABEL, VARIANT_LABEL = DoorKeyS6, "DoorKey", "S6"
 
 
-class MiniGridDoorKeyS8(_STECurriculum):
-    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = DoorKeyS8, "DoorKey", "S8"
+class MiniGridDoorKeyS7(_STECurriculum):
+    TASK_CLASS, TASK_LABEL, VARIANT_LABEL = DoorKeyS7, "DoorKey", "S7"

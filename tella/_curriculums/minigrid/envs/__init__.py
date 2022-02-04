@@ -20,6 +20,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from tella._curriculums.minigrid.envs.custom_dist_shift import *
+from tella._curriculums.minigrid.envs.custom_door_key import *
 from tella._curriculums.minigrid.envs.custom_dynamic_obstacles import *
 from tella._curriculums.minigrid.envs.custom_fetch import *
 from tella._curriculums.minigrid.envs.custom_unlock import *

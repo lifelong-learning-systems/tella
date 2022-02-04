@@ -31,7 +31,7 @@ learn:  # Only learning block lengths are configurable. Use this header for all 
 
   # If limits are specified for a task and also a specific variant of that task, the variant values are used
   CustomFetch: 1234  # CustomFetchS5T1N2 and CustomFetchS8T1N2 will use this limit
-  CustomFetchS16T2N4: 5678  # But CustomFetchS16T2N4 is set separately
+  CustomFetchS10T2N4: 5678  # But CustomFetchS10T2N4 is set separately
 
 # Curriculums can define their own config interpreters. MiniGridDispersed accepts one additional field:
 num learn blocks: 5  # MiniGridDispersed splits learning into this many blocks (default 3)
@@ -50,10 +50,10 @@ num learn blocks: 5  # MiniGridDispersed splits learning into this many blocks (
 #  DynObstaclesS10N3: 777 steps
 #  CustomFetchS5T1N2: 1234 steps
 #  CustomFetchS8T1N2: 1234 steps
-#  CustomFetchS16T2N4: 5678 steps
+#  CustomFetchS10T2N4: 5678 steps
 #  CustomUnlockS5: 12345 steps
 #  CustomUnlockS7: 12345 steps
 #  CustomUnlockS9: 12345 steps
 #  DoorKeyS5: 12345 steps
 #  DoorKeyS6: 12345 steps
-#  DoorKeyS8: 12345 steps
+#  DoorKeyS7: 12345 steps

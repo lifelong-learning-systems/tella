@@ -84,13 +84,6 @@ class SB3PPOAgent(tella.ContinualRLAgent):
     def choose_actions(
         self, observations: typing.List[typing.Optional[tella.Observation]]
     ) -> typing.List[typing.Optional[tella.Action]]:
-        if self.is_learning_allowed and any(o is None for o in observations):
-            raise ValueError(
-                "SB3 PPO requires no Nones in transitions."
-                " Either ensure `task_variant.num_steps % num_envs == 0`,"
-                " or turn off vectorization."
-            )
-
         obs = np.array([o for o in observations if o is not None])
         if self.obs_is_image:
             obs = transpose_image(obs)

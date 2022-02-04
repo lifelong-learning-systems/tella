@@ -53,7 +53,7 @@ CONFIG_PER_TASK = """
 ---
 learn:
     default length: 999
-    CustomFetchS16T2N4: 1234
+    CustomFetchS10T2N4: 1234
     SimpleCrossing: 42
 num learn blocks: 5
 """
@@ -177,7 +177,7 @@ def test_curriculum_file_configuration_per_task():
     for (task_label, variant_label), num_episodes in num_learning_episodes.items():
         if task_label == "SimpleCrossing":
             assert num_episodes == 42
-        elif task_label + variant_label == "CustomFetchS16T2N4":
+        elif task_label + variant_label == "CustomFetchS10T2N4":
             assert num_episodes == 1234
         else:
             assert num_episodes == 999
@@ -211,7 +211,7 @@ def test_configured_block_limits_per_task():
 
     assert curriculum._block_limit_from_config("", "") == default_block_limit
 
-    assert curriculum._block_limit_from_config("CustomFetch", "S16T2N4") == {
+    assert curriculum._block_limit_from_config("CustomFetch", "S10T2N4") == {
         "num_episodes": 1234
     }
 

@@ -19,26 +19,9 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-from .simple import SimpleMiniGridCurriculum, SimpleStepMiniGridCurriculum
-from .m21 import (
-    MiniGridCondensed,
-    MiniGridDispersed,
-    MiniGridSimpleCrossingS9N1,
-    MiniGridSimpleCrossingS9N2,
-    MiniGridSimpleCrossingS9N3,
-    MiniGridDistShiftR2,
-    MiniGridDistShiftR5,
-    MiniGridDistShiftR3,
-    MiniGridDynObstaclesS6N1,
-    MiniGridDynObstaclesS8N2,
-    MiniGridDynObstaclesS10N3,
-    MiniGridCustomFetchS5T1N2,
-    MiniGridCustomFetchS8T1N2,
-    MiniGridCustomFetchS10T2N4,
-    MiniGridCustomUnlockS5,
-    MiniGridCustomUnlockS7,
-    MiniGridCustomUnlockS9,
-    MiniGridDoorKeyS5,
-    MiniGridDoorKeyS6,
-    MiniGridDoorKeyS7,
-)
+from gym_minigrid.envs import DoorKeyEnv
+
+
+class DoorKeyEnv7x7(DoorKeyEnv):
+    def __init__(self):
+        super().__init__(size=7)

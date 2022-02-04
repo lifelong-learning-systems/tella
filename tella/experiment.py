@@ -405,10 +405,10 @@ def generate_transitions(
             info["terminal_observation"] if done else next_obs
             for info, done, next_obs in zip(infos, dones, next_observations)
         ]
-        unmasked_transitions = list(
+        unmasked_transitions = [
             Transition(*values)
             for values in zip(observations, actions, rewards, dones, resulting_obs)
-        )
+        ]
         masked_transitions = _where(mask, None, unmasked_transitions)
         yield masked_transitions
 

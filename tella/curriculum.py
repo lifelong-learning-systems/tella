@@ -342,12 +342,19 @@ Reward = float
 Done = bool
 NextObservation = Observation
 
-Transition = typing.Tuple[Observation, Action, Reward, Done, NextObservation]
-"""
-A tuple with data containing data from a single step in an MDP.
-The last item of the tuple is the observation resulting from applying the action
-to the observation (i.e. Next observation).
-"""
+
+class Transition(typing.NamedTuple):
+    """
+    A named tuple containing data from a single step in an MDP:
+    (observation, action, reward, done, next_observation)
+    """
+
+    observation: Observation
+    action: Action
+    reward: typing.Optional[Reward]
+    done: Done
+    next_observation: NextObservation
+
 
 ActionFn = typing.Callable[
     [typing.List[typing.Optional[Observation]]], typing.List[typing.Optional[Action]]

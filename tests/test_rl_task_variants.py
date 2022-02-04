@@ -3,7 +3,7 @@ import pytest
 import typing
 import gym
 from gym.envs.classic_control import CartPoleEnv
-from tella.curriculum import EpisodicTaskVariant
+from tella.curriculum import EpisodicTaskVariant, Transition
 from tella.experiment import generate_transitions, _where
 
 
@@ -149,8 +149,16 @@ def test_generate_return_type(num_envs):
 
         for transition in step_transitions:
             if transition is not None:
-                assert isinstance(transition, typing.Tuple)
+                assert isinstance(transition, Transition)
                 assert len(transition) == 5
+
+                # check data access patterns: unpacking, indexing, and keys
+                obs, action, reward, done, next_obs = transition
+                assert obs is transition[0] is transition.observation
+                assert action is transition[1] is transition.action
+                assert reward is transition[2] is transition.reward
+                assert done is transition[3] is transition.done
+                assert next_obs is transition[4] is transition.next_observation
 
 
 def test_terminal_observations():
@@ -172,12 +180,12 @@ def test_terminal_observations():
         generate_transitions(task_variant, choose_action_zero, num_envs=1), []
     )
     assert len(transitions) == 3
-    assert transitions[0][0] == 0
-    assert transitions[0][-1] == 1
-    assert transitions[1][0] == 1
-    assert transitions[1][-1] == 2
-    assert transitions[2][0] == 2
-    assert transitions[2][-1] == 3
+    assert transitions[0].observation == 0
+    assert transitions[0].next_observation == 1
+    assert transitions[1].observation == 1
+    assert transitions[1].next_observation == 2
+    assert transitions[2].observation == 2
+    assert transitions[2].next_observation == 3
 
 
 def test_where():

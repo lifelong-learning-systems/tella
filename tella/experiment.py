@@ -314,10 +314,9 @@ class L2Logger:
         for i, transition in enumerate(transitions):
             if transition is None:
                 continue
-            _obs, _action, reward, done, _next_obs = transition
-            self.cumulative_episode_rewards[i] += reward
+            self.cumulative_episode_rewards[i] += transition.reward
             self.episode_step_counts[i] += 1
-            if done:
+            if transition.done:
                 self.data_logger.log_record(
                     {
                         "block_num": self.block_num,
@@ -406,9 +405,10 @@ def generate_transitions(
             info["terminal_observation"] if done else next_obs
             for info, done, next_obs in zip(infos, dones, next_observations)
         ]
-        unmasked_transitions = list(
-            zip(observations, actions, rewards, dones, resulting_obs)
-        )
+        unmasked_transitions = [
+            Transition(*values)
+            for values in zip(observations, actions, rewards, dones, resulting_obs)
+        ]
         masked_transitions = _where(mask, None, unmasked_transitions)
         yield masked_transitions
 
@@ -437,12 +437,17 @@ def hide_rewards(
 ) -> typing.List[typing.Optional[Transition]]:
     """
     Masks out any rewards in the transitions passed in by setting the reward
-    field (the 3rd element) to None.
+    field to None.
 
     :param transitions: The transitions to hide the reward in
     :return: The new list of transitions with all rewards set to None
     """
-    return [None if t is None else (t[0], t[1], None, t[3], t[4]) for t in transitions]
+    return [
+        None
+        if t is None
+        else Transition(t.observation, t.action, None, t.done, t.next_observation)
+        for t in transitions
+    ]
 
 
 def _where(

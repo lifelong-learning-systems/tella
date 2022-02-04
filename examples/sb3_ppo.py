@@ -132,11 +132,12 @@ class SB3PPOAgent(tella.ContinualRLAgent):
             return
 
         if any(t is None for t in transitions):
-            raise ValueError(
-                "SB3 PPO requires no Nones in transitions."
+            logger.warning(
+                "Ignoring transitions with Nones. To fix this:"
                 " Either ensure `task_variant.num_steps % num_envs == 0`,"
                 " or turn off vectorization."
             )
+            return
 
         self.steps_since_last_train += 1
         self.num_timesteps += len(transitions)

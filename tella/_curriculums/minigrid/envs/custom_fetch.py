@@ -136,9 +136,11 @@ class CustomFetchEnv8x8T1N2(CustomFetchEnv):
     def __init__(self):
         super().__init__(size=8, num_targets=1, num_objs=2)
 
+
 class CustomFetchEnv10x10T2N4(CustomFetchEnv):
     def __init__(self):
         super().__init__(size=10, num_targets=2, num_objs=4)
+
 
 class CustomFetchEnv16x16T2N4(CustomFetchEnv):
     def __init__(self):

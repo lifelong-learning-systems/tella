@@ -24,4 +24,3 @@ from tella._curriculums.minigrid.envs.custom_door_key import *
 from tella._curriculums.minigrid.envs.custom_dynamic_obstacles import *
 from tella._curriculums.minigrid.envs.custom_fetch import *
 from tella._curriculums.minigrid.envs.custom_unlock import *
-from tella._curriculums.minigrid.envs.custom_unlock_pickup import *

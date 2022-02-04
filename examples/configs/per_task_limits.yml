@@ -15,10 +15,10 @@ learn:
   DynObstaclesS10N3: 9999
   CustomFetchS5T1N2: 1010
   CustomFetchS8T1N2: 1111
-  CustomFetchS16T2N4: 1212
+  CustomFetchS10T2N4: 1212
   CustomUnlockS5: 1313
   CustomUnlockS7: 1414
   CustomUnlockS9: 1515
   DoorKeyS5: 1616
   DoorKeyS6: 1717
-  DoorKeyS8: 1818
+  DoorKeyS7: 1818

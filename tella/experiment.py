@@ -67,12 +67,16 @@ A function can also be used as an AgentFactory:
     agent = agent_factory(rng_seed, observation_space, action_space, num_parallel_envs, config_file)
 """
 
-CurriculumFactory = typing.Callable[[int], AbstractCurriculum[AbstractRLTaskVariant]]
+CurriculumFactory = typing.Callable[
+    [int, typing.Optional[str]], AbstractCurriculum[AbstractRLTaskVariant]
+]
 """
 CurriculumFactory is a type alias for a function or class that returns a
 :class:`AbstractCurriculum`.
 
-It takes 1 argument, an integer which is to be used for repeatable random number generation.
+It takes 2 arguments:
+    an integer which is to be used for repeatable random number generation,
+    and an option filepath to be loaded as a configuration dict.
 
 A concrete subclass of :class:`AbstractCurriculum` can be used as an CurriculumFactory:
 
@@ -103,6 +107,7 @@ def rl_experiment(
     curriculum_seed: typing.Optional[int] = None,
     render: typing.Optional[bool] = False,
     agent_config: typing.Optional[str] = None,
+    curriculum_config: typing.Optional[str] = None,
     lifetime_idx: int = 0,
 ) -> None:
     """
@@ -119,6 +124,7 @@ def rl_experiment(
     :param curriculum_seed: The seed for the RNG for the curriculum or None for random seed.
     :param render: Whether to render the environment for debugging or demonstrations.
     :param agent_config: Optional path to a configuration file for the agent.
+    :param curriculum_config: Optional path to a configuration file for the curriculum.
     :return: None
     """
     if lifetime_idx < 0:
@@ -156,7 +162,7 @@ def rl_experiment(
         logger.info(f"Starting lifetime #{i_lifetime + 1} (lifetime_idx={i_lifetime})")
 
         curriculum_seed = curriculum_rng.bit_generator.random_raw()
-        curriculum = curriculum_factory(curriculum_seed)
+        curriculum = curriculum_factory(curriculum_seed, curriculum_config)
         logger.info(f"Constructed curriculum {curriculum} with seed {curriculum_seed}")
 
         # FIXME: check for RL task variant https://github.com/darpa-l2m/tella/issues/53
@@ -222,6 +228,8 @@ def run(
         "complexity": "1-low",
         "difficulty": "2-medium",
         "scenario_type": "custom",
+        "curriculum_seed": curriculum.rng_seed,
+        "agent_seed": agent.rng_seed,
     }
     data_logger = L2Logger(log_dir, scenario_dir, scenario_info, num_envs)
     for block in curriculum.learn_blocks_and_eval_blocks():
@@ -288,6 +296,7 @@ class L2Logger:
         self.total_episodes = 0
         self.num_envs = num_envs
         self.cumulative_episode_rewards = [0.0] * num_envs
+        self.episode_step_counts = [0] * num_envs
 
     def block_start(self, is_learning_allowed: bool) -> None:
         self.block_num += 1
@@ -297,6 +306,7 @@ class L2Logger:
         self.task_name = task_variant.task_label + "_" + task_variant.variant_label
         self.task_params = task_variant.params
         self.cumulative_episode_rewards = [0.0] * self.num_envs
+        self.episode_step_counts = [0] * self.num_envs
 
     def receive_transitions(
         self, transitions: typing.List[typing.Optional[Transition]]
@@ -306,6 +316,7 @@ class L2Logger:
                 continue
             _obs, _action, reward, done, _next_obs = transition
             self.cumulative_episode_rewards[i] += reward
+            self.episode_step_counts[i] += 1
             if done:
                 self.data_logger.log_record(
                     {
@@ -317,9 +328,11 @@ class L2Logger:
                         "exp_num": self.total_episodes,
                         "reward": self.cumulative_episode_rewards[i],
                         "exp_status": "complete",
+                        "episode_step_count": self.episode_step_counts[i],
                     }
                 )
                 self.cumulative_episode_rewards[i] = 0
+                self.episode_step_counts[i] = 0
                 self.total_episodes += 1
 
 

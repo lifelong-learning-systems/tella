@@ -25,6 +25,7 @@ import itertools
 import typing
 import warnings
 
+import yaml
 import numpy as np
 import gym
 
@@ -94,13 +95,21 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
     a sequence of :class:`AbstractLearnBlock`s and :class:`AbstractEvalBlock`s.
     """
 
-    def __init__(self, rng_seed: int):
+    def __init__(self, rng_seed: int, config_file: typing.Optional[str] = None):
         """
         :param rng_seed: The seed to be used in setting random number generators. This should be referenced
             at each call to .learn_blocks_and_eval_blocks()
+        :param config_file: Path to a config file for the curriculum or None if no config.
         """
         self.rng_seed = rng_seed
         self.rng = np.random.default_rng(rng_seed)
+
+        if config_file is not None:
+            with open(config_file) as file:
+                self.config = yaml.safe_load(file)
+        else:
+            self.config = {}
+        self.config_file = config_file
 
     def copy(self) -> "AbstractCurriculum":
         """
@@ -108,7 +117,7 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
 
         Curriculum authors will need to overwrite this method for subclasses with additional inputs
         """
-        return self.__class__(self.rng_seed)
+        return self.__class__(self.rng_seed, self.config_file)
 
     @abc.abstractmethod
     def learn_blocks_and_eval_blocks(
@@ -197,12 +206,13 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
 
     """
 
-    def __init__(self, rng_seed: int):
+    def __init__(self, rng_seed: int, config_file: typing.Optional[str] = None):
         """
         :param rng_seed: The seed to be used in setting random number generators. This should be referenced
             at each call to .learn_blocks_and_eval_blocks()
+        :param config_file: Path to a config file for the curriculum or None if no config.
         """
-        super().__init__(rng_seed)
+        super().__init__(rng_seed, config_file)
         # Also save a fixed eval_rng_seed so that eval environments are the same in each block
         self.eval_rng_seed = self.rng.bit_generator.random_raw()
 

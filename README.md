@@ -143,6 +143,9 @@ If a seed is not provided, a random seed is generated.
 The seeds used will be logged using the python logging package.
 
 For utilizing multiple cores, use the `--num-parallel-envs` flag.
+When using `--num-parallel-envs` > 1, you may need to configure
+python multiprocessing's start method via `mp.set_start_method("spawn")`
+at the start of the program, depending on the underlying OS.
 
 To run an agent through multiple lifetimes of a curriculum, use the `--num-lifetimes`
 flag. If you want to run a specific lifetime (useful for running on a cluster),

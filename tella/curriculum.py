@@ -92,7 +92,7 @@ TaskVariantType = typing.TypeVar("TaskVariantType", bound=AbstractTaskVariant)
 class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
     """
     Represents a lifelong/continual learning curriculum. A curriculum is simply
-    a sequence of :class:`AbstractLearnBlock`s and :class:`AbstractEvalBlock`s.
+    a sequence of :class:`AbstractLearnBlock` and :class:`AbstractEvalBlock`.
     """
 
     def __init__(self, rng_seed: int, config_file: typing.Optional[str] = None):
@@ -378,7 +378,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
     :class:`gym.Env`.
 
     This is a concrete subclass of the :class:`AbstractRLTaskVariant`,
-    that takes an :type:`ActionFn` and returns an iterable of :type:`Transition`.
+    that takes an `ActionFn` and returns an iterable of `Transition`.
     """
 
     def __init__(
@@ -488,10 +488,10 @@ def validate_curriculum(
 
     Uses :meth:`AbstractTaskVariant.validate()` to check task variants.
 
-    Raises a :class:`ValidationError` if an invalid parameter is detected.
-    Raises a :class:`ValidationError` if the curriculum contains multiple observation or action spaces.
-    Raises a :class:`ValidationError` if any task block contains multiple tasks.
-    Raises a :class:`ValidationError` if the curriculum, or any block, or any task block is empty.
+    :raises ValidationError: if an invalid parameter is detected.
+    :raises ValidationError: if the curriculum contains multiple observation or action spaces.
+    :raises ValidationError: if any task block contains multiple tasks.
+    :raises ValidationError: if the curriculum, or any block, or any task block is empty.
 
     :return: None
     """

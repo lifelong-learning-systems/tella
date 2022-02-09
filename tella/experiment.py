@@ -45,11 +45,11 @@ It takes 5 arguments, which are the same as :meth:`ContinualRLAgent.__init__()`:
 
     1. rng_seed, which is an integer to be used for repeatable random number generation
     2. observation_space, which is a :class:`gym.Space`
-    3. action_space, which is a :class:`gym.Space
+    3. action_space, which is a :class:`gym.Space`
     4. num_parallel_envs, which is an integer indicating how many environments will be run in parallel at the same time.
-    4. config_file, which is a path as a string to a configuration file or None if no configuration.
+    5. config_file, which is a path as a string to a configuration file or None if no configuration.
 
-A concrete subclass of :class:`ContinualRLAgent` can be used as an AgentFactory:
+A concrete subclass of :class:`ContinualRLAgent` can be used as an AgentFactory::
 
     class MyAgent(ContinualRLAgent):
         ...
@@ -57,11 +57,11 @@ A concrete subclass of :class:`ContinualRLAgent` can be used as an AgentFactory:
     agent_factory: AgentFactory = MyAgent
     agent = agent_factory(rng_seed, observation_space, action_space, num_parallel_envs, config_file)
 
-A function can also be used as an AgentFactory:
+A function can also be used as an AgentFactory::
 
     def my_factory(rng_seed, observation_space, action_space, num_parallel_envs, config_file):
         ...
-        return my_agent
+        return my_agent(rng_seed, observation_space, action_space, num_parallel_envs, config_file)
 
     agent_factory: AgentFactory = my_factory
     agent = agent_factory(rng_seed, observation_space, action_space, num_parallel_envs, config_file)
@@ -75,25 +75,26 @@ CurriculumFactory is a type alias for a function or class that returns a
 :class:`AbstractCurriculum`.
 
 It takes 2 arguments:
-    an integer which is to be used for repeatable random number generation,
-    and an option filepath to be loaded as a configuration dict.
 
-A concrete subclass of :class:`AbstractCurriculum` can be used as an CurriculumFactory:
+    1. an integer which is to be used for repeatable random number generation
+    2. an option filepath to be loaded as a configuration dict.
+
+A concrete subclass of :class:`AbstractCurriculum` can be used as an CurriculumFactory::
 
     class MyCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
         ...
 
     curriculum_factory: CurriculumFactory = MyCurriculum
-    curriculum = curriculum_factory(rng_seed)
+    curriculum = curriculum_factory(rng_seed, config_file)
 
-A function can also be used as an CurriculumFactory:
+A function can also be used as an CurriculumFactory::
 
-    def my_factory(rng_seed):
+    def my_factory(rng_seed, config_file):
         ...
-        return my_curriculum
+        return my_curriculum(rng_seed, config_file)
 
     curriculum_factory: CurriculumFactory = my_factory
-    curriculum = curriculum_factory(rng_seed)
+    curriculum = curriculum_factory(rng_seed, config_file)
 """
 
 

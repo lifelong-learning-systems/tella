@@ -8,4 +8,4 @@ venv
 *.egg-info/
 *logs/
 
-build/
+docs/_build/

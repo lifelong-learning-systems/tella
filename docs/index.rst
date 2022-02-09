@@ -14,6 +14,7 @@ Welcome to tella's documentation!
    INSTALL.rst
    EXAMPLES.rst
    CONTRIBUTING.rst
+   modules.rst
 
 
 Indices and tables

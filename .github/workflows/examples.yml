@@ -27,8 +27,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pytest wheel
-          pip install ./tella
-          pip install gym-minigrid==1.0.2
+          pip install ./tella[minigrid]
           pip install torch
       - name: Run examples
         working-directory: ./tella

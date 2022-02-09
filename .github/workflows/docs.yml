@@ -1,14 +1,22 @@
 name: Docs Check
-on:
-  push:
-    paths:
-      - 'docs/**'
+on: push
 
 jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout tella
+      uses: actions/checkout@v2
+      with:
+        path: tella
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ./tella[minigrid]
     - uses: ammaraskar/sphinx-action@master
       with:
-        docs-folder: docs/
+        docs-folder: ./tella/docs/

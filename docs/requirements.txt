@@ -1,3 +1,4 @@
 sphinx_rtd_theme
 gym
+l2logger
 pyyaml

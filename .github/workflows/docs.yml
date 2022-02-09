@@ -1,0 +1,14 @@
+name: Docs Check
+on:
+  push:
+    paths:
+      - 'docs/**'
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ammaraskar/sphinx-action@master
+      with:
+        docs-folder: docs/

@@ -11,6 +11,9 @@ Welcome to tella's documentation!
    :caption: Contents:
 
    README.rst
+   INSTALL.rst
+   EXAMPLES.rst
+   CONTRIBUTING.rst
 
 
 Indices and tables

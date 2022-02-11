@@ -6,20 +6,14 @@
 Welcome to tella's documentation!
 =================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-   README.rst
-   INSTALL.rst
-   EXAMPLES.rst
-   CONTRIBUTING.rst
-   modules.rst
+.. include:: README.rst
+.. include:: INSTALL.rst
+.. include:: EXAMPLES.rst
+.. include:: CONTRIBUTING.rst
 
 
 Indices and tables
 ==================
-
+* :doc:`tella`
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`

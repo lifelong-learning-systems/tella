@@ -199,3 +199,9 @@ To autoformat for PEP8 compliance:
 ```
 black tella
 ```
+
+Acknowledgments
+----------------
+This software was funded by the DARPA Lifelong Learning Machines (L2M) Program.
+
+The views, opinions, and/or findings expressed are those of the author(s) and should not be interpreted as representing the official views or policies of the Department of Defense or the U.S. Government.

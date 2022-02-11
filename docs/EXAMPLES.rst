@@ -1,4 +1,4 @@
-Examples for tella
+Example agents
 ====================
 To better understand the API, examples have been implemented.
 They all use the tella command line interface.

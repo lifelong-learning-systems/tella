@@ -6,14 +6,13 @@
 Welcome to tella's documentation!
 =================================
 
-.. include:: README.rst
+.. include:: ABOUT.rst
 .. include:: INSTALL.rst
 .. include:: EXAMPLES.rst
 .. include:: CONTRIBUTING.rst
 
 
-Indices and tables
+Autodocs
 ==================
-* :doc:`tella`
-* :ref:`genindex`
-* :ref:`search`
+* :doc:`tella's code <autodocs>`
+* :ref:`Alphabetical index <genindex>`

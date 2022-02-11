@@ -1,5 +1,3 @@
-tella package
-=============
 
 tella.agents module
 -------------------

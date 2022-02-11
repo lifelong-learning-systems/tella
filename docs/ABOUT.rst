@@ -1,18 +1,22 @@
-tella
+About tella
 ===========
 tella stands for Training and Evaluating Lifelong Learning Agents.
 It provides a standard API and tools for performing continual learning experiments.
 
-API
+Continual RL curriculums
+------------------------
+TODO
+
+RL agent API
 -------------
 tella defines an event-based interface for agents.
 tella calls methods of the agent to run through training and evaluation blocks.
 The event handlers are
 
-* block_start() and block_end()
-* task_start() and task_end()
-* task_variant_start() and task_variant_end()
-* choose_actions() and receive_transitions()
+* ``block_start()`` and ``block_end()``
+* ``task_start()`` and ``task_end()``
+* ``task_variant_start()`` and ``task_variant_end()``
+* ``choose_actions()`` and ``receive_transitions()``
 
 A learning block or evaluation block consists of 1 or more tasks.
 The agent is notified of the start of the block and the start of each task.
@@ -26,6 +30,7 @@ After the environment is updated with the action, the reward is passed to the ag
 The receive_transitions() method also received the previous observation and new observation.
 These calls continue until the episode is complete.
 
+The abstract class ``tella.ContinualRLAgent`` implements the expected methods of an agent.
 Here is a minimal agent that takes random actions::
 
     import tella
@@ -50,7 +55,7 @@ Here is a minimal agent that takes random actions::
         print("Done! Check logs for results.")
 
 
-Run
+Running tella
 -------------
 Assuming your agent is defined in a file called ``my_agent.py``,
 run it through a curriculum like so::

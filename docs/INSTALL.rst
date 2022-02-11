@@ -14,20 +14,6 @@ Install
 
     pip install -U pip wheel
 
-#. Install `l2logger <https://github.com/darpa-l2m/l2logger>`_.
-   If you have ssh keys configured for GitHub, install like so::
-
-    pip install git+ssh://git@github.com/darpa-l2m/l2logger.git
-
-   If this does not work, try::
-
-    pip install git+https://github.com/darpa-l2m/l2logger.git
-
-   Otherwise, clone the l2logger repository and install::
-
-       git clone https://github.com/darpa-l2m/l2logger
-       pip install ./l2logger
-
 #. Clone this repository::
 
     git clone git@github.com:darpa-l2m/tella.git
@@ -36,7 +22,7 @@ Install
 
     git clone https://github.com/darpa-l2m/tella.git
 
-5. Install the tella package and its dependencies::
+#. Install the tella package and its dependencies::
 
     pip install "./tella[minigrid]"
 

@@ -3,35 +3,73 @@ About tella
 tella stands for Training and Evaluating Lifelong Learning Agents.
 It provides a standard API and tools for performing continual learning experiments.
 
+
 Continual RL curriculums
 ------------------------
-TODO
+The experiences presented to a tella agent are structured in the following hierarchy::
+
+    curriculum > block > task block > task variant block > individual experience
+
+.. glossary::
+
+    Experience
+        TODO
+
+    Task Variant
+        A specific environment and objective given to the agent.
+        Individual instances are randomized, but parameters are fixed.
+
+    Task Variant Block
+        A sequence of one or more experiences of the same task variant.
+
+    Task
+        A set of task variants with varied parameters, but overall similar nature.
+
+    Task Block
+        A sequence of one or more task variant blocks, all containing the same task.
+
+    Block
+        A sequence of one or more task blocks, potentially containing several different tasks.
+        Blocks can be learning blocks or evaluation blocks.
+
+    Curriculum
+        A sequence of one or more blocks.
+
+Several preset curriculums are included in tella.
+It is also possible to define custom curriculums.
+
+A small example curriculum could contain::
+
+    	Block 1, learning: 2 tasks
+            Task 1, CartPoleEnv: 2 variants
+                Task variant 1, CartPoleEnv - Default: 1 episode.
+                Task variant 2, CartPoleEnv - Variant: 1 episode.
+            Task 2, MountainCarEnv: 1 variant
+                Task variant 1, MountainCarEnv - Default: 1 episode.
+
+        Block 2, evaluation: 1 task
+            Task 1, CartPoleEnv: 1 variant
+                Task variant 1, CartPoleEnv - Default: 1 episode.
 
 RL agent API
 -------------
 tella defines an event-based interface for agents.
-tella calls methods of the agent to run through training and evaluation blocks.
-The event handlers are
+The event handlers follow the curriculum structure described above:
 
 * ``block_start()`` and ``block_end()``
 * ``task_start()`` and ``task_end()``
 * ``task_variant_start()`` and ``task_variant_end()``
 * ``choose_actions()`` and ``receive_transitions()``
 
-A learning block or evaluation block consists of 1 or more tasks.
-The agent is notified of the start of the block and the start of each task.
-The task_start() method receives basic information about the task.
-The agent is also notified of the end of the block and the end of each task.
+The agent is notified of the start and end of each block, task block, and task variant block.
+During each task variant block, the agent is repeatedly called through choose_actions()
+and must return its actions based on the provided observations.
+After each environment is updated with the action, the results are passed to the agent by calling receive_transitions().
+These calls continue until the task variant block is complete.
 
-A task consists of multiple episodes.
-The agent is notified of the start and end of the episode.
-During the episode the agent is called through choose_actions() with an observation and must return an action.
-After the environment is updated with the action, the reward is passed to the agent by calling receive_transitions().
-The receive_transitions() method also received the previous observation and new observation.
-These calls continue until the episode is complete.
-
-The abstract class ``tella.ContinualRLAgent`` implements the expected methods of an agent.
-Here is a minimal agent that takes random actions::
+The abstract classes :class:`tella.agents.ContinualLearningAgent` and
+:class:`tella.agents.ContinualRLAgent` implement the expected methods of an RL agent.
+Here is a minimal agent subclass that takes random actions::
 
     import tella
 
@@ -57,8 +95,14 @@ Here is a minimal agent that takes random actions::
 
 Running tella
 -------------
+tella defines a command line interface (CLI) for running continual RL experiments.
 Assuming your agent is defined in a file called ``my_agent.py``,
-run it through a curriculum like so::
+and that file contains this block which directs calls to the tella CLI::
+
+    if __name__ == "__main__":
+        tella.rl_cli(<MyAgentClass>)
+
+experiments with the agent can then be run by::
 
     python my_agent.py --curriculum SimpleCartPole
 
@@ -66,9 +110,9 @@ To see all the command line options, run::
 
     > python my_agent.py --help
     usage: my_agent.py [-h] [--lifetime-idx LIFETIME_IDX] [--num-lifetimes NUM_LIFETIMES]
-                               [--num-parallel-envs NUM_PARALLEL_ENVS] [--log-dir LOG_DIR] [--render] [--seed SEED]
-                               [--agent-seed AGENT_SEED] [--curriculum-seed CURRICULUM_SEED] [--agent-config AGENT_CONFIG]
-                               --curriculum {...}
+                       [--num-parallel-envs NUM_PARALLEL_ENVS] [--log-dir LOG_DIR] [--render] [--seed SEED]
+                       [--agent-seed AGENT_SEED] [--curriculum-seed CURRICULUM_SEED] [--agent-config AGENT_CONFIG]
+                       --curriculum {...}
 
     optional arguments:
         -h, --help            show this help message and exit
@@ -90,12 +134,15 @@ To see all the command line options, run::
                             The curriculum rng seed to use for reproducibility. (default: None)
         --agent-config AGENT_CONFIG
                             Optional path to agent config file. (default: None)
+        --curriculum-config CURRICULUM_CONFIG
+                            Optional path to curriculum config file. (default: None)
         --curriculum {...}
                             Curriculum name for registry. (default: None)
 
 All the curriculums registered with tella are listed in the help.
 
-The l2logger output by default is stored in your current directory in ``logs``.
+Experiments run in tella are monitored by `l2logger <https://github.com/darpa-l2m/l2logger>`_.
+The l2logger output by default is stored relative your current directory in ``./logs/``.
 This can be set with the ``--log-dir`` argument.
 
 For reproducing behavior, use the ``--agent-seed``  and ``--curriculum-seed`` arguments.
@@ -110,9 +157,18 @@ at the start of the program, depending on the underlying OS.
 To run an agent through multiple lifetimes of a curriculum, use the ``--num-lifetimes``
 flag. If you want to run a specific lifetime (useful for running on a cluster),
 use the ``--lifetime-idx`` flag. Note that the curriculum seed must be provided to use ``--lifetime-idx``.
+For example, two lifetimes can be run by::
+
+    python my_agent.py --curriculum MiniGridCondensed --curriculum-seed 12345 --num-lifetimes 2
+
+Or in parallel, ensuring the same environments, by::
+
+    python my_agent.py --curriculum MiniGridCondensed --curriculum-seed 12345 --num-lifetimes 1
+    python my_agent.py --curriculum MiniGridCondensed --curriculum-seed 12345 --num-lifetimes 1 --lifetime-idx 1
 
 To view a rendering of the agent learning, set the ``--render`` flag.
-This will render the first environment in the list.
+This will render the first environment in the list when ``--num-parallel-envs`` > 1.
 
-To pass a configuration file to the agent, set the ``--agent-config`` argument.
-The format of the configuration file is determined by the specific agent.
+To pass a configuration file to the agent, use the ``--agent-config`` argument.
+To pass a configuration file to the curriculum, use the ``--curriculum-config`` argument.
+The format of the configuration file is determined by the specific object it is passed to.

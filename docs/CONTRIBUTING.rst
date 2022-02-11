@@ -3,7 +3,8 @@ Contributing
 
 Bug Reports and Feature Requests
 ---------------------------------
-Bug reports and feature requests should be made through issues on Github.
+Bug reports and feature requests should be made through
+`issues on Github <https://github.com/darpa-l2m/tella/issues>`_.
 
 A bug report should contain:
 

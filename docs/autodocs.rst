@@ -1,3 +1,7 @@
+tella autodocs
+==============
+
+:ref:`Alphabetical index <genindex>`
 
 tella.agents module
 -------------------

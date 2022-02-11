@@ -29,8 +29,11 @@ author = "The Johns Hopkins University Applied Physics Laboratory LLC"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "sphinx.ext.autosectionlabel",
     "sphinx.ext.autodoc",
 ]
+
+autosectionlabel_prefix_document = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

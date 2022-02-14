@@ -5,6 +5,7 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
+    - run: python -m pip install --upgrade pip
     - uses: actions/checkout@v2
     - uses: ammaraskar/sphinx-action@master
       with:

@@ -573,13 +573,13 @@ def validate_params(fn: typing.Callable, param_names: typing.List[str]) -> None:
     to the function `fn`.
 
     NOTE:
-        if `fn` has any **kwargs, then all arguments are valid and this method
+        if `fn` has any ``**kwargs``, then all arguments are valid and this method
         won't be able to verify anything.
 
     :param fn: The callable that will accept the parameters.
     :param param_names: The names of the parameters to check.
 
-    :raises: a ValidationError if any of `param_names` are not found in the signature, and there are no **kwargs
+    :raises: a ValidationError if any of `param_names` are not found in the signature, and there are no ``**kwargs``
     :raises: a ValidationError if any of the parameters without defaults in `fn` are not present in `param_names`
     :raises: a ValidationError if any `*args` are found
     :raises: a ValidationError if any positional only arguments are found (i.e. using /)

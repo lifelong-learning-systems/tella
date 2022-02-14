@@ -2,4 +2,3 @@ sphinx_rtd_theme
 gym
 l2logger
 pyyaml
-gym_minigrid

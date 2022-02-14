@@ -37,9 +37,6 @@ class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
     """
     The base class for a continual learning agent. A CL Agent is an agent that
     can consume some task variant of a generic type (:class:`TaskVariantType`).
-
-    The only requirement is to implement :meth:`ContinualLearningAgent.consume_task_variant()`,
-    which takes an object of type :class:`TaskVariantType`.
     """
 
     def __init__(self, rng_seed: int) -> None:
@@ -61,8 +58,9 @@ class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
 
         The next method called would be :meth:`ContinualLearningAgent.task_start()`.
 
-        NOTE: the attribute :attr:`ContinualLearningAgent.is_learning_allowed` is
-            also set outside of this method.
+        NOTE:
+            the attribute :attr:`ContinualLearningAgent.is_learning_allowed`
+            is also set outside of this method.
 
         :param is_learning_allowed: Whether the block is a learning block or
             an evaluation block.
@@ -74,8 +72,7 @@ class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
         task_name: typing.Optional[str],
     ) -> None:
         """
-        Signifies interaction with a new task is about to start. `task_info`
-        may contain task id/label or task parameters.
+        Signifies interaction with a new task is about to start.
 
         The next method called would be :meth:`ContinualLearningAgent.task_variant_start()`.
 
@@ -89,10 +86,10 @@ class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
         variant_name: typing.Optional[str],
     ) -> None:
         """
-        Signifies interaction with a new task variant is about to start. `task_info`
-        may contain task id/label or task parameters.
+        Signifies interaction with a new task variant is about to start.
 
-        The next method called would be :meth:`ContinualLearningAgent.consume_experience()`.
+        The task variant experiences will occur between this method and
+        :meth:`ContinualLearningAgent.task_variant_end()`.
 
         :param task_name: An optional value indicating the name of the task
         :param variant_name: An optional value indicating the name of the task variant
@@ -107,8 +104,8 @@ class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
         """
         Signifies interaction with a task variant has just ended.
 
-        The next method called would be :meth:`Agent.task_variant_start()` if there
-        are more task variants in the block, otherwise :meth:`Agent.task_end()`.
+        The next method called would be :meth:`ContinualLearningAgent.task_variant_start()` if there
+        are more task variants in the task block, otherwise :meth:`ContinualLearningAgent.task_end()`.
 
         :param task_name: An optional value indicating the name of the task
         :param variant_name: An optional value indicating the name of the task variant
@@ -122,8 +119,8 @@ class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
         """
         Signifies interaction with a task has just ended.
 
-        The next method called would be :meth:`Agent.task_start()` if there
-        are more tasks in the block, otherwise :meth:`Agent.block_end()`.
+        The next method called would be :meth:`ContinualLearningAgent.task_start()` if there
+        are more tasks in the block, otherwise :meth:`ContinualLearningAgent.block_end()`.
 
         :param task_name: An optional value indicating the name of the task
         """
@@ -133,10 +130,11 @@ class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
         """
         Signifies the end of a block.
 
-        The next method called would be :meth:`Agent.block_start()`
+        The next method called would be :meth:`ContinualLearningAgent.block_start()`
         if there are more blocks, otherwise the program would end.
 
-        :param is_learning_allowed: The same data passed into the last :meth:`Agent.block_end()`.
+        :param is_learning_allowed: The same data passed into the previous call to
+            :meth:`ContinualLearningAgent.block_start()`.
         """
         pass
 
@@ -146,15 +144,9 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
     The base class for a continual reinforcement learning agent. This class
     consumes an experience of type :class:`AbstractRLTaskVariant`.
 
-    This class implements the :meth:`ContinualLearningAgent.learn_experience`
-    and the :meth:`ContinualLearningAgent.eval_experience`, and exposes two
-    new required methods for subclasses to implement:
-
-        1. choose_actions, which :meth:`ContinualRLAgent.learn_experience`
-            and :meth:`ContinualRLAgent.eval_experience` pass to
-            :meth:`RLTaskVariant.generate`.
-        2. receive_transitions, which :meth:`ContinualRLAgent.learn_experience`
-            calls with the result of :meth:`RLTaskVariant.generate`.
+    This class exposes two new required methods for subclasses to implement:
+    :meth:`ContinualRLAgent.choose_actions()` and
+    :meth:`ContinualRLAgent.receive_transitions()`
 
     """
 
@@ -201,11 +193,11 @@ class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
             ... = vector_env.step(actions)
 
         If there are environments that are done, but no more new steps can be taken
-        due to limitations from the curriculums, a None will be passed inplace of
+        due to limitations from the curriculums, a ``None`` will be passed in place of
         an observation. This is done to preserve the ordering of observations.
 
-        In the case that `observations[i] is None`, then the i'th action returned
-        should also be `None`.
+        In the case that ``observations[i] is None``, then the i'th action returned
+        will be disregarded. The agent can instead return ``None`` in that place.
 
         .. i.e.
 

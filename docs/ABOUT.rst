@@ -10,6 +10,8 @@ The experiences presented to a tella agent are structured in the following hiera
 
     curriculum > block > task block > task variant block > individual experience
 
+In tella, all experiences in a single curriculum must share the same observation space and action space.
+
 .. glossary::
 
     Experience

@@ -8,6 +8,7 @@ tella.agents module
 
 .. automodule:: tella.agents
    :members:
+   :special-members: __init__
    :show-inheritance:
 
 tella.cli module
@@ -22,6 +23,7 @@ tella.curriculum module
 
 .. automodule:: tella.curriculum
    :members:
+   :special-members: __init__
    :show-inheritance:
 
 tella.experiment module
@@ -29,4 +31,5 @@ tella.experiment module
 
 .. automodule:: tella.experiment
    :members:
+   :special-members: __init__
    :show-inheritance:

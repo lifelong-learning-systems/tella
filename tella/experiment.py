@@ -39,9 +39,9 @@ logger = logging.getLogger(__name__)
 
 AgentFactory = typing.Callable[[int, gym.Space, gym.Space, int, str], ContinualRLAgent]
 """
-AgentFactory is a function or class that returns a :class:`ContinualRLAgent`.
+AgentFactory is a function or class that returns a :class:`tella.agents.ContinualRLAgent`.
 
-It takes 5 arguments, which are the same as :meth:`ContinualRLAgent.__init__()`:
+It takes 5 arguments, which are the same as :meth:`tella.agents.ContinualRLAgent.__init__()`:
 
     1. rng_seed, which is an integer to be used for repeatable random number generation
     2. observation_space, which is a :class:`gym.Space`
@@ -72,7 +72,7 @@ CurriculumFactory = typing.Callable[
 ]
 """
 CurriculumFactory is a type alias for a function or class that returns a
-:class:`AbstractCurriculum`.
+:class:`tella.curriculum.AbstractCurriculum`.
 
 It takes 2 arguments:
 
@@ -87,7 +87,7 @@ A concrete subclass of :class:`AbstractCurriculum` can be used as an CurriculumF
     curriculum_factory: CurriculumFactory = MyCurriculum
     curriculum = curriculum_factory(rng_seed, config_file)
 
-A function can also be used as an CurriculumFactory::
+A function can also be used as a CurriculumFactory::
 
     def my_factory(rng_seed, config_file):
         ...
@@ -117,7 +117,7 @@ def rl_experiment(
     :param agent_factory: Function or class to produce agents.
     :param curriculum_factory: Function or class to produce curriculum.
     :param num_lifetimes: Number of times to call :func:`run()`.
-    :param num_parallel_envs: TODO
+    :param num_parallel_envs: Number of parallel environments.
     :param log_dir: The root log directory for l2logger.
     :param lifetime_idx: The index of the lifetime to start running with.
         This will skip the first N seeds of the RNGs, where N = `lifetime_idx`.
@@ -346,12 +346,12 @@ def generate_transitions(
     Yields markov transitions from the interaction between the `action_fn`
     and the :class:`gym.Env` contained in :class:`EpisodicTaskVariant`.
 
-    **None transitions**
-    Extra data can be accessed when using num_envs > 1, if the data limits in
-    :class:`EpisodicTaskVariant` % num_envs != 0. For an example if the limit
-    is 4 episodes, and `num_envs` is 5, then this function will generate a whole
-    extra episode worth of transitions. In order to prevent the leak of extra data,
-    we mask out any transitions above the data limit by setting them to None.
+    Note: `None` transitions
+        Extra data can be produced when using num_envs > 1, if the data limits in
+        :class:`EpisodicTaskVariant` % num_envs != 0. For an example if the limit
+        is 4 episodes, and `num_envs` is 5, then this function will generate a whole
+        extra episode worth of transitions. In order to prevent the leak of extra data,
+        we mask out any transitions above the data limit by setting them to None.
 
     :param task_variant: The task variant containing environment and seed information.
     :param action_fn: Selects actions to take in the environment given an observation.

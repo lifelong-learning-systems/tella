@@ -448,7 +448,11 @@ def summarize_curriculum(
                 variant_summary = (
                     f"\n\t\t\tTask variant {i_variant+1}, "
                     f"{task_variant.task_label} - {task_variant.variant_label}: "
-                    f"{maybe_plural(task_variant.num_episodes, 'episode')}."
+                    + (
+                        f"{maybe_plural(task_variant.num_episodes, 'episode')}."
+                        if task_variant.num_episodes is not None
+                        else f"{maybe_plural(task_variant.num_steps, 'step')}."
+                    )
                 )
                 variant_summaries.append(variant_summary)
 

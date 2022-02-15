@@ -34,11 +34,11 @@ def rl_cli(
     curriculum_factory: typing.Optional[CurriculumFactory] = None,
 ) -> None:
     """
-    Builds a CLI wrapper around :func:`rl_experiment` to enable running experiments with
-    the `agent_factory` passed in producing the agent, and the CLI loading
-    in a curriculum from the command line.
+    Builds a CLI wrapper around :func:`tella.experiment.rl_experiment()`
+    to enable running experiments with the `agent_factory` passed in producing
+    the agent, and the CLI loading in a curriculum from the command line.
 
-    Example: ..
+    Example::
 
         import tella
 
@@ -50,8 +50,8 @@ def rl_cli(
 
     :param agent_factory: A function or class producing :class:`ContinualRLAgent`.
     :param curriculum_factory: Optional curriculum factory to support running
-        experiments with a fixed curriculum. Otherwise, curriculum specified on the
-        command line.
+        experiments with a fixed curriculum. Otherwise, curriculum is specified
+        on the command line.
     :return: None
     """
     parser = _build_parser(require_curriculum=curriculum_factory is None)

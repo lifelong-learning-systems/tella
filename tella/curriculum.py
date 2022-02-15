@@ -66,7 +66,7 @@ class AbstractTaskVariant(abc.ABC):
         """
         A method to validate that the experience is set up properly.
 
-        Raises a ValidationError if the experience is not set up properly.
+        :raises ValidationError: if the experience is not set up properly.
         """
 
     @property
@@ -92,13 +92,12 @@ TaskVariantType = typing.TypeVar("TaskVariantType", bound=AbstractTaskVariant)
 class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
     """
     Represents a lifelong/continual learning curriculum. A curriculum is simply
-    a sequence of :class:`AbstractLearnBlock`s and :class:`AbstractEvalBlock`s.
+    a sequence of :class:`AbstractLearnBlock` and :class:`AbstractEvalBlock`.
     """
 
     def __init__(self, rng_seed: int, config_file: typing.Optional[str] = None):
         """
-        :param rng_seed: The seed to be used in setting random number generators. This should be referenced
-            at each call to .learn_blocks_and_eval_blocks()
+        :param rng_seed: The seed to be used in setting random number generators.
         :param config_file: Path to a config file for the curriculum or None if no config.
         """
         self.rng_seed = rng_seed
@@ -113,7 +112,7 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
 
     def copy(self) -> "AbstractCurriculum":
         """
-        :return: A new instance of this curriculum
+        :return: A new instance of this curriculum, initialized with the same rng_seed and config_file
 
         Curriculum authors will need to overwrite this method for subclasses with additional inputs
         """
@@ -129,10 +128,6 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
     ]:
         """
         Generate the learning and eval blocks of this curriculum.
-
-        If any randomness is used in a curriculum, the random number generator(s) should be seeded based on
-        self.rng_seed. This should be reset at each call to .learn_blocks_and_eval_blocks() so that each
-        returns identical blocks.
 
         :return: An Iterable of Learn Blocks and Eval Blocks.
         """
@@ -175,7 +170,7 @@ class AbstractEvalBlock(abc.ABC, typing.Generic[TaskVariantType]):
 class AbstractTaskBlock(abc.ABC, typing.Generic[TaskVariantType]):
     """
     Represents a sequence of 1 or more Task Variants (represented by the
-    generic type `TaskVariantType`.)
+    generic type :class:`TaskVariantType`.)
     """
 
     def task_variants(self) -> typing.Iterable[TaskVariantType]:
@@ -197,19 +192,18 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
     One possible version of a curriculum where a single evaluation block
     is interleaved between a sequence of learning blocks.
 
-    This class implements :meth:`Curriculum.blocks()`, and expects the user
-    to implement two new methods:
+    This class implements :meth:`AbstractCurriculum.learn_blocks_and_eval_blocks()`,
+    and expects the user to implement two new methods:
 
-        1. learn_blocks(), which returns the sequence of :class:`LearnBlock`.
-        2. eval_block(), which returns the single :class:`EvalBlock` to be
-            interleaved between each :class:`LearnBlock`.
+        1. learn_blocks(), which returns the sequence of :class:`AbstractLearnBlock`.
+        2. eval_block(), which returns the single :class:`AbstractEvalBlock` to be
+            interleaved between each :class:`AbstractLearnBlock`.
 
     """
 
     def __init__(self, rng_seed: int, config_file: typing.Optional[str] = None):
         """
-        :param rng_seed: The seed to be used in setting random number generators. This should be referenced
-            at each call to .learn_blocks_and_eval_blocks()
+        :param rng_seed: The seed to be used in setting random number generators.
         :param config_file: Path to a config file for the curriculum or None if no config.
         """
         super().__init__(rng_seed, config_file)
@@ -219,14 +213,14 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
     @abc.abstractmethod
     def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
         """
-        :return: An iterable of :class:`LearnBlock`.
+        :return: An iterable of :class:`AbstractLearnBlock`.
         """
 
     @abc.abstractmethod
     def eval_block(self) -> AbstractEvalBlock[TaskVariantType]:
         """
-        :return: The single :class:`EvalBlock` to interleave between each
-            individual :class:`LearnBlock` returned from
+        :return: The single :class:`AbstractEvalBlock` to interleave between each
+            individual :class:`AbstractLearnBlock` returned from
             :meth:`InterleavedEvalCurriculum.learn_blocks`.
         """
 
@@ -302,7 +296,7 @@ def split_task_variants(
     Divides task variants into one or more blocks of matching tasks
 
     :param task_variants: The iterable of TaskVariantType to be placed into task blocks.
-    :return: An iterable of one or more :class:`TaskBlock`s which contain the provided `task_variants`.
+    :return: An iterable of one or more :class:`TaskBlock` which contain the provided `task_variants`.
     """
     for task_label, variants_in_block in itertools.groupby(
         task_variants, key=lambda task: task.task_label
@@ -317,7 +311,7 @@ def simple_learn_block(
     Constucts a learn block with the task variants passed in. Task blocks are divided as needed.
 
     :param task_variants: The iterable of TaskVariantType to include in the learn block.
-    :return: A :class:`LearnBlock` with one or more :class:`TaskBlock`s which
+    :return: A :class:`LearnBlock` with one or more :class:`TaskBlock` which
         contain the `task_variants` parameter.
     """
     return LearnBlock(split_task_variants(task_variants))
@@ -330,7 +324,7 @@ def simple_eval_block(
     Constucts an eval block with the task variants passed in. Task blocks are divided as needed.
 
     :param task_variants: The iterable of TaskVariantType to include in the eval block.
-    :return: A :class:`EvalBlock` with one or more :class:`TaskBlock`s which
+    :return: A :class:`EvalBlock` with one or more :class:`TaskBlock` which
         contain the `task_variants` parameter.
     """
     return EvalBlock(split_task_variants(task_variants))
@@ -378,7 +372,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
     :class:`gym.Env`.
 
     This is a concrete subclass of the :class:`AbstractRLTaskVariant`,
-    that takes an :type:`ActionFn` and returns an iterable of :type:`Transition`.
+    that takes an `ActionFn` and returns an iterable of `Transition`.
     """
 
     def __init__(
@@ -423,7 +417,7 @@ class EpisodicTaskVariant(AbstractRLTaskVariant):
 
     def make_env(self) -> gym.Env:
         """
-        Initializes the gym environment object and wraps in the L2MEnv to log rewards
+        Initializes the gym environment object
         """
         return self.task_cls(**self.params)
 
@@ -492,10 +486,10 @@ def validate_curriculum(
 
     Uses :meth:`AbstractTaskVariant.validate()` to check task variants.
 
-    Raises a :class:`ValidationError` if an invalid parameter is detected.
-    Raises a :class:`ValidationError` if the curriculum contains multiple observation or action spaces.
-    Raises a :class:`ValidationError` if any task block contains multiple tasks.
-    Raises a :class:`ValidationError` if the curriculum, or any block, or any task block is empty.
+    :raises ValidationError: if an invalid parameter is detected.
+    :raises ValidationError: if the curriculum contains multiple observation or action spaces.
+    :raises ValidationError: if any task block contains multiple tasks.
+    :raises ValidationError: if the curriculum, or any block, or any task block is empty.
 
     :return: None
     """
@@ -582,13 +576,14 @@ def validate_params(fn: typing.Callable, param_names: typing.List[str]) -> None:
     Determines whether there are missing or invalid names in `param_names` to pass
     to the function `fn`.
 
-    NOTE: if `fn` has any **kwargs, then all arguments are valid and this method
-    won't be able to verify anything.
+    NOTE:
+        if `fn` has any ``**kwargs``, then all arguments are valid and this method
+        won't be able to verify anything.
 
     :param fn: The callable that will accept the parameters.
     :param param_names: The names of the parameters to check.
 
-    :raises: a ValidationError if any of `param_names` are not found in the signature, and there are no **kwargs
+    :raises: a ValidationError if any of `param_names` are not found in the signature, and there are no ``**kwargs``
     :raises: a ValidationError if any of the parameters without defaults in `fn` are not present in `param_names`
     :raises: a ValidationError if any `*args` are found
     :raises: a ValidationError if any positional only arguments are found (i.e. using /)

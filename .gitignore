@@ -7,3 +7,5 @@ venv
 
 *.egg-info/
 *logs/
+
+docs/_build/

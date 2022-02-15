@@ -18,10 +18,20 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
+import typing
+
 from gym.envs.classic_control import CartPoleEnv
 from gym.wrappers.time_limit import TimeLimit
-import numpy as np
-from tella.curriculum import *
+
+from ..curriculum import (
+    AbstractCurriculum,
+    LearnBlock,
+    EvalBlock,
+    simple_learn_block,
+    simple_eval_block,
+    TaskVariant,
+    InterleavedEvalCurriculum,
+)
 
 
 class _CartPoleV0(TimeLimit):
@@ -29,18 +39,13 @@ class _CartPoleV0(TimeLimit):
         super().__init__(CartPoleEnv(), max_episode_steps=200)
 
 
-class SimpleCartPoleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
+class SimpleCartPoleCurriculum(AbstractCurriculum):
     def learn_blocks_and_eval_blocks(
         self,
-    ) -> typing.Iterable[
-        typing.Union[
-            "AbstractLearnBlock[AbstractRLTaskVariant]",
-            "AbstractEvalBlock[AbstractRLTaskVariant]",
-        ]
-    ]:
+    ) -> typing.Iterable[typing.Union[LearnBlock, EvalBlock]]:
         yield simple_learn_block(
             [
-                EpisodicTaskVariant(
+                TaskVariant(
                     _CartPoleV0,
                     num_episodes=5,
                     task_label="CartPole",
@@ -51,7 +56,7 @@ class SimpleCartPoleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
         )
         yield simple_eval_block(
             [
-                EpisodicTaskVariant(
+                TaskVariant(
                     _CartPoleV0,
                     num_episodes=1,
                     task_label="CartPole",
@@ -62,19 +67,14 @@ class SimpleCartPoleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
         )
 
 
-class CartPole1000Curriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
+class CartPole1000Curriculum(InterleavedEvalCurriculum):
     def learn_blocks(
         self,
-    ) -> typing.Iterable[
-        typing.Union[
-            "AbstractLearnBlock[AbstractRLTaskVariant]",
-            "AbstractEvalBlock[AbstractRLTaskVariant]",
-        ]
-    ]:
+    ) -> typing.Iterable[typing.Union[LearnBlock, EvalBlock]]:
         for _ in range(10):
             yield simple_learn_block(
                 [
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         _CartPoleV0,
                         num_episodes=100,
                         task_label="CartPole",
@@ -84,10 +84,10 @@ class CartPole1000Curriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
                 ]
             )
 
-    def eval_block(self) -> AbstractEvalBlock[AbstractRLTaskVariant]:
+    def eval_block(self) -> EvalBlock:
         return simple_eval_block(
             [
-                EpisodicTaskVariant(
+                TaskVariant(
                     _CartPoleV0,
                     num_episodes=10,
                     task_label="CartPole",

@@ -4,10 +4,9 @@ import typing
 from gym.envs.classic_control import CartPoleEnv, MountainCarEnv
 from tella.curriculum import (
     AbstractCurriculum,
-    AbstractLearnBlock,
-    AbstractEvalBlock,
-    AbstractRLTaskVariant,
-    EpisodicTaskVariant,
+    LearnBlock,
+    EvalBlock,
+    TaskVariant,
     simple_learn_block,
     simple_eval_block,
     validate_curriculum,
@@ -18,27 +17,17 @@ from tella.curriculum import (
 )
 
 
-class SampleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
+class SampleCurriculum(AbstractCurriculum):
     def __init__(
         self,
-        blocks: typing.Iterable[
-            typing.Union[
-                "AbstractLearnBlock[AbstractRLTaskVariant]",
-                "AbstractEvalBlock[AbstractRLTaskVariant]",
-            ]
-        ],
+        blocks: typing.Iterable[typing.Union[LearnBlock, EvalBlock]],
     ) -> None:
         super().__init__(0)
         self.blocks = blocks
 
     def learn_blocks_and_eval_blocks(
         self,
-    ) -> typing.Iterable[
-        typing.Union[
-            "AbstractLearnBlock[AbstractRLTaskVariant]",
-            "AbstractEvalBlock[AbstractRLTaskVariant]",
-        ]
-    ]:
+    ) -> typing.Iterable[typing.Union[LearnBlock, EvalBlock]]:
         self.blocks, blocks = itertools.tee(self.blocks, 2)
         return blocks
 
@@ -48,13 +37,13 @@ def test_correct_curriculum():
         [
             simple_learn_block(
                 [
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant1",
                         rng_seed=0,
                     ),
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant2",
@@ -64,7 +53,7 @@ def test_correct_curriculum():
             ),
             simple_eval_block(
                 [
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         rng_seed=0,
@@ -85,14 +74,14 @@ def test_error_on_diff_task_labels():
                     TaskBlock(
                         "Task1",
                         [
-                            EpisodicTaskVariant(
+                            TaskVariant(
                                 CartPoleEnv,
                                 num_episodes=1,
                                 task_label="Task1",
                                 variant_label="1",
                                 rng_seed=0,
                             ),
-                            EpisodicTaskVariant(
+                            TaskVariant(
                                 CartPoleEnv,
                                 num_episodes=1,
                                 task_label="Task2",
@@ -105,7 +94,7 @@ def test_error_on_diff_task_labels():
             ),
             simple_eval_block(
                 [
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         rng_seed=0,
@@ -127,12 +116,12 @@ def test_error_on_multiple_spaces():
         [
             simple_learn_block(
                 [
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         rng_seed=0,
                     ),
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         MountainCarEnv,
                         num_episodes=1,
                         rng_seed=0,
@@ -141,7 +130,7 @@ def test_error_on_multiple_spaces():
             ),
             simple_eval_block(
                 [
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         rng_seed=0,
@@ -164,13 +153,13 @@ def test_warn_same_variant_labels():
         [
             simple_learn_block(
                 [
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant1",
                         rng_seed=0,
                     ),
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant1",
@@ -180,7 +169,7 @@ def test_warn_same_variant_labels():
             ),
             simple_eval_block(
                 [
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         rng_seed=0,
@@ -225,7 +214,7 @@ def test_invalid_task_params():
         [
             simple_eval_block(
                 [
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         params={"a": 1},

@@ -26,7 +26,6 @@ import numpy as np
 from gym_minigrid.envs import (
     DistShift1,
     DistShift2,
-    DoorKeyEnv,
     DoorKeyEnv5x5,
     DoorKeyEnv6x6,
     SimpleCrossingEnv,
@@ -36,12 +35,10 @@ from gym_minigrid.envs import (
 from gym_minigrid.wrappers import ImgObsWrapper
 
 from ...curriculum import (
-    AbstractEvalBlock,
-    AbstractLearnBlock,
-    AbstractRLTaskVariant,
-    EpisodicTaskVariant,
     InterleavedEvalCurriculum,
+    EvalBlock,
     LearnBlock,
+    TaskVariant,
     TaskBlock,
     simple_eval_block,
 )
@@ -52,7 +49,6 @@ from .envs import (
     CustomFetchEnv5x5T1N2,
     CustomFetchEnv8x8T1N2,
     CustomFetchEnv10x10T2N4,
-    CustomFetchEnv16x16T2N4,
     CustomUnlock5x5,
     CustomUnlock7x7,
     CustomUnlock9x9,
@@ -225,15 +221,15 @@ TASKS = [
 ]
 
 
-class _MiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
+class _MiniGridCurriculum(InterleavedEvalCurriculum):
     DEFAULT_BLOCK_LENGTH_UNIT = "episodes"
     DEFAULT_LEARN_BLOCK_LENGTH = 1000
     DEFAULT_EVAL_BLOCK_LENGTH = 100
 
-    def eval_block(self) -> AbstractEvalBlock[AbstractRLTaskVariant]:
+    def eval_block(self) -> EvalBlock:
         rng = np.random.default_rng(self.eval_rng_seed)
         return simple_eval_block(
-            EpisodicTaskVariant(
+            TaskVariant(
                 cls,
                 task_label=task_label,
                 variant_label=variant_label,
@@ -311,14 +307,14 @@ class _MiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
 class MiniGridCondensed(_MiniGridCurriculum):
     def learn_blocks(
         self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+    ) -> typing.Iterable[LearnBlock]:
         for cls, task_label, variant_label in self.rng.permutation(TASKS):
             yield LearnBlock(
                 [
                     TaskBlock(
                         task_label,
                         [
-                            EpisodicTaskVariant(
+                            TaskVariant(
                                 cls,
                                 task_label=task_label,
                                 variant_label=variant_label,
@@ -348,7 +344,7 @@ class MiniGridDispersed(_MiniGridCurriculum):
 
     def learn_blocks(
         self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+    ) -> typing.Iterable[LearnBlock]:
         for num_block in range(self.num_learn_blocks):
             for cls, task_label, variant_label in self.rng.permutation(TASKS):
 
@@ -372,7 +368,7 @@ class MiniGridDispersed(_MiniGridCurriculum):
                         TaskBlock(
                             task_label,
                             [
-                                EpisodicTaskVariant(
+                                TaskVariant(
                                     cls,
                                     task_label=task_label,
                                     variant_label=variant_label,
@@ -392,13 +388,13 @@ class _STECurriculum(_MiniGridCurriculum):
 
     def learn_blocks(
         self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+    ) -> typing.Iterable[LearnBlock]:
         yield LearnBlock(
             [
                 TaskBlock(
                     self.TASK_LABEL,
                     [
-                        EpisodicTaskVariant(
+                        TaskVariant(
                             self.TASK_CLASS,
                             task_label=self.TASK_LABEL,
                             variant_label=self.VARIANT_LABEL,

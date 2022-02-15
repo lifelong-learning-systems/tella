@@ -32,10 +32,6 @@ import gym
 # key: curriculum name, value: AbstractCurriculum class object or factory
 curriculum_registry = {}
 
-InputType = typing.TypeVar("InputType")
-ExperienceType = typing.TypeVar("ExperienceType")
-InfoType = typing.TypeVar("InfoType")
-
 
 class ValidationError(ValueError):
     """Raised when there is a problem with a curriculum."""
@@ -43,7 +39,7 @@ class ValidationError(ValueError):
     pass
 
 
-class AbstractTaskVariant(abc.ABC):
+class TaskVariant:
     """
     A TaskVariant abstractly represents some amount of experience in a single task.
 
@@ -51,17 +47,58 @@ class AbstractTaskVariant(abc.ABC):
     an generic experience `ExperienceType` object. Additionally, a TaskVariant
     has some information (`InfoType`) associated with it.
 
-    This representation allows us to represent both RL and SL tasks/experiences.
-
     For RL, a TaskVariant can be thought of as taking an agent as InputType,
     producing an Iterable of Step Data as ExperienceType, and giving
     and :class:`gym.Env` as the InfoType.
-
-    For SL, a TaskVariant could take a batch size integer as
-    InputType, and produce a Batch of image/label data as ExperienceType.
     """
 
-    @abc.abstractmethod
+    def __init__(
+        self,
+        task_cls: typing.Type[gym.Env],
+        *,
+        rng_seed: int,
+        params: typing.Optional[typing.Dict] = None,
+        task_label: typing.Optional[str] = None,
+        variant_label: typing.Optional[str] = "Default",
+        num_episodes: typing.Optional[int] = None,
+        num_steps: typing.Optional[int] = None,
+    ) -> None:
+        num_envs = 1
+        if params is None:
+            params = {}
+        if task_label is None:
+            task_label = task_cls.__name__
+        assert num_envs > 0
+        self.task_cls = task_cls
+        self.params = params
+        self._task_label = task_label
+        self._variant_label = variant_label
+        self.rng_seed = rng_seed
+        if num_episodes is None and num_steps is None:
+            raise ValidationError("Neither num_episodes nor num_steps provided")
+        if num_episodes is not None and num_steps is not None:
+            raise ValidationError("Both num_episodes and num_steps provided")
+        self.num_episodes = num_episodes
+        self.num_steps = num_steps
+
+    @property
+    def task_label(self) -> str:
+        """
+        :return: The task label associated with this task variant. All task variants
+            with the same task should have the same task label.
+        """
+
+        return self._task_label
+
+    @property
+    def variant_label(self) -> str:
+        """
+        :return: The variant label associated with this task variant. All task variants
+            with the same extrinsic parameters should have the same variant label.
+        """
+
+        return self._variant_label
+
     def validate(self) -> None:
         """
         A method to validate that the experience is set up properly.
@@ -69,27 +106,93 @@ class AbstractTaskVariant(abc.ABC):
         :raises ValidationError: if the experience is not set up properly.
         """
 
+        validate_params(self.task_cls, list(self.params.keys()))
+
+    def make_env(self) -> gym.Env:
+        """
+        Initializes the gym environment object
+        """
+        return self.task_cls(**self.params)
+
+
+class TaskBlock:
+    """
+    A simple subclass of :class:`AbstractTaskBlock` that accepts the task variants
+    in the constructor.
+    """
+
+    def __init__(
+        self, task_label: str, task_variants: typing.Iterable[TaskVariant]
+    ) -> None:
+        super().__init__()
+        self._task_label = task_label
+        self._task_variants = task_variants
+
+    def task_variants(self) -> typing.Iterable[TaskVariant]:
+        """
+        :return: An Iterable of :class:`TaskVariantType`.
+        """
+
+        self._task_variants, task_variants = itertools.tee(self._task_variants, 2)
+        return task_variants
+
     @property
-    @abc.abstractmethod
     def task_label(self) -> str:
         """
         :return: The task label associated with this task variant. All task variants
             with the same task should have the same task label.
         """
 
+        return self._task_label
+
+
+class LearnBlock:
+    """
+    Represents a sequence of 1 or more :class:`AbstractTaskBlock`, where the
+    data can be used for learning.
+    """
+
     @property
-    @abc.abstractmethod
-    def variant_label(self) -> str:
+    def is_learning_allowed(self) -> bool:
+        return True
+
+    def __init__(self, task_blocks: typing.Iterable[TaskBlock]) -> None:
+        super().__init__()
+        self._task_blocks = task_blocks
+
+    def task_blocks(self) -> typing.Iterable[TaskBlock]:
         """
-        :return: The variant label associated with this task variant. All task variants
-            with the same extrinsic parameters should have the same variant label.
+        :return: An Iterable of Task Blocks
         """
 
+        self._task_blocks, task_blocks = itertools.tee(self._task_blocks, 2)
+        return task_blocks
 
-TaskVariantType = typing.TypeVar("TaskVariantType", bound=AbstractTaskVariant)
+
+class EvalBlock:
+    """
+    Represents a sequence of 1 or more :class:`AbstractTaskBlock`, where the
+    data can NOT be used for learning.
+    """
+
+    @property
+    def is_learning_allowed(self) -> bool:
+        return False
+
+    def __init__(self, task_blocks: typing.Iterable[TaskBlock]) -> None:
+        super().__init__()
+        self._task_blocks = task_blocks
+
+    def task_blocks(self) -> typing.Iterable[TaskBlock]:
+        """
+        :return: An Iterable of Task Blocks
+        """
+
+        self._task_blocks, task_blocks = itertools.tee(self._task_blocks, 2)
+        return task_blocks
 
 
-class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
+class AbstractCurriculum:
     """
     Represents a lifelong/continual learning curriculum. A curriculum is simply
     a sequence of :class:`AbstractLearnBlock` and :class:`AbstractEvalBlock`.
@@ -121,11 +224,7 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
     @abc.abstractmethod
     def learn_blocks_and_eval_blocks(
         self,
-    ) -> typing.Iterable[
-        typing.Union[
-            "AbstractLearnBlock[TaskVariantType]", "AbstractEvalBlock[TaskVariantType]"
-        ]
-    ]:
+    ) -> typing.Iterable[typing.Union[LearnBlock, EvalBlock]]:
         """
         Generate the learning and eval blocks of this curriculum.
 
@@ -133,61 +232,7 @@ class AbstractCurriculum(abc.ABC, typing.Generic[TaskVariantType]):
         """
 
 
-class AbstractLearnBlock(abc.ABC, typing.Generic[TaskVariantType]):
-    """
-    Represents a sequence of 1 or more :class:`AbstractTaskBlock`, where the
-    data can be used for learning.
-    """
-
-    @property
-    def is_learning_allowed(self) -> bool:
-        return True
-
-    @abc.abstractmethod
-    def task_blocks(self) -> typing.Iterable["AbstractTaskBlock[TaskVariantType]"]:
-        """
-        :return: An Iterable of Task Blocks
-        """
-
-
-class AbstractEvalBlock(abc.ABC, typing.Generic[TaskVariantType]):
-    """
-    Represents a sequence of 1 or more :class:`AbstractTaskBlock`, where the
-    data can NOT be used for learning.
-    """
-
-    @property
-    def is_learning_allowed(self) -> bool:
-        return False
-
-    @abc.abstractmethod
-    def task_blocks(self) -> typing.Iterable["AbstractTaskBlock[TaskVariantType]"]:
-        """
-        :return: An Iterable of Task Blocks
-        """
-
-
-class AbstractTaskBlock(abc.ABC, typing.Generic[TaskVariantType]):
-    """
-    Represents a sequence of 1 or more Task Variants (represented by the
-    generic type :class:`TaskVariantType`.)
-    """
-
-    def task_variants(self) -> typing.Iterable[TaskVariantType]:
-        """
-        :return: An Iterable of :class:`TaskVariantType`.
-        """
-
-    @property
-    @abc.abstractmethod
-    def task_label(self) -> str:
-        """
-        :return: The task label associated with this task variant. All task variants
-            with the same task should have the same task label.
-        """
-
-
-class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
+class InterleavedEvalCurriculum(AbstractCurriculum):
     """
     One possible version of a curriculum where a single evaluation block
     is interleaved between a sequence of learning blocks.
@@ -197,7 +242,7 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
 
         1. learn_blocks(), which returns the sequence of :class:`AbstractLearnBlock`.
         2. eval_block(), which returns the single :class:`AbstractEvalBlock` to be
-            interleaved between each :class:`AbstractLearnBlock`.
+           interleaved between each :class:`AbstractLearnBlock`.
 
     """
 
@@ -211,13 +256,13 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
         self.eval_rng_seed = self.rng.bit_generator.random_raw()
 
     @abc.abstractmethod
-    def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
+    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
         """
         :return: An iterable of :class:`AbstractLearnBlock`.
         """
 
     @abc.abstractmethod
-    def eval_block(self) -> AbstractEvalBlock[TaskVariantType]:
+    def eval_block(self) -> EvalBlock:
         """
         :return: The single :class:`AbstractEvalBlock` to interleave between each
             individual :class:`AbstractLearnBlock` returned from
@@ -226,71 +271,15 @@ class InterleavedEvalCurriculum(AbstractCurriculum[TaskVariantType]):
 
     def learn_blocks_and_eval_blocks(
         self,
-    ) -> typing.Iterable[
-        typing.Union[
-            "AbstractLearnBlock[TaskVariantType]", "AbstractEvalBlock[TaskVariantType]"
-        ]
-    ]:
+    ) -> typing.Iterable[typing.Union[LearnBlock, EvalBlock]]:
         yield self.eval_block()
         for block in self.learn_blocks():
             yield block
             yield self.eval_block()
 
 
-class TaskBlock(AbstractTaskBlock):
-    """
-    A simple subclass of :class:`AbstractTaskBlock` that accepts the task variants
-    in the constructor.
-    """
-
-    def __init__(
-        self, task_label: str, task_variants: typing.Iterable[TaskVariantType]
-    ) -> None:
-        super().__init__()
-        self._task_label = task_label
-        self._task_variants = task_variants
-
-    def task_variants(self) -> typing.Iterable[TaskVariantType]:
-        self._task_variants, task_variants = itertools.tee(self._task_variants, 2)
-        return task_variants
-
-    @property
-    def task_label(self) -> str:
-        return self._task_label
-
-
-class LearnBlock(AbstractLearnBlock):
-    """
-    A simple subclass of :class:`AbstractLearnBlock` that accepts the task blocks
-    in the constructor.
-    """
-
-    def __init__(self, task_blocks: typing.Iterable[TaskBlock]) -> None:
-        super().__init__()
-        self._task_blocks = task_blocks
-
-    def task_blocks(self) -> typing.Iterable["AbstractTaskBlock[TaskVariantType]"]:
-        self._task_blocks, task_blocks = itertools.tee(self._task_blocks, 2)
-        return task_blocks
-
-
-class EvalBlock(AbstractEvalBlock):
-    """
-    A simple subclass of :class:`AbstractEvalBlock` that accepts the task blocks
-    in the constructor.
-    """
-
-    def __init__(self, task_blocks: typing.Iterable[TaskBlock]) -> None:
-        super().__init__()
-        self._task_blocks = task_blocks
-
-    def task_blocks(self) -> typing.Iterable["AbstractTaskBlock[TaskVariantType]"]:
-        self._task_blocks, task_blocks = itertools.tee(self._task_blocks, 2)
-        return task_blocks
-
-
 def split_task_variants(
-    task_variants: typing.Iterable[TaskVariantType],
+    task_variants: typing.Iterable[TaskVariant],
 ) -> typing.Iterable[TaskBlock]:
     """
     Divides task variants into one or more blocks of matching tasks
@@ -305,8 +294,8 @@ def split_task_variants(
 
 
 def simple_learn_block(
-    task_variants: typing.Iterable[TaskVariantType],
-) -> AbstractLearnBlock[TaskVariantType]:
+    task_variants: typing.Iterable[TaskVariant],
+) -> LearnBlock:
     """
     Constucts a learn block with the task variants passed in. Task blocks are divided as needed.
 
@@ -318,8 +307,8 @@ def simple_learn_block(
 
 
 def simple_eval_block(
-    task_variants: typing.Iterable[TaskVariantType],
-) -> AbstractEvalBlock[TaskVariantType]:
+    task_variants: typing.Iterable[TaskVariant],
+) -> EvalBlock:
     """
     Constucts an eval block with the task variants passed in. Task blocks are divided as needed.
 
@@ -358,75 +347,9 @@ A function that takes a list of Observations and returns a list of Actions, one
 for each observation.
 """
 
-AbstractRLTaskVariant = AbstractTaskVariant
-"""
-An AbstractRLTaskVariant is an TaskVariant that takes an ActionFn as input
-and produces an Iterable[Transition]. It also  returns a :class:`gym.Env` as the
-Information.
-"""
-
-
-class EpisodicTaskVariant(AbstractRLTaskVariant):
-    """
-    Represents a TaskVariant that consists of a set number of episodes in a
-    :class:`gym.Env`.
-
-    This is a concrete subclass of the :class:`AbstractRLTaskVariant`,
-    that takes an `ActionFn` and returns an iterable of `Transition`.
-    """
-
-    def __init__(
-        self,
-        task_cls: typing.Type[gym.Env],
-        *,
-        rng_seed: int,
-        params: typing.Optional[typing.Dict] = None,
-        task_label: typing.Optional[str] = None,
-        variant_label: typing.Optional[str] = "Default",
-        num_episodes: typing.Optional[int] = None,
-        num_steps: typing.Optional[int] = None,
-    ) -> None:
-        num_envs = 1
-        if params is None:
-            params = {}
-        if task_label is None:
-            task_label = task_cls.__name__
-        assert num_envs > 0
-        self.task_cls = task_cls
-        self.params = params
-        self._task_label = task_label
-        self._variant_label = variant_label
-        self.rng_seed = rng_seed
-        if num_episodes is None and num_steps is None:
-            raise ValidationError("Neither num_episodes nor num_steps provided")
-        if num_episodes is not None and num_steps is not None:
-            raise ValidationError("Both num_episodes and num_steps provided")
-        self.num_episodes = num_episodes
-        self.num_steps = num_steps
-
-    @property
-    def task_label(self) -> str:
-        return self._task_label
-
-    @property
-    def variant_label(self) -> str:
-        return self._variant_label
-
-    def validate(self) -> None:
-        validate_params(self.task_cls, list(self.params.keys()))
-
-    def make_env(self) -> gym.Env:
-        """
-        Initializes the gym environment object
-        """
-        return self.task_cls(**self.params)
-
-    def info(self) -> gym.Env:
-        return self.make_env()
-
 
 def summarize_curriculum(
-    curriculum: AbstractCurriculum[EpisodicTaskVariant],
+    curriculum: AbstractCurriculum,
 ) -> str:
     """
     Generate a detailed string summarizing the contents of the curriculum.
@@ -478,7 +401,7 @@ def summarize_curriculum(
 
 
 def validate_curriculum(
-    curriculum: AbstractCurriculum[AbstractTaskVariant],
+    curriculum: AbstractCurriculum,
 ):
     """
     Helper function to do a partial check that task variants are specified
@@ -536,7 +459,7 @@ def validate_curriculum(
                 previous_variant = task_variant.variant_label
 
                 # Check that all environments use the same observation and action spaces
-                env = task_variant.info()
+                env = task_variant.make_env()
                 if isinstance(env, gym.vector.VectorEnv):
                     observation_space = env.single_observation_space
                     action_space = env.single_action_space

@@ -25,32 +25,50 @@ import typing
 import gym
 
 from .curriculum import (
-    AbstractRLTaskVariant,
     Action,
     Observation,
-    TaskVariantType,
     Transition,
 )
 
 
-class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
+class ContinualRLAgent:
     """
-    The base class for a continual learning agent. A CL Agent is an agent that
-    can consume some task variant of a generic type (:class:`TaskVariantType`).
+    The base class for a continual reinforcement learning agent. This class
+    consumes an experience of type :class:`AbstractRLTaskVariant`.
+
+    This class exposes two new required methods for subclasses to implement:
+    :meth:`ContinualRLAgent.choose_actions()` and
+    :meth:`ContinualRLAgent.receive_transitions()`
+
     """
 
-    def __init__(self, rng_seed: int) -> None:
+    def __init__(
+        self,
+        rng_seed: int,
+        observation_space: gym.Space,
+        action_space: gym.Space,
+        num_envs: int,
+        config_file: typing.Optional[str] = None,
+    ) -> None:
         """
-        Agent constructor.
+        The constructor for the Continual RL agent.
 
-        For experiment repeatability, all agents with non-deterministic methods are expected
-        to seed their random number generators (RNG) based on the parameter provided here.
-
-        :param rng_seed: The seed to be used in setting random number generators.
+        :param rng_seed: Random number generator seed.
+        :param observation_space: The observation space from the :class:`gym.Env`.
+        :param action_space: The action space from the :class:`gym.Env`.
+        :param num_envs: The number of environments that will be used for :class:`gym.vector.VectorEnv`.
+        :param config_file: Path to a config file for the agent or None if no config.
         """
-        super().__init__()
         self.rng_seed = rng_seed
         self.is_learning_allowed: bool = False
+        self.observation_space = observation_space
+        self.action_space = action_space
+        self.num_envs = num_envs
+        self.config_file = config_file
+
+        # Set RNG seeds on observation and action spaces for .sample() method
+        self.observation_space.seed(self.rng_seed)
+        self.action_space.seed(self.rng_seed)
 
     def block_start(self, is_learning_allowed: bool) -> None:
         """
@@ -137,45 +155,6 @@ class ContinualLearningAgent(abc.ABC, typing.Generic[TaskVariantType]):
             :meth:`ContinualLearningAgent.block_start()`.
         """
         pass
-
-
-class ContinualRLAgent(ContinualLearningAgent[AbstractRLTaskVariant]):
-    """
-    The base class for a continual reinforcement learning agent. This class
-    consumes an experience of type :class:`AbstractRLTaskVariant`.
-
-    This class exposes two new required methods for subclasses to implement:
-    :meth:`ContinualRLAgent.choose_actions()` and
-    :meth:`ContinualRLAgent.receive_transitions()`
-
-    """
-
-    def __init__(
-        self,
-        rng_seed: int,
-        observation_space: gym.Space,
-        action_space: gym.Space,
-        num_envs: int,
-        config_file: typing.Optional[str] = None,
-    ) -> None:
-        """
-        The constructor for the Continual RL agent.
-
-        :param rng_seed: Random number generator seed.
-        :param observation_space: The observation space from the :class:`gym.Env`.
-        :param action_space: The action space from the :class:`gym.Env`.
-        :param num_envs: The number of environments that will be used for :class:`gym.vector.VectorEnv`.
-        :param config_file: Path to a config file for the agent or None if no config.
-        """
-        super().__init__(rng_seed)
-        self.observation_space = observation_space
-        self.action_space = action_space
-        self.num_envs = num_envs
-        self.config_file = config_file
-
-        # Set RNG seeds on observation and action spaces for .sample() method
-        self.observation_space.seed(self.rng_seed)
-        self.action_space.seed(self.rng_seed)
 
     @abc.abstractmethod
     def choose_actions(

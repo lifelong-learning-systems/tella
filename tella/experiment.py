@@ -25,10 +25,10 @@ import numpy as np
 import gym
 from l2logger import l2logger
 
-from .agents import ContinualRLAgent, AbstractRLTaskVariant
+from .agents import ContinualRLAgent
 from .curriculum import (
     AbstractCurriculum,
-    EpisodicTaskVariant,
+    TaskVariant,
     validate_curriculum,
     ActionFn,
     Transition,
@@ -67,9 +67,7 @@ A function can also be used as an AgentFactory::
     agent = agent_factory(rng_seed, observation_space, action_space, num_parallel_envs, config_file)
 """
 
-CurriculumFactory = typing.Callable[
-    [int, typing.Optional[str]], AbstractCurriculum[AbstractRLTaskVariant]
-]
+CurriculumFactory = typing.Callable[[int, typing.Optional[str]], AbstractCurriculum]
 """
 CurriculumFactory is a type alias for a function or class that returns a
 :class:`tella.curriculum.AbstractCurriculum`.
@@ -200,7 +198,7 @@ def _spaces(
     for block in curriculum_obj.learn_blocks_and_eval_blocks():
         for task_block in block.task_blocks():
             for task_variant in task_block.task_variants():
-                env = task_variant.info()
+                env = task_variant.make_env()
                 if isinstance(env, gym.vector.VectorEnv):
                     observation_space = env.single_observation_space
                     action_space = env.single_action_space
@@ -214,7 +212,7 @@ def _spaces(
 
 def run(
     agent: ContinualRLAgent,
-    curriculum: AbstractCurriculum[EpisodicTaskVariant],
+    curriculum: AbstractCurriculum,
     render: typing.Optional[bool],
     log_dir: str,
     num_envs: typing.Optional[int] = 1,
@@ -303,7 +301,7 @@ class L2Logger:
         self.block_num += 1
         self.block_type = "train" if is_learning_allowed else "test"
 
-    def task_variant_start(self, task_variant: EpisodicTaskVariant):
+    def task_variant_start(self, task_variant: TaskVariant):
         self.task_name = task_variant.task_label + "_" + task_variant.variant_label
         self.task_params = task_variant.params
         self.cumulative_episode_rewards = [0.0] * self.num_envs
@@ -337,18 +335,18 @@ class L2Logger:
 
 
 def generate_transitions(
-    task_variant: EpisodicTaskVariant,
+    task_variant: TaskVariant,
     action_fn: ActionFn,
     num_envs: int,
     render: bool = False,
 ) -> typing.Iterable[typing.List[typing.Optional[Transition]]]:
     """
     Yields markov transitions from the interaction between the `action_fn`
-    and the :class:`gym.Env` contained in :class:`EpisodicTaskVariant`.
+    and the :class:`gym.Env` contained in :class:`TaskVariant`.
 
     Note: `None` transitions
         Extra data can be produced when using num_envs > 1, if the data limits in
-        :class:`EpisodicTaskVariant` % num_envs != 0. For an example if the limit
+        :class:`TaskVariant` % num_envs != 0. For an example if the limit
         is 4 episodes, and `num_envs` is 5, then this function will generate a whole
         extra episode worth of transitions. In order to prevent the leak of extra data,
         we mask out any transitions above the data limit by setting them to None.

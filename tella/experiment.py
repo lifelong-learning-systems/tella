@@ -226,8 +226,13 @@ def run(
     num_envs: typing.Optional[int] = 1,
 ):
     """
-    Run an agent through an entire curriculum. This assumes that the agent
-    and the curriculum are both generic over the same type.
+    Run an agent through an entire curriculum.
+
+    :param agent: Agent for this experiment.
+    :param curriculum: Curriculum for this experiment.
+    :param render: Bool flag to toggle environment rendering.
+    :param log_dir: Directory for l2logger files.
+    :param num_envs: Number of parallel environments.
     """
     scenario_dir = curriculum.__class__.__name__
     scenario_info = {

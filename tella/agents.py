@@ -188,7 +188,7 @@ class ContinualRLAgent:
         :param observations: The observations from the environment.
         :return: Actions that can be passed to :meth:`gym.vector.VectorEnv.step()`.
         """
-        pass
+        raise NotImplementedError
 
     @abc.abstractmethod
     def receive_transitions(
@@ -207,4 +207,4 @@ class ContinualRLAgent:
         The next method called would be :meth:`Agent.task_variant_end()` if all episodes
         have ended, otherwise :meth:`Agent.choose_actions()`.
         """
-        pass
+        raise NotImplementedError

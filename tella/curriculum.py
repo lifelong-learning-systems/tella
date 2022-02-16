@@ -63,16 +63,17 @@ class TaskVariant:
         num_episodes: typing.Optional[int] = None,
         num_steps: typing.Optional[int] = None,
     ) -> None:
-        num_envs = 1
+        """
+        TODO
+        """
         if params is None:
             params = {}
         if task_label is None:
             task_label = task_cls.__name__
-        assert num_envs > 0
         self.task_cls = task_cls
         self.params = params
-        self._task_label = task_label
-        self._variant_label = variant_label
+        self.task_label = task_label
+        self.variant_label = variant_label
         self.rng_seed = rng_seed
         if num_episodes is None and num_steps is None:
             raise ValidationError("Neither num_episodes nor num_steps provided")
@@ -80,24 +81,6 @@ class TaskVariant:
             raise ValidationError("Both num_episodes and num_steps provided")
         self.num_episodes = num_episodes
         self.num_steps = num_steps
-
-    @property
-    def task_label(self) -> str:
-        """
-        :return: The task label associated with this task variant. All task variants
-            with the same task should have the same task label.
-        """
-
-        return self._task_label
-
-    @property
-    def variant_label(self) -> str:
-        """
-        :return: The variant label associated with this task variant. All task variants
-            with the same extrinsic parameters should have the same variant label.
-        """
-
-        return self._variant_label
 
     def validate(self) -> None:
         """
@@ -117,15 +100,17 @@ class TaskVariant:
 
 class TaskBlock:
     """
-    A simple subclass of :class:`AbstractTaskBlock` that accepts the task variants
-    in the constructor.
+    TODO
     """
 
     def __init__(
         self, task_label: str, task_variants: typing.Iterable[TaskVariant]
     ) -> None:
+        """
+        TODO
+        """
         super().__init__()
-        self._task_label = task_label
+        self.task_label = task_label
         self._task_variants = task_variants
 
     def task_variants(self) -> typing.Iterable[TaskVariant]:
@@ -136,25 +121,19 @@ class TaskBlock:
         self._task_variants, task_variants = itertools.tee(self._task_variants, 2)
         return task_variants
 
-    @property
-    def task_label(self) -> str:
-        """
-        :return: The task label associated with this task variant. All task variants
-            with the same task should have the same task label.
-        """
 
-        return self._task_label
-
-
-class LearnBlock:
+class Block:
     """
-    Represents a sequence of 1 or more :class:`AbstractTaskBlock`, where the
-    data can be used for learning.
+    Represents a sequence of 1 or more :class:`TaskBlock`
     """
 
     @property
+    @abc.abstractmethod
     def is_learning_allowed(self) -> bool:
-        return True
+        """
+        :return: Bool indicating if this block is intended for learning or evaluation
+        """
+        raise NotImplementedError
 
     def __init__(self, task_blocks: typing.Iterable[TaskBlock]) -> None:
         super().__init__()
@@ -169,27 +148,20 @@ class LearnBlock:
         return task_blocks
 
 
-class EvalBlock:
+class LearnBlock(Block):
     """
-    Represents a sequence of 1 or more :class:`AbstractTaskBlock`, where the
-    data can NOT be used for learning.
+    A :class:`Block` where the data can be used for learning.
     """
 
-    @property
-    def is_learning_allowed(self) -> bool:
-        return False
+    is_learning_allowed = True
 
-    def __init__(self, task_blocks: typing.Iterable[TaskBlock]) -> None:
-        super().__init__()
-        self._task_blocks = task_blocks
 
-    def task_blocks(self) -> typing.Iterable[TaskBlock]:
-        """
-        :return: An Iterable of Task Blocks
-        """
+class EvalBlock(Block):
+    """
+    A :class:`Block` where the data can NOT be used for learning.
+    """
 
-        self._task_blocks, task_blocks = itertools.tee(self._task_blocks, 2)
-        return task_blocks
+    is_learning_allowed = False
 
 
 class AbstractCurriculum:
@@ -230,6 +202,7 @@ class AbstractCurriculum:
 
         :return: An Iterable of Learn Blocks and Eval Blocks.
         """
+        raise NotImplementedError
 
 
 class InterleavedEvalCurriculum(AbstractCurriculum):
@@ -260,6 +233,7 @@ class InterleavedEvalCurriculum(AbstractCurriculum):
         """
         :return: An iterable of :class:`AbstractLearnBlock`.
         """
+        raise NotImplementedError
 
     @abc.abstractmethod
     def eval_block(self) -> EvalBlock:
@@ -268,6 +242,7 @@ class InterleavedEvalCurriculum(AbstractCurriculum):
             individual :class:`AbstractLearnBlock` returned from
             :meth:`InterleavedEvalCurriculum.learn_blocks`.
         """
+        raise NotImplementedError
 
     def learn_blocks_and_eval_blocks(
         self,

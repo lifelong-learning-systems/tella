@@ -40,9 +40,11 @@ logger = logging.getLogger(__name__)
 
 AgentFactory = typing.Callable[[int, gym.Space, gym.Space, int, str], ContinualRLAgent]
 """
-AgentFactory is a function or class that returns a :class:`tella.agents.ContinualRLAgent`.
+AgentFactory is a function or class that returns a 
+:class:`ContinualRLAgent <tella.agents.ContinualRLAgent>`.
 
-It takes 5 arguments, which are the same as :meth:`tella.agents.ContinualRLAgent.__init__()`:
+It takes 5 arguments, which are the same as 
+:meth:`ContinualRLAgent.__init__() <tella.agents.ContinualRLAgent.__init__()>`:
 
     1. rng_seed, which is an integer to be used for repeatable random number generation
     2. observation_space, which is a :class:`gym.Space`
@@ -50,7 +52,8 @@ It takes 5 arguments, which are the same as :meth:`tella.agents.ContinualRLAgent
     4. num_parallel_envs, which is an integer indicating how many environments will be run in parallel at the same time.
     5. config_file, which is a path as a string to a configuration file or None if no configuration.
 
-A concrete subclass of :class:`ContinualRLAgent` can be used as an AgentFactory::
+A concrete subclass of :class:`ContinualRLAgent <tella.agents.ContinualRLAgent>` 
+can be used as an AgentFactory::
 
     class MyAgent(ContinualRLAgent):
         ...
@@ -66,19 +69,21 @@ A function can also be used as an AgentFactory::
 
     agent_factory: AgentFactory = my_factory
     agent = agent_factory(rng_seed, observation_space, action_space, num_parallel_envs, config_file)
+
 """
 
 CurriculumFactory = typing.Callable[[int, typing.Optional[str]], AbstractCurriculum]
 """
-CurriculumFactory is a type alias for a function or class that returns a
-:class:`tella.curriculum.AbstractCurriculum`.
+CurriculumFactory is a function or class that returns an 
+:class:`AbstractCurriculum <tella.curriculum.AbstractCurriculum>`.
 
 It takes 2 arguments:
 
     1. an integer which is to be used for repeatable random number generation
     2. an option filepath to be loaded as a configuration dict.
 
-A concrete subclass of :class:`AbstractCurriculum` can be used as an CurriculumFactory::
+A concrete subclass of :class:`AbstractCurriculum <tella.curriculum.AbstractCurriculum>` 
+can be used as an CurriculumFactory::
 
     class MyCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
         ...
@@ -94,6 +99,7 @@ A function can also be used as a CurriculumFactory::
 
     curriculum_factory: CurriculumFactory = my_factory
     curriculum = curriculum_factory(rng_seed, config_file)
+
 """
 
 
@@ -125,6 +131,7 @@ def rl_experiment(
     :param render: Whether to render the environment for debugging or demonstrations.
     :param agent_config: Optional path to a configuration file for the agent.
     :param curriculum_config: Optional path to a configuration file for the curriculum.
+
     :return: None
     """
     if lifetime_idx < 0:
@@ -352,11 +359,12 @@ def generate_transitions(
 ) -> typing.Iterable[typing.List[typing.Optional[Transition]]]:
     """
     Yields markov transitions from the interaction between the `action_fn`
-    and the :class:`gym.Env` contained in :class:`TaskVariant`.
+    and the :class:`gym.Env` contained in :class:`TaskVariant <tella.curriculum.TaskVariant>`.
 
-    Note: `None` transitions
+    .. Note:: `None` transitions
+
         Extra data can be produced when using num_envs > 1, if the data limits in
-        :class:`TaskVariant` % num_envs != 0. For an example if the limit
+        :class:`TaskVariant <tella.curriculum.TaskVariant>` % num_envs != 0. For an example if the limit
         is 4 episodes, and `num_envs` is 5, then this function will generate a whole
         extra episode worth of transitions. In order to prevent the leak of extra data,
         we mask out any transitions above the data limit by setting them to None.

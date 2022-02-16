@@ -33,12 +33,21 @@ from .curriculum import (
 
 class ContinualRLAgent:
     """
-    The base class for a continual reinforcement learning agent. This class
-    consumes an experience of type :class:`AbstractRLTaskVariant`.
+    tella's base class for a continual reinforcement learning agent. This class
+    implements placeholder event handlers for the start and end of each component in a
+    :class:`AbstractCurriculum <tella.curriculum.AbstractCurriculum>`, as well as
+    abstract methods for interacting with each of the curriculum's :class:`gym.Env`.
 
-    This class exposes two new required methods for subclasses to implement:
-    :meth:`ContinualRLAgent.choose_actions()` and
-    :meth:`ContinualRLAgent.receive_transitions()`
+    The six optional methods for curriculum events are:
+
+    * :meth:`ContinualRLAgent.block_start` and :meth:`ContinualRLAgent.block_end`
+    * :meth:`ContinualRLAgent.task_start` and :meth:`ContinualRLAgent.task_end`
+    * :meth:`ContinualRLAgent.task_variant_start` and :meth:`ContinualRLAgent.task_variant_end`
+
+    The two required methods for interacting with environments are:
+
+    * :meth:`ContinualRLAgent.choose_actions()`
+    * :meth:`ContinualRLAgent.receive_transitions()`
 
     """
 
@@ -51,8 +60,6 @@ class ContinualRLAgent:
         config_file: typing.Optional[str] = None,
     ) -> None:
         """
-        The constructor for the Continual RL agent.
-
         :param rng_seed: Random number generator seed.
         :param observation_space: The observation space from the :class:`gym.Env`.
         :param action_space: The action space from the :class:`gym.Env`.
@@ -72,16 +79,18 @@ class ContinualRLAgent:
 
     def block_start(self, is_learning_allowed: bool) -> None:
         """
-        Signifies a new block (either learning or evaluation) is about to start.
+        Called at the start of a new :class:`Block <tella.curriculum.Block>`.
 
-        The next method called would be :meth:`ContinualLearningAgent.task_start()`.
+        The next method called will be :meth:`ContinualRLAgent.task_start()`.
 
-        NOTE:
-            the attribute :attr:`ContinualLearningAgent.is_learning_allowed`
-            is also set outside of this method.
+        :param is_learning_allowed: Whether the block is a
+            :class:`LearnBlock <tella.curriculum.LearnBlock>`
+            or an :class:`EvalBlock <tella.curriculum.EvalBlock>`.
 
-        :param is_learning_allowed: Whether the block is a learning block or
-            an evaluation block.
+        .. NOTE::
+            When using the tella CLI, the attribute `ContinualRLAgent.is_learning_allowed`
+            is automatically updated before this method is called.
+            (This occurs in :func:`tella.experiment.run`.)
         """
         pass
 
@@ -90,9 +99,9 @@ class ContinualRLAgent:
         task_name: typing.Optional[str],
     ) -> None:
         """
-        Signifies interaction with a new task is about to start.
+        Called at the start of a new :class:`TaskBlock <tella.curriculum.TaskBlock>`.
 
-        The next method called would be :meth:`ContinualLearningAgent.task_variant_start()`.
+        The next method called will be :meth:`ContinualRLAgent.task_variant_start()`.
 
         :param task_name: An optional value indicating the name of the task
         """
@@ -104,10 +113,12 @@ class ContinualRLAgent:
         variant_name: typing.Optional[str],
     ) -> None:
         """
-        Signifies interaction with a new task variant is about to start.
+        Called at the start of a new :class:`TaskVariant <tella.curriculum.TaskVariant>`.
 
         The task variant experiences will occur between this method and
-        :meth:`ContinualLearningAgent.task_variant_end()`.
+        :meth:`ContinualRLAgent.task_variant_end()`.
+
+        The next method called will be :meth:`ContinualRLAgent.choose_actions()`.
 
         :param task_name: An optional value indicating the name of the task
         :param variant_name: An optional value indicating the name of the task variant
@@ -120,10 +131,10 @@ class ContinualRLAgent:
         variant_name: typing.Optional[str],
     ) -> None:
         """
-        Signifies interaction with a task variant has just ended.
+        Called at the end of the current :class:`TaskVariant <tella.curriculum.TaskVariant>`.
 
-        The next method called would be :meth:`ContinualLearningAgent.task_variant_start()` if there
-        are more task variants in the task block, otherwise :meth:`ContinualLearningAgent.task_end()`.
+        The next method called will be :meth:`ContinualRLAgent.task_variant_start()` if there
+        are more task variants in the task block, otherwise :meth:`ContinualRLAgent.task_end()`.
 
         :param task_name: An optional value indicating the name of the task
         :param variant_name: An optional value indicating the name of the task variant
@@ -135,10 +146,10 @@ class ContinualRLAgent:
         task_name: typing.Optional[str],
     ) -> None:
         """
-        Signifies interaction with a task has just ended.
+        Called at the end of the current :class:`TaskBlock <tella.curriculum.TaskBlock>`.
 
-        The next method called would be :meth:`ContinualLearningAgent.task_start()` if there
-        are more tasks in the block, otherwise :meth:`ContinualLearningAgent.block_end()`.
+        The next method called will be :meth:`ContinualRLAgent.task_start()` if there
+        are more tasks in the block, otherwise :meth:`ContinualRLAgent.block_end()`.
 
         :param task_name: An optional value indicating the name of the task
         """
@@ -146,13 +157,13 @@ class ContinualRLAgent:
 
     def block_end(self, is_learning_allowed: bool) -> None:
         """
-        Signifies the end of a block.
+        Called at the end of the current :class:`Block <tella.curriculum.Block>`.
 
-        The next method called would be :meth:`ContinualLearningAgent.block_start()`
-        if there are more blocks, otherwise the program would end.
+        The next method called will be :meth:`ContinualRLAgent.block_start()`
+        if there are more blocks in the curriculum, otherwise the program will end.
 
         :param is_learning_allowed: The same data passed into the previous call to
-            :meth:`ContinualLearningAgent.block_start()`.
+            :meth:`ContinualRLAgent.block_start()`.
         """
         pass
 
@@ -165,7 +176,7 @@ class ContinualRLAgent:
         The observations will be consistent with whatever :class:`gym.vector.VectorEnv`
         returns. The actions should be passable to :meth:`gym.vector.VectorEnv.step`.
 
-        .. e.g.
+        ... e.g. ::
 
             observations = vector_env.reset()
             actions = agent.choose_actions(observations)
@@ -178,12 +189,14 @@ class ContinualRLAgent:
         In the case that ``observations[i] is None``, then the i'th action returned
         will be disregarded. The agent can instead return ``None`` in that place.
 
-        .. i.e.
+        ... i.e. ::
 
             observations = ...
             observations[2] = None
             actions = agent.choose_actions(observations)
             assert actions[2] is None
+
+        The next method called will be :meth:`ContinualRLAgent.receive_transitions()`.
 
         :param observations: The observations from the environment.
         :return: Actions that can be passed to :meth:`gym.vector.VectorEnv.step()`.
@@ -197,14 +210,16 @@ class ContinualRLAgent:
         """
         Gives the transitions that result from calling :meth:`gym.Env.step()` with given actions.
 
-        .. e.g.
+        ... e.g. ::
 
             actions = agent.choose_actions(observations)
             next_obs, rewards, dones, infos = vector_env.step(actions)
             transitions = zip(observations, actions, rewards, dones, next_obs)
             agent.receive_transitions(transitions)
 
-        The next method called would be :meth:`Agent.task_variant_end()` if all episodes
-        have ended, otherwise :meth:`Agent.choose_actions()`.
+        The next method called will be :meth:`ContinualRLAgent.task_variant_end()` if all episodes
+        have ended, otherwise :meth:`ContinualRLAgent.choose_actions()`.
+
+        :param transitions: The transitions from the agent-environment interaction.
         """
         raise NotImplementedError

@@ -1,5 +1,6 @@
 About tella
 ===========
+
 tella stands for Training and Evaluating Lifelong Learning Agents.
 It provides a standard API and tools for performing continual learning experiments.
 
@@ -10,22 +11,21 @@ The experiences presented to a tella agent are structured in the following hiera
 
     curriculum > block > task block > task variant block > individual experience
 
-In tella, all experiences in a single curriculum must share the same observation space and action space.
+In tella, all task variants in a curriculum must share the same
+observation space and action space.
 
 .. glossary::
 
-    Experience
-        TODO
-
     Task Variant
-        A specific environment and objective given to the agent.
+        A specific MDP and objective, specified as an openai gym Environment, that
+        the agent interacts with.
         Individual instances are randomized, but parameters are fixed.
-
-    Task Variant Block
-        A sequence of one or more experiences of the same task variant.
 
     Task
         A set of task variants with varied parameters, but overall similar nature.
+
+    Task Variant Block
+        A sequence of one or more experiences of the same task variant.
 
     Task Block
         A sequence of one or more task variant blocks, all containing the same task.
@@ -58,19 +58,25 @@ RL agent API
 tella defines an event-based interface for agents.
 The event handlers follow the curriculum structure described above:
 
-* ``block_start()`` and ``block_end()``
-* ``task_start()`` and ``task_end()``
-* ``task_variant_start()`` and ``task_variant_end()``
-* ``choose_actions()`` and ``receive_transitions()``
+* :meth:`ContinualRLAgent.block_start() <tella.agents.ContinualRLAgent.block_start>`
+  and :meth:`ContinualRLAgent.block_end() <tella.agents.ContinualRLAgent.block_end>`
+* :meth:`ContinualRLAgent.task_start() <tella.agents.ContinualRLAgent.task_start>`
+  and :meth:`ContinualRLAgent.task_end() <tella.agents.ContinualRLAgent.task_end>`
+* :meth:`ContinualRLAgent.task_variant_start() <tella.agents.ContinualRLAgent.task_variant_start>`
+  and :meth:`ContinualRLAgent.task_variant_end() <tella.agents.ContinualRLAgent.task_variant_end>`
+* :meth:`ContinualRLAgent.choose_actions() <tella.agents.ContinualRLAgent.choose_actions>`
+* :meth:`ContinualRLAgent.receive_transitions() <tella.agents.ContinualRLAgent.receive_transitions>`
 
 The agent is notified of the start and end of each block, task block, and task variant block.
-During each task variant block, the agent is repeatedly called through choose_actions()
+During each task variant block, the agent is repeatedly called through
+:meth:`ContinualRLAgent.choose_actions() <tella.agents.ContinualRLAgent.choose_actions()>`
 and must return its actions based on the provided observations.
-After each environment is updated with the action, the results are passed to the agent by calling receive_transitions().
+After each environment is updated with the action, the results are passed to the agent by calling
+:meth:`ContinualRLAgent.receive_transitions() <tella.agents.ContinualRLAgent.receive_transitions()>`.
 These calls continue until the task variant block is complete.
 
-The abstract classes :class:`tella.agents.ContinualLearningAgent` and
-:class:`tella.agents.ContinualRLAgent` implement the expected methods of an RL agent.
+The abstract classes :class:`tella.agents.ContinualRLAgent`
+implement the expected methods of an RL agent.
 Here is a minimal agent subclass that takes random actions::
 
     import tella
@@ -163,9 +169,9 @@ For example, two lifetimes can be run by::
 
     python my_agent.py --curriculum MiniGridCondensed --curriculum-seed 12345 --num-lifetimes 2
 
-Or in parallel, ensuring the same environments, by::
+Or in parallel, assuming the same environments, by::
 
-    python my_agent.py --curriculum MiniGridCondensed --curriculum-seed 12345 --num-lifetimes 1
+    python my_agent.py --curriculum MiniGridCondensed --curriculum-seed 12345 --num-lifetimes 1 --lifetime-idx 0
     python my_agent.py --curriculum MiniGridCondensed --curriculum-seed 12345 --num-lifetimes 1 --lifetime-idx 1
 
 To view a rendering of the agent learning, set the ``--render`` flag.

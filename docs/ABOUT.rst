@@ -42,7 +42,7 @@ It is also possible to define custom curriculums.
 
 A small example curriculum could contain::
 
-    	Block 1, learning: 2 tasks
+        Block 1, learning: 2 tasks
             Task 1, CartPoleEnv: 2 variants
                 Task variant 1, CartPoleEnv - Default: 1 episode.
                 Task variant 2, CartPoleEnv - Variant: 1 episode.

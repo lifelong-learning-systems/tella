@@ -314,15 +314,6 @@ class Transition(typing.NamedTuple):
     next_observation: NextObservation
 
 
-ActionFn = typing.Callable[
-    [typing.List[typing.Optional[Observation]]], typing.List[typing.Optional[Action]]
-]
-"""
-A function that takes a list of Observations and returns a list of Actions, one
-for each observation.
-"""
-
-
 def summarize_curriculum(
     curriculum: AbstractCurriculum,
 ) -> str:

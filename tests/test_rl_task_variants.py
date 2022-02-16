@@ -254,7 +254,7 @@ def test_vec_dummy_env_mask(num_episodes: int):
         def seed(self, seed=None):
             super().seed(seed)
             # AsyncVectorEnv increments the rng seed for each env, so it can be
-            #   used as an index to give each a unique, predicatble max_steps
+            #   used as an index to give each a unique, predictable max_steps
             index = seed - task_rng_seed
             self.max_steps = episode_lengths[index]
 

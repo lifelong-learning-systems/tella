@@ -72,21 +72,25 @@ class CustomFetchEnv(MiniGridEnv):
                 obj = Ball(self.target_color)
             elif self.target_type == "box":
                 obj = Box(self.target_color)
+            else:
+                raise NotImplementedError(f"Unexpected target type {self.target_type}")
 
             self.place_obj(obj)
             objs.append(obj)
 
         # For each distractor object to be generated
         for _ in range(self.num_objs):
-            objType = self._rand_elem(types)
-            objColor = self._rand_elem(COLOR_NAMES)
+            obj_type = self._rand_elem(types)
+            obj_color = self._rand_elem(COLOR_NAMES)
 
-            if objType == "key":
-                obj = Key(objColor)
-            if objType == "ball":
-                obj = Ball(objColor)
-            elif objType == "box":
-                obj = Box(objColor)
+            if obj_type == "key":
+                obj = Key(obj_color)
+            elif obj_type == "ball":
+                obj = Ball(obj_color)
+            elif obj_type == "box":
+                obj = Box(obj_color)
+            else:
+                raise NotImplementedError(f"Unexpected object type {self.target_type}")
 
             self.place_obj(obj)
             objs.append(obj)

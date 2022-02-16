@@ -30,8 +30,9 @@ from .curriculum import (
     AbstractCurriculum,
     TaskVariant,
     validate_curriculum,
-    ActionFn,
     Transition,
+    Observation,
+    Action,
 )
 
 
@@ -334,6 +335,15 @@ class L2Logger:
                 self.total_episodes += 1
 
 
+ActionFn = typing.Callable[
+    [typing.List[typing.Optional[Observation]]], typing.List[typing.Optional[Action]]
+]
+"""
+A function that takes a list of Observations and returns a list of Actions, one
+for each observation.
+"""
+
+
 def generate_transitions(
     task_variant: TaskVariant,
     action_fn: ActionFn,
@@ -382,7 +392,6 @@ def generate_transitions(
         if task_variant.num_episodes is not None:
             mask = [ep_id >= task_variant.num_episodes for ep_id in episode_ids]
         else:
-            ## Only step in a valid number of steps
             mask = [
                 task_variant.num_steps - (num_steps_finished + 1) < idx
                 for idx in range(num_envs)

@@ -8,7 +8,7 @@ from operator import imul
 import gym
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import torch.nn.functional as tnnf
 import torch.optim as optim
 
 import tella
@@ -18,7 +18,7 @@ logger = logging.getLogger("Example DQN Agent")
 
 
 # Adapting code from minimalRL repo: https://github.com/seungeunrho/minimalRL/blob/master/dqn.py
-# To create a simple DQN agent using the TELLA API
+# To create a simple DQN agent using the tella API
 
 
 # Hyperparameters
@@ -81,7 +81,7 @@ class Qnet(nn.Module):
     def forward(self, x):
         for ii, layer in enumerate(self.layers):
             if ii:  # Do not apply relu before the first layer
-                x = F.relu(x)
+                x = tnnf.relu(x)
             x = layer(x)
         return x
 
@@ -100,7 +100,7 @@ def train(q, q_target, memory, optimizer):
         q_a = q_out.gather(1, a)
         max_q_prime = q_target(s_prime).max(1)[0].unsqueeze(1)
         target = r + gamma * max_q_prime * done_mask
-        loss = F.smooth_l1_loss(q_a, target)
+        loss = tnnf.smooth_l1_loss(q_a, target)
 
         optimizer.zero_grad()
         loss.backward()

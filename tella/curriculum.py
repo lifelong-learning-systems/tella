@@ -196,7 +196,7 @@ class AbstractCurriculum:
     @abc.abstractmethod
     def learn_blocks_and_eval_blocks(
         self,
-    ) -> typing.Iterable[typing.Union[LearnBlock, EvalBlock]]:
+    ) -> typing.Iterable[Block]:
         """
         Generate the learning and eval blocks of this curriculum.
 
@@ -246,7 +246,7 @@ class InterleavedEvalCurriculum(AbstractCurriculum):
 
     def learn_blocks_and_eval_blocks(
         self,
-    ) -> typing.Iterable[typing.Union[LearnBlock, EvalBlock]]:
+    ) -> typing.Iterable[Block]:
         yield self.eval_block()
         for block in self.learn_blocks():
             yield block

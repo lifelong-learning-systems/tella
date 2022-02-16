@@ -2,8 +2,7 @@ import typing
 from gym.envs.classic_control import CartPoleEnv
 from tella.curriculum import (
     AbstractCurriculum,
-    LearnBlock,
-    EvalBlock,
+    Block,
     TaskVariant,
     simple_learn_block,
     simple_eval_block,
@@ -13,7 +12,7 @@ from tella.curriculum import (
 class SimpleRLCurriculum(AbstractCurriculum):
     def learn_blocks_and_eval_blocks(
         self,
-    ) -> typing.Iterable[typing.Union[LearnBlock, EvalBlock]]:
+    ) -> typing.Iterable[Block]:
         yield simple_learn_block(
             [
                 TaskVariant(
@@ -43,7 +42,7 @@ class SimpleRLCurriculum(AbstractCurriculum):
 class MultiEpisodeRLCurriculum(AbstractCurriculum):
     def learn_blocks_and_eval_blocks(
         self,
-    ) -> typing.Iterable[typing.Union[LearnBlock, EvalBlock]]:
+    ) -> typing.Iterable[Block]:
         yield simple_learn_block(
             [
                 TaskVariant(
@@ -73,7 +72,7 @@ class MultiEpisodeRLCurriculum(AbstractCurriculum):
 class LearnOnlyCurriculum(AbstractCurriculum):
     def learn_blocks_and_eval_blocks(
         self,
-    ) -> typing.Iterable[typing.Union[LearnBlock, EvalBlock]]:
+    ) -> typing.Iterable[Block]:
         yield simple_learn_block(
             [
                 TaskVariant(
@@ -94,7 +93,7 @@ class LearnOnlyCurriculum(AbstractCurriculum):
 class EvalOnlyCurriculum(AbstractCurriculum):
     def learn_blocks_and_eval_blocks(
         self,
-    ) -> typing.Iterable[typing.Union[LearnBlock, EvalBlock]]:
+    ) -> typing.Iterable[Block]:
         yield simple_eval_block(
             [
                 TaskVariant(

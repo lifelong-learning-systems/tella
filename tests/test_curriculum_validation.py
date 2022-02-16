@@ -4,8 +4,7 @@ import typing
 from gym.envs.classic_control import CartPoleEnv, MountainCarEnv
 from tella.curriculum import (
     AbstractCurriculum,
-    LearnBlock,
-    EvalBlock,
+    Block,
     TaskVariant,
     simple_learn_block,
     simple_eval_block,
@@ -20,14 +19,14 @@ from tella.curriculum import (
 class SampleCurriculum(AbstractCurriculum):
     def __init__(
         self,
-        blocks: typing.Iterable[typing.Union[LearnBlock, EvalBlock]],
+        blocks: typing.Iterable[Block],
     ) -> None:
         super().__init__(0)
         self.blocks = blocks
 
     def learn_blocks_and_eval_blocks(
         self,
-    ) -> typing.Iterable[typing.Union[LearnBlock, EvalBlock]]:
+    ) -> typing.Iterable[Block]:
         self.blocks, blocks = itertools.tee(self.blocks, 2)
         return blocks
 

@@ -25,6 +25,7 @@ from gym.wrappers.time_limit import TimeLimit
 
 from ..curriculum import (
     AbstractCurriculum,
+    Block,
     LearnBlock,
     EvalBlock,
     simple_learn_block,
@@ -42,7 +43,7 @@ class _CartPoleV0(TimeLimit):
 class SimpleCartPoleCurriculum(AbstractCurriculum):
     def learn_blocks_and_eval_blocks(
         self,
-    ) -> typing.Iterable[typing.Union[LearnBlock, EvalBlock]]:
+    ) -> typing.Iterable[Block]:
         yield simple_learn_block(
             [
                 TaskVariant(
@@ -70,7 +71,7 @@ class SimpleCartPoleCurriculum(AbstractCurriculum):
 class CartPole1000Curriculum(InterleavedEvalCurriculum):
     def learn_blocks(
         self,
-    ) -> typing.Iterable[typing.Union[LearnBlock, EvalBlock]]:
+    ) -> typing.Iterable[LearnBlock]:
         for _ in range(10):
             yield simple_learn_block(
                 [

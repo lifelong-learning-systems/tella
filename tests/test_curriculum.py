@@ -18,16 +18,11 @@ from tella.curriculum import (
 
 
 class SampleCurriculum(AbstractCurriculum):
-    def __init__(
-        self,
-        blocks: typing.Iterable[Block],
-    ) -> None:
+    def __init__(self, blocks: typing.Iterable[Block]) -> None:
         super().__init__(0)
         self.blocks = blocks
 
-    def learn_blocks_and_eval_blocks(
-        self,
-    ) -> typing.Iterable[Block]:
+    def learn_blocks_and_eval_blocks(self) -> typing.Iterable[Block]:
         self.blocks, blocks = itertools.tee(self.blocks, 2)
         return blocks
 
@@ -135,9 +130,7 @@ def test_curriculum_summary():
 
 
 class ShuffledCurriculum(AbstractCurriculum):
-    def learn_blocks_and_eval_blocks(
-        self,
-    ) -> typing.Iterable[Block]:
+    def learn_blocks_and_eval_blocks(self) -> typing.Iterable[Block]:
         for n in self.rng.permutation(100):
             yield simple_learn_block(
                 [
@@ -247,9 +240,7 @@ def test_curriculum_copy_validate():
 
 
 class ShuffledInterleavedCurriculum(InterleavedEvalCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[LearnBlock]:
+    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
         for n in self.rng.permutation(10):
             yield simple_learn_block(
                 [
@@ -363,9 +354,7 @@ def test_interleaved_structure():
 
 
 class ConfigurableCurriculum(AbstractCurriculum):
-    def learn_blocks_and_eval_blocks(
-        self,
-    ) -> typing.Iterable[Block]:
+    def learn_blocks_and_eval_blocks(self) -> typing.Iterable[Block]:
         num_blocks = self.config.get("num learn blocks", 1)
         num_episodes = self.config.get("num episodes", 1)
         for _ in range(num_blocks):

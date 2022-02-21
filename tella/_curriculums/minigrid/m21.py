@@ -305,9 +305,7 @@ class _MiniGridCurriculum(InterleavedEvalCurriculum):
 
 
 class MiniGridCondensed(_MiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[LearnBlock]:
+    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
         for cls, task_label, variant_label in self.rng.permutation(TASKS):
             yield LearnBlock(
                 [
@@ -342,9 +340,7 @@ class MiniGridDispersed(_MiniGridCurriculum):
             "num learn blocks", self.DEFAULT_LEARN_BLOCKS
         )
 
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[LearnBlock]:
+    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
         for num_block in range(self.num_learn_blocks):
             for cls, task_label, variant_label in self.rng.permutation(TASKS):
 
@@ -386,9 +382,7 @@ class _STECurriculum(_MiniGridCurriculum):
     TASK_LABEL: str = None
     VARIANT_LABEL: str = None
 
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[LearnBlock]:
+    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
         yield LearnBlock(
             [
                 TaskBlock(

@@ -38,9 +38,7 @@ TASKS = [
 
 
 class SimpleMiniGridCurriculum(InterleavedEvalCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[LearnBlock]:
+    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
         for cls, task_label, variant_label in self.rng.permutation(TASKS):
             yield LearnBlock(
                 [
@@ -73,9 +71,7 @@ class SimpleMiniGridCurriculum(InterleavedEvalCurriculum):
 
 
 class SimpleStepMiniGridCurriculum(SimpleMiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[LearnBlock]:
+    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
         for cls, task_label, variant_label in self.rng.permutation(TASKS):
             yield LearnBlock(
                 [

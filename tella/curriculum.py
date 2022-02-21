@@ -199,9 +199,7 @@ class AbstractCurriculum:
         return self.__class__(self.rng_seed, self.config_file)
 
     @abc.abstractmethod
-    def learn_blocks_and_eval_blocks(
-        self,
-    ) -> typing.Iterable[Block]:
+    def learn_blocks_and_eval_blocks(self) -> typing.Iterable[Block]:
         """
         Generate the learning and eval blocks of this curriculum.
 
@@ -245,9 +243,7 @@ class InterleavedEvalCurriculum(AbstractCurriculum):
         """
         raise NotImplementedError
 
-    def learn_blocks_and_eval_blocks(
-        self,
-    ) -> typing.Iterable[Block]:
+    def learn_blocks_and_eval_blocks(self) -> typing.Iterable[Block]:
         yield self.eval_block()
         for block in self.learn_blocks():
             yield block
@@ -269,9 +265,7 @@ def split_task_variants(
         yield TaskBlock(task_label, variants_in_block)
 
 
-def simple_learn_block(
-    task_variants: typing.Iterable[TaskVariant],
-) -> LearnBlock:
+def simple_learn_block(task_variants: typing.Iterable[TaskVariant]) -> LearnBlock:
     """
     Constructs a :class:`LearnBlock` with the task variants passed in. :class:`TaskBlock` are divided as needed.
 
@@ -282,9 +276,7 @@ def simple_learn_block(
     return LearnBlock(split_task_variants(task_variants))
 
 
-def simple_eval_block(
-    task_variants: typing.Iterable[TaskVariant],
-) -> EvalBlock:
+def simple_eval_block(task_variants: typing.Iterable[TaskVariant]) -> EvalBlock:
     """
     Constructs a :class:`EvalBlock` with the task variants passed in. :class:`TaskBlock` are divided as needed.
 

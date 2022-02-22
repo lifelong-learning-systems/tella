@@ -20,7 +20,6 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 import typing
-import tella
 import gym
 from tella.curriculum import Transition
 from tella.agents import ContinualRLAgent, Observation, Action

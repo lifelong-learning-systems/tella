@@ -25,13 +25,14 @@ import numpy as np
 import gym
 from l2logger import l2logger
 
-from .agents import ContinualRLAgent, AbstractRLTaskVariant
+from .agents import ContinualRLAgent
 from .curriculum import (
     AbstractCurriculum,
-    EpisodicTaskVariant,
+    TaskVariant,
     validate_curriculum,
-    ActionFn,
     Transition,
+    Observation,
+    Action,
 )
 
 
@@ -39,9 +40,11 @@ logger = logging.getLogger(__name__)
 
 AgentFactory = typing.Callable[[int, gym.Space, gym.Space, int, str], ContinualRLAgent]
 """
-AgentFactory is a function or class that returns a :class:`tella.agents.ContinualRLAgent`.
+AgentFactory is a function or class that returns a 
+:class:`ContinualRLAgent <tella.agents.ContinualRLAgent>`.
 
-It takes 5 arguments, which are the same as :meth:`tella.agents.ContinualRLAgent.__init__()`:
+It takes 5 arguments, which are the same as 
+:meth:`ContinualRLAgent.__init__() <tella.agents.ContinualRLAgent.__init__()>`:
 
     1. rng_seed, which is an integer to be used for repeatable random number generation
     2. observation_space, which is a :class:`gym.Space`
@@ -49,7 +52,8 @@ It takes 5 arguments, which are the same as :meth:`tella.agents.ContinualRLAgent
     4. num_parallel_envs, which is an integer indicating how many environments will be run in parallel at the same time.
     5. config_file, which is a path as a string to a configuration file or None if no configuration.
 
-A concrete subclass of :class:`ContinualRLAgent` can be used as an AgentFactory::
+A concrete subclass of :class:`ContinualRLAgent <tella.agents.ContinualRLAgent>` 
+can be used as an AgentFactory::
 
     class MyAgent(ContinualRLAgent):
         ...
@@ -65,21 +69,21 @@ A function can also be used as an AgentFactory::
 
     agent_factory: AgentFactory = my_factory
     agent = agent_factory(rng_seed, observation_space, action_space, num_parallel_envs, config_file)
+
 """
 
-CurriculumFactory = typing.Callable[
-    [int, typing.Optional[str]], AbstractCurriculum[AbstractRLTaskVariant]
-]
+CurriculumFactory = typing.Callable[[int, typing.Optional[str]], AbstractCurriculum]
 """
-CurriculumFactory is a type alias for a function or class that returns a
-:class:`tella.curriculum.AbstractCurriculum`.
+CurriculumFactory is a function or class that returns an 
+:class:`AbstractCurriculum <tella.curriculum.AbstractCurriculum>`.
 
 It takes 2 arguments:
 
     1. an integer which is to be used for repeatable random number generation
     2. an option filepath to be loaded as a configuration dict.
 
-A concrete subclass of :class:`AbstractCurriculum` can be used as an CurriculumFactory::
+A concrete subclass of :class:`AbstractCurriculum <tella.curriculum.AbstractCurriculum>` 
+can be used as an CurriculumFactory::
 
     class MyCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
         ...
@@ -95,6 +99,7 @@ A function can also be used as a CurriculumFactory::
 
     curriculum_factory: CurriculumFactory = my_factory
     curriculum = curriculum_factory(rng_seed, config_file)
+
 """
 
 
@@ -126,6 +131,7 @@ def rl_experiment(
     :param render: Whether to render the environment for debugging or demonstrations.
     :param agent_config: Optional path to a configuration file for the agent.
     :param curriculum_config: Optional path to a configuration file for the curriculum.
+
     :return: None
     """
     if lifetime_idx < 0:
@@ -200,7 +206,7 @@ def _spaces(
     for block in curriculum_obj.learn_blocks_and_eval_blocks():
         for task_block in block.task_blocks():
             for task_variant in task_block.task_variants():
-                env = task_variant.info()
+                env = task_variant.make_env()
                 if isinstance(env, gym.vector.VectorEnv):
                     observation_space = env.single_observation_space
                     action_space = env.single_action_space
@@ -214,14 +220,19 @@ def _spaces(
 
 def run(
     agent: ContinualRLAgent,
-    curriculum: AbstractCurriculum[EpisodicTaskVariant],
+    curriculum: AbstractCurriculum,
     render: typing.Optional[bool],
     log_dir: str,
     num_envs: typing.Optional[int] = 1,
 ):
     """
-    Run an agent through an entire curriculum. This assumes that the agent
-    and the curriculum are both generic over the same type.
+    Run an agent through an entire curriculum.
+
+    :param agent: Agent for this experiment.
+    :param curriculum: Curriculum for this experiment.
+    :param render: Bool flag to toggle environment rendering.
+    :param log_dir: Directory for l2logger files.
+    :param num_envs: Number of parallel environments.
     """
     scenario_dir = curriculum.__class__.__name__
     scenario_info = {
@@ -303,7 +314,7 @@ class L2Logger:
         self.block_num += 1
         self.block_type = "train" if is_learning_allowed else "test"
 
-    def task_variant_start(self, task_variant: EpisodicTaskVariant):
+    def task_variant_start(self, task_variant: TaskVariant):
         self.task_name = task_variant.task_label + "_" + task_variant.variant_label
         self.task_params = task_variant.params
         self.cumulative_episode_rewards = [0.0] * self.num_envs
@@ -336,19 +347,29 @@ class L2Logger:
                 self.total_episodes += 1
 
 
+ActionFn = typing.Callable[
+    [typing.List[typing.Optional[Observation]]], typing.List[typing.Optional[Action]]
+]
+"""
+A function that takes a list of Observations and returns a list of Actions, one
+for each observation.
+"""
+
+
 def generate_transitions(
-    task_variant: EpisodicTaskVariant,
+    task_variant: TaskVariant,
     action_fn: ActionFn,
     num_envs: int,
     render: bool = False,
 ) -> typing.Iterable[typing.List[typing.Optional[Transition]]]:
     """
     Yields markov transitions from the interaction between the `action_fn`
-    and the :class:`gym.Env` contained in :class:`EpisodicTaskVariant`.
+    and the :class:`gym.Env` contained in :class:`TaskVariant <tella.curriculum.TaskVariant>`.
 
-    Note: `None` transitions
+    .. Note:: `None` transitions
+
         Extra data can be produced when using num_envs > 1, if the data limits in
-        :class:`EpisodicTaskVariant` % num_envs != 0. For an example if the limit
+        :class:`TaskVariant <tella.curriculum.TaskVariant>` % num_envs != 0. For an example if the limit
         is 4 episodes, and `num_envs` is 5, then this function will generate a whole
         extra episode worth of transitions. In order to prevent the leak of extra data,
         we mask out any transitions above the data limit by setting them to None.
@@ -384,7 +405,6 @@ def generate_transitions(
         if task_variant.num_episodes is not None:
             mask = [ep_id >= task_variant.num_episodes for ep_id in episode_ids]
         else:
-            ## Only step in a valid number of steps
             mask = [
                 task_variant.num_steps - (num_steps_finished + 1) < idx
                 for idx in range(num_envs)

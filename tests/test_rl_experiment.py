@@ -475,7 +475,7 @@ def test_masked_environments_exp_nums(log_record, tmpdir):
 
 
 @mock.patch("l2logger.l2logger.DataLogger.log_record")
-def test_masked_environments_exp_nums(log_record, tmpdir):
+def test_multi_episode_masked_environments_exp_nums(log_record, tmpdir):
     rl_experiment(
         SimpleRLAgent, MultiEpisodeRLCurriculum, 1, num_parallel_envs=5, log_dir=tmpdir
     )

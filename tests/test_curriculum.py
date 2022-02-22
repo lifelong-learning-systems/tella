@@ -26,11 +26,10 @@ from gym.envs.classic_control import CartPoleEnv, MountainCarEnv
 from tella.curriculum import (
     AbstractCurriculum,
     InterleavedEvalCurriculum,
-    AbstractLearnBlock,
-    AbstractEvalBlock,
-    AbstractRLTaskVariant,
-    EpisodicTaskVariant,
-    TaskVariantType,
+    Block,
+    LearnBlock,
+    EvalBlock,
+    TaskVariant,
     ValidationError,
     simple_learn_block,
     simple_eval_block,
@@ -39,27 +38,12 @@ from tella.curriculum import (
 )
 
 
-class SampleCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
-    def __init__(
-        self,
-        blocks: typing.Iterable[
-            typing.Union[
-                "AbstractLearnBlock[AbstractRLTaskVariant]",
-                "AbstractEvalBlock[AbstractRLTaskVariant]",
-            ]
-        ],
-    ) -> None:
+class SampleCurriculum(AbstractCurriculum):
+    def __init__(self, blocks: typing.Iterable[Block]) -> None:
         super().__init__(0)
         self.blocks = blocks
 
-    def learn_blocks_and_eval_blocks(
-        self,
-    ) -> typing.Iterable[
-        typing.Union[
-            "AbstractLearnBlock[AbstractRLTaskVariant]",
-            "AbstractEvalBlock[AbstractRLTaskVariant]",
-        ]
-    ]:
+    def learn_blocks_and_eval_blocks(self) -> typing.Iterable[Block]:
         self.blocks, blocks = itertools.tee(self.blocks, 2)
         return blocks
 
@@ -69,13 +53,13 @@ def test_simple_block_task_split():
         [
             simple_learn_block(
                 [
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         task_label="Task1",
                         rng_seed=0,
                     ),
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         task_label="Task2",
@@ -85,7 +69,7 @@ def test_simple_block_task_split():
             ),
             simple_eval_block(
                 [
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         rng_seed=0,
@@ -100,7 +84,7 @@ def test_simple_block_task_split():
 def test_generator_curriculum():
     curriculum = SampleCurriculum(
         simple_learn_block(
-            EpisodicTaskVariant(
+            TaskVariant(
                 CartPoleEnv,
                 num_episodes=1,
                 variant_label=variant_name,
@@ -120,18 +104,18 @@ def test_curriculum_summary():
         [
             simple_learn_block(
                 [
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         rng_seed=0,
                     ),
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         variant_label="Variant",
                         rng_seed=0,
                     ),
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         MountainCarEnv,
                         num_episodes=1,
                         rng_seed=0,
@@ -140,7 +124,7 @@ def test_curriculum_summary():
             ),
             simple_eval_block(
                 [
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         rng_seed=0,
@@ -166,19 +150,12 @@ def test_curriculum_summary():
     assert summarize_curriculum(curriculum) == expected_summary
 
 
-class ShuffledCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
-    def learn_blocks_and_eval_blocks(
-        self,
-    ) -> typing.Iterable[
-        typing.Union[
-            "AbstractLearnBlock[AbstractRLTaskVariant]",
-            "AbstractEvalBlock[AbstractRLTaskVariant]",
-        ]
-    ]:
+class ShuffledCurriculum(AbstractCurriculum):
+    def learn_blocks_and_eval_blocks(self) -> typing.Iterable[Block]:
         for n in self.rng.permutation(100):
             yield simple_learn_block(
                 [
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         task_label=f"Task{n}",
@@ -188,7 +165,7 @@ class ShuffledCurriculum(AbstractCurriculum[AbstractRLTaskVariant]):
             )
         yield simple_eval_block(
             [
-                EpisodicTaskVariant(
+                TaskVariant(
                     CartPoleEnv,
                     num_episodes=1,
                     task_label="Task0",
@@ -283,19 +260,12 @@ def test_curriculum_copy_validate():
     assert first_call_tasks == second_call_tasks
 
 
-class ShuffledInterleavedCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[
-        typing.Union[
-            "AbstractLearnBlock[AbstractRLTaskVariant]",
-            "AbstractEvalBlock[AbstractRLTaskVariant]",
-        ]
-    ]:
+class ShuffledInterleavedCurriculum(InterleavedEvalCurriculum):
+    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
         for n in self.rng.permutation(10):
             yield simple_learn_block(
                 [
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         CartPoleEnv,
                         num_episodes=1,
                         task_label=f"Task{n}",
@@ -304,10 +274,10 @@ class ShuffledInterleavedCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVari
                 ]
             )
 
-    def eval_block(self) -> AbstractEvalBlock[TaskVariantType]:
+    def eval_block(self) -> EvalBlock:
         return simple_eval_block(
             [
-                EpisodicTaskVariant(
+                TaskVariant(
                     CartPoleEnv,
                     num_episodes=1,
                     task_label=f"Task{n}",
@@ -339,10 +309,10 @@ def test_interleaved_rng_seed():
 
 
 class SampleInterleavedCurriculum(InterleavedEvalCurriculum):
-    def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
+    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
         yield simple_learn_block(
             [
-                EpisodicTaskVariant(
+                TaskVariant(
                     CartPoleEnv,
                     num_episodes=1,
                     task_label="Task1",
@@ -352,7 +322,7 @@ class SampleInterleavedCurriculum(InterleavedEvalCurriculum):
         )
         yield simple_learn_block(
             [
-                EpisodicTaskVariant(
+                TaskVariant(
                     CartPoleEnv,
                     num_episodes=1,
                     task_label="Task2",
@@ -362,7 +332,7 @@ class SampleInterleavedCurriculum(InterleavedEvalCurriculum):
         )
         yield simple_learn_block(
             [
-                EpisodicTaskVariant(
+                TaskVariant(
                     CartPoleEnv,
                     num_episodes=1,
                     task_label="Task3",
@@ -371,16 +341,16 @@ class SampleInterleavedCurriculum(InterleavedEvalCurriculum):
             ]
         )
 
-    def eval_block(self) -> AbstractEvalBlock[TaskVariantType]:
+    def eval_block(self) -> EvalBlock:
         return simple_eval_block(
             [
-                EpisodicTaskVariant(
+                TaskVariant(
                     CartPoleEnv,
                     num_episodes=1,
                     task_label="Task1",
                     rng_seed=self.eval_rng_seed,
                 ),
-                EpisodicTaskVariant(
+                TaskVariant(
                     CartPoleEnv,
                     num_episodes=1,
                     task_label="Task1",
@@ -395,30 +365,23 @@ def test_interleaved_structure():
     blocks = list(curriculum.learn_blocks_and_eval_blocks())
 
     assert len(blocks) == 7
-    assert isinstance(blocks[0], AbstractEvalBlock)
+    assert isinstance(blocks[0], EvalBlock)
     for i in range(len(blocks)):
         if i % 2 == 0:
-            assert isinstance(blocks[i], AbstractEvalBlock)
+            assert isinstance(blocks[i], EvalBlock)
         else:
-            assert isinstance(blocks[i], AbstractLearnBlock)
-    assert isinstance(blocks[-1], AbstractEvalBlock)
+            assert isinstance(blocks[i], LearnBlock)
+    assert isinstance(blocks[-1], EvalBlock)
 
 
-class ConfigurableCurriculum(AbstractCurriculum[EpisodicTaskVariant]):
-    def learn_blocks_and_eval_blocks(
-        self,
-    ) -> typing.Iterable[
-        typing.Union[
-            "AbstractLearnBlock[EpisodicTaskVariant]",
-            "AbstractEvalBlock[EpisodicTaskVariant]",
-        ]
-    ]:
+class ConfigurableCurriculum(AbstractCurriculum):
+    def learn_blocks_and_eval_blocks(self) -> typing.Iterable[Block]:
         num_blocks = self.config.get("num learn blocks", 1)
         num_episodes = self.config.get("num episodes", 1)
         for _ in range(num_blocks):
             yield simple_learn_block(
                 [
-                    EpisodicTaskVariant(
+                    TaskVariant(
                         CartPoleEnv,
                         num_episodes=num_episodes,
                         rng_seed=self.rng.bit_generator.random_raw(),
@@ -427,7 +390,7 @@ class ConfigurableCurriculum(AbstractCurriculum[EpisodicTaskVariant]):
             )
         yield simple_eval_block(
             [
-                EpisodicTaskVariant(
+                TaskVariant(
                     CartPoleEnv,
                     num_episodes=1,
                     rng_seed=self.rng.bit_generator.random_raw(),
@@ -494,10 +457,10 @@ def test_curriculum_file_configuration():
 
 
 class SampleStepLimitCurriculum(SampleInterleavedCurriculum):
-    def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
+    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
         yield simple_learn_block(
             [
-                EpisodicTaskVariant(
+                TaskVariant(
                     CartPoleEnv,
                     num_steps=5000,
                     task_label="Task1",
@@ -507,7 +470,7 @@ class SampleStepLimitCurriculum(SampleInterleavedCurriculum):
         )
         yield simple_learn_block(
             [
-                EpisodicTaskVariant(
+                TaskVariant(
                     CartPoleEnv,
                     num_steps=5,
                     task_label="Task2",
@@ -517,7 +480,7 @@ class SampleStepLimitCurriculum(SampleInterleavedCurriculum):
         )
         yield simple_learn_block(
             [
-                EpisodicTaskVariant(
+                TaskVariant(
                     CartPoleEnv,
                     num_steps=5,
                     task_label="Task3",
@@ -528,10 +491,10 @@ class SampleStepLimitCurriculum(SampleInterleavedCurriculum):
 
 
 class BadDoubleLimitsCurriculum(SampleStepLimitCurriculum):
-    def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
+    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
         yield simple_learn_block(
             [
-                EpisodicTaskVariant(
+                TaskVariant(
                     CartPoleEnv,
                     num_steps=5,
                     num_episodes=5,
@@ -543,10 +506,10 @@ class BadDoubleLimitsCurriculum(SampleStepLimitCurriculum):
 
 
 class BadNoLimitsCurriculum(SampleStepLimitCurriculum):
-    def learn_blocks(self) -> typing.Iterable[AbstractLearnBlock[TaskVariantType]]:
+    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
         yield simple_learn_block(
             [
-                EpisodicTaskVariant(
+                TaskVariant(
                     CartPoleEnv,
                     task_label="Task3",
                     rng_seed=self.rng.bit_generator.random_raw(),
@@ -560,13 +523,13 @@ def test_step_limit_curriculum():
     blocks = list(curriculum.learn_blocks_and_eval_blocks())
 
     assert len(blocks) == 7
-    assert isinstance(blocks[0], AbstractEvalBlock)
+    assert isinstance(blocks[0], EvalBlock)
     for i in range(len(blocks)):
         if i % 2 == 0:
-            assert isinstance(blocks[i], AbstractEvalBlock)
+            assert isinstance(blocks[i], EvalBlock)
         else:
-            assert isinstance(blocks[i], AbstractLearnBlock)
-    assert isinstance(blocks[-1], AbstractEvalBlock)
+            assert isinstance(blocks[i], LearnBlock)
+    assert isinstance(blocks[-1], EvalBlock)
 
 
 def test_bad_limits_curriculum():

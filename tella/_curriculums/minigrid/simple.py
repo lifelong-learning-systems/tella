@@ -20,7 +20,14 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import typing
 from .m21 import SimpleCrossingS9N1, DistShiftR2, DynObstaclesS6N1
-from ...curriculum import *
+from ...curriculum import (
+    InterleavedEvalCurriculum,
+    LearnBlock,
+    EvalBlock,
+    TaskBlock,
+    TaskVariant,
+    simple_eval_block,
+)
 
 
 TASKS = [
@@ -30,17 +37,15 @@ TASKS = [
 ]
 
 
-class SimpleMiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+class SimpleMiniGridCurriculum(InterleavedEvalCurriculum):
+    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
         for cls, task_label, variant_label in self.rng.permutation(TASKS):
             yield LearnBlock(
                 [
                     TaskBlock(
                         task_label,
                         [
-                            EpisodicTaskVariant(
+                            TaskVariant(
                                 cls,
                                 task_label=task_label,
                                 variant_label=variant_label,
@@ -52,9 +57,9 @@ class SimpleMiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant])
                 ]
             )
 
-    def eval_block(self) -> AbstractEvalBlock[AbstractRLTaskVariant]:
+    def eval_block(self) -> EvalBlock:
         return simple_eval_block(
-            EpisodicTaskVariant(
+            TaskVariant(
                 cls,
                 task_label=task_label,
                 variant_label=variant_label,
@@ -66,16 +71,14 @@ class SimpleMiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant])
 
 
 class SimpleStepMiniGridCurriculum(SimpleMiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
         for cls, task_label, variant_label in self.rng.permutation(TASKS):
             yield LearnBlock(
                 [
                     TaskBlock(
                         task_label,
                         [
-                            EpisodicTaskVariant(
+                            TaskVariant(
                                 cls,
                                 task_label=task_label,
                                 variant_label=variant_label,

@@ -65,7 +65,7 @@ class TaskVariant:
         :param num_steps: The length limit of this experience in number of steps.
 
         :raises ValidationError: if neither `num_episodes` or `num_steps` is provided.
-        :raises ValidationError: if both `num_episodes` or `num_steps` are provided.
+        :raises ValidationError: if both `num_episodes` and `num_steps` are provided.
         """
         if params is None:
             params = {}
@@ -418,12 +418,8 @@ def validate_curriculum(
 
                 # Check that all environments use the same observation and action spaces
                 env = task_variant.make_env()
-                if isinstance(env, gym.vector.VectorEnv):
-                    observation_space = env.single_observation_space
-                    action_space = env.single_action_space
-                else:
-                    observation_space = env.observation_space
-                    action_space = env.action_space
+                observation_space = env.observation_space
+                action_space = env.action_space
                 env.close()
                 del env
                 if obs_and_act_spaces is None:

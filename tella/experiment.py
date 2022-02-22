@@ -207,12 +207,8 @@ def _spaces(
         for task_block in block.task_blocks():
             for task_variant in task_block.task_variants():
                 env = task_variant.make_env()
-                if isinstance(env, gym.vector.VectorEnv):
-                    observation_space = env.single_observation_space
-                    action_space = env.single_action_space
-                else:
-                    observation_space = env.observation_space
-                    action_space = env.action_space
+                observation_space = env.observation_space
+                action_space = env.action_space
                 env.close()
                 del env
                 return observation_space, action_space
@@ -381,9 +377,7 @@ def generate_transitions(
     :param render: Whether to render the environment at each step.
     :return: A generator of transitions.
     """
-    vector_env_cls = gym.vector.AsyncVectorEnv
-    if num_envs == 1:
-        vector_env_cls = gym.vector.SyncVectorEnv
+    vector_env_cls = gym.vector.SyncVectorEnv if num_envs == 1 else gym.vector.AsyncVectorEnv
 
     env = vector_env_cls([task_variant.make_env for _ in range(num_envs)])
 

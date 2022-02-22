@@ -28,7 +28,7 @@ import pytest
 # m21 curriculum depends on gym_minigrid so skip tests if not available
 pytest.importorskip("gym_minigrid")
 
-from tella.curriculum import validate_curriculum
+from tella.curriculum import validate_curriculum, ValidationError
 from tella._curriculums.minigrid.m21 import (
     MiniGridReducedActionSpaceWrapper,
     SimpleCrossingEnv,
@@ -94,6 +94,14 @@ CONFIG_VALUE_ERROR = """
 ---
 learn:
     SimpleCrossing: This is not an integer
+"""
+
+
+CONFIG_TYPO_ERROR = """
+# This is a mocked YAML file to be loaded as a test config
+---
+learn:
+    DoorKnob: 1234
 """
 
 
@@ -247,8 +255,9 @@ def test_configured_block_limits_per_task():
 )
 def test_configured_block_limits_format_error():
     curriculum = MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
-    with pytest.raises(AssertionError):
-        curriculum._block_limit_from_config("", "")
+    with pytest.raises(ValidationError) as err:
+        validate_curriculum(curriculum)
+    assert err.match("Task default length must be a positive integer")
 
 
 @mock.patch(
@@ -257,8 +266,20 @@ def test_configured_block_limits_format_error():
 )
 def test_configured_block_limits_value_error():
     curriculum = MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
-    with pytest.raises(ValueError):
-        curriculum._block_limit_from_config("SimpleCrossing", "")
+    with pytest.raises(ValidationError) as err:
+        validate_curriculum(curriculum)
+    assert err.match("Task config must be either an integer or a dictionary")
+
+
+@mock.patch(
+    "builtins.open",
+    mock.mock_open(read_data=CONFIG_TYPO_ERROR),
+)
+def test_configured_block_limits_typo_error():
+    curriculum = MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
+    with pytest.raises(ValidationError) as err:
+        validate_curriculum(curriculum)
+    assert err.match("Unexpected task config key")
 
 
 EXAMPLE_CONFIGS = glob.glob("**/examples/configs/*.yml", recursive=True)

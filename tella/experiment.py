@@ -377,7 +377,9 @@ def generate_transitions(
     :param render: Whether to render the environment at each step.
     :return: A generator of transitions.
     """
-    vector_env_cls = gym.vector.SyncVectorEnv if num_envs == 1 else gym.vector.AsyncVectorEnv
+    vector_env_cls = (
+        gym.vector.SyncVectorEnv if num_envs == 1 else gym.vector.AsyncVectorEnv
+    )
 
     env = vector_env_cls([task_variant.make_env for _ in range(num_envs)])
 

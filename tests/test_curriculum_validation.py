@@ -86,37 +86,36 @@ def test_correct_curriculum():
 
 
 def test_custom_invalid_curriculum():
-    curriculum = InvalidCurriculum(
-        [
-            simple_learn_block(
-                [
-                    TaskVariant(
-                        CartPoleEnv,
-                        num_episodes=1,
-                        variant_label="Variant1",
-                        rng_seed=0,
-                    ),
-                    TaskVariant(
-                        CartPoleEnv,
-                        num_episodes=1,
-                        variant_label="Variant2",
-                        rng_seed=0,
-                    ),
-                ]
-            ),
-            simple_eval_block(
-                [
-                    TaskVariant(
-                        CartPoleEnv,
-                        num_episodes=1,
-                        rng_seed=0,
-                    )
-                ]
-            ),
-        ]
-    )
     with pytest.raises(ValidationError):
-        validate_curriculum(curriculum)
+        curriculum = InvalidCurriculum(
+            [
+                simple_learn_block(
+                    [
+                        TaskVariant(
+                            CartPoleEnv,
+                            num_episodes=1,
+                            variant_label="Variant1",
+                            rng_seed=0,
+                        ),
+                        TaskVariant(
+                            CartPoleEnv,
+                            num_episodes=1,
+                            variant_label="Variant2",
+                            rng_seed=0,
+                        ),
+                    ]
+                ),
+                simple_eval_block(
+                    [
+                        TaskVariant(
+                            CartPoleEnv,
+                            num_episodes=1,
+                            rng_seed=0,
+                        )
+                    ]
+                ),
+            ]
+        )
 
 
 def test_error_on_diff_task_labels():

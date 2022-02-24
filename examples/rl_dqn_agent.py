@@ -1,3 +1,24 @@
+"""
+Copyright © 2021-2022 The Johns Hopkins University Applied Physics Laboratory LLC
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to
+deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+
 import collections
 import logging
 import random
@@ -8,7 +29,7 @@ from operator import imul
 import gym
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import torch.nn.functional as tnnf
 import torch.optim as optim
 
 import tella
@@ -18,7 +39,7 @@ logger = logging.getLogger("Example DQN Agent")
 
 
 # Adapting code from minimalRL repo: https://github.com/seungeunrho/minimalRL/blob/master/dqn.py
-# To create a simple DQN agent using the TELLA API
+# To create a simple DQN agent using the tella API
 
 
 # Hyperparameters
@@ -81,7 +102,7 @@ class Qnet(nn.Module):
     def forward(self, x):
         for ii, layer in enumerate(self.layers):
             if ii:  # Do not apply relu before the first layer
-                x = F.relu(x)
+                x = tnnf.relu(x)
             x = layer(x)
         return x
 
@@ -100,7 +121,7 @@ def train(q, q_target, memory, optimizer):
         q_a = q_out.gather(1, a)
         max_q_prime = q_target(s_prime).max(1)[0].unsqueeze(1)
         target = r + gamma * max_q_prime * done_mask
-        loss = F.smooth_l1_loss(q_a, target)
+        loss = tnnf.smooth_l1_loss(q_a, target)
 
         optimizer.zero_grad()
         loss.backward()

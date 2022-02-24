@@ -1,9 +1,30 @@
+"""
+Copyright © 2021-2022 The Johns Hopkins University Applied Physics Laboratory LLC
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to
+deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+
 import math
 import pytest
 import typing
 import gym
 from gym.envs.classic_control import CartPoleEnv
-from tella.curriculum import EpisodicTaskVariant, Transition
+from tella.curriculum import TaskVariant, Transition
 from tella.experiment import generate_transitions, _where
 
 
@@ -57,7 +78,7 @@ def choose_action_zero(
 @pytest.mark.parametrize("num_envs", [1, 3])
 @pytest.mark.parametrize("num_episodes", [1, 3, 5])
 def test_num_episodes(num_envs: int, num_episodes: int):
-    exp = EpisodicTaskVariant(
+    exp = TaskVariant(
         DummyEnv,
         num_episodes=num_episodes,
         params={"a": 1, "b": 3.0, "c": "a"},
@@ -74,7 +95,7 @@ def test_num_episodes(num_envs: int, num_episodes: int):
 @pytest.mark.parametrize("num_envs", [1, 3, 8])
 @pytest.mark.parametrize("num_steps", [5, 10, 100])
 def test_num_steps(num_steps: int, num_envs: int):
-    exp = EpisodicTaskVariant(
+    exp = TaskVariant(
         DummyEnv,
         num_steps=num_steps,
         params={"a": 1, "b": 3.0, "c": "a"},
@@ -90,7 +111,7 @@ def test_num_steps(num_steps: int, num_envs: int):
 
 
 def test_labels():
-    task_variant = EpisodicTaskVariant(
+    task_variant = TaskVariant(
         DummyEnv,
         num_episodes=1,
         rng_seed=0,
@@ -98,7 +119,7 @@ def test_labels():
     assert task_variant.task_label == "DummyEnv"
     assert task_variant.variant_label == "Default"
 
-    task_variant = EpisodicTaskVariant(
+    task_variant = TaskVariant(
         DummyEnv,
         num_episodes=1,
         task_label="TaskLabel",
@@ -107,7 +128,7 @@ def test_labels():
     assert task_variant.task_label == "TaskLabel"
     assert task_variant.variant_label == "Default"
 
-    task_variant = EpisodicTaskVariant(
+    task_variant = TaskVariant(
         DummyEnv,
         num_episodes=1,
         variant_label="VariantLabel",
@@ -116,7 +137,7 @@ def test_labels():
     assert task_variant.task_label == "DummyEnv"
     assert task_variant.variant_label == "VariantLabel"
 
-    task_variant = EpisodicTaskVariant(
+    task_variant = TaskVariant(
         DummyEnv,
         num_episodes=1,
         task_label="TaskLabel",
@@ -129,7 +150,7 @@ def test_labels():
 
 @pytest.mark.parametrize("num_envs", [1, 2])
 def test_generate_return_type(num_envs):
-    task_variant = EpisodicTaskVariant(
+    task_variant = TaskVariant(
         DummyEnv,
         num_episodes=3,
         params={"a": 1, "b": 3.0, "c": "a"},
@@ -162,7 +183,7 @@ def test_generate_return_type(num_envs):
 
 
 def test_terminal_observations():
-    task_variant = EpisodicTaskVariant(
+    task_variant = TaskVariant(
         DummyEnv,
         num_episodes=1,
         task_label="TaskLabel",
@@ -209,7 +230,7 @@ def test_where():
 
 
 def test_single_env_mask():
-    task_variant = EpisodicTaskVariant(
+    task_variant = TaskVariant(
         DummyEnv,
         num_episodes=5,
         params={"a": 1, "b": 3.0, "c": "a"},
@@ -224,7 +245,7 @@ def test_single_env_mask():
 @pytest.mark.parametrize("num_episodes", [1, 3, 5])
 def test_vec_cartpole_env_mask(num_episodes: int):
     num_envs = 3
-    task_variant = EpisodicTaskVariant(
+    task_variant = TaskVariant(
         CartPoleEnv,
         num_episodes=num_episodes,
         rng_seed=0,
@@ -254,11 +275,11 @@ def test_vec_dummy_env_mask(num_episodes: int):
         def seed(self, seed=None):
             super().seed(seed)
             # AsyncVectorEnv increments the rng seed for each env, so it can be
-            #   used as an index to give each a unique, predicatble max_steps
+            #   used as an index to give each a unique, predictable max_steps
             index = seed - task_rng_seed
             self.max_steps = episode_lengths[index]
 
-    task_variant = EpisodicTaskVariant(
+    task_variant = TaskVariant(
         IndexedDummyEnv,
         num_episodes=num_episodes,
         params={"a": 1, "b": 3.0, "c": "a"},
@@ -310,7 +331,7 @@ def unmasked_choose_action_zero(
 
 def test_ignore_unmasked_actions():
     def identical_task_variant():
-        task_variant = EpisodicTaskVariant(
+        task_variant = TaskVariant(
             DummyEnv,
             num_episodes=5,
             params={"a": 1, "b": 3.0, "c": "a"},

@@ -22,7 +22,6 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 from .agents import ContinualRLAgent
 from .cli import rl_cli
 from .curriculum import (
-    AbstractRLTaskVariant,
     Action,
     Observation,
     Transition,

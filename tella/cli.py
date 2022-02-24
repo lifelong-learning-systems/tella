@@ -24,6 +24,7 @@ import logging
 import typing
 from .curriculum import curriculum_registry
 from .experiment import rl_experiment, AgentFactory, CurriculumFactory
+from .agents import ContinualRLAgent
 
 
 logger = logging.getLogger(__name__)
@@ -34,11 +35,12 @@ def rl_cli(
     curriculum_factory: typing.Optional[CurriculumFactory] = None,
 ) -> None:
     """
-    Builds a CLI wrapper around :func:`rl_experiment` to enable running experiments with
-    the `agent_factory` passed in producing the agent, and the CLI loading
-    in a curriculum from the command line.
+    Builds a CLI wrapper around :func:`tella.experiment.rl_experiment()`
+    to enable running experiments with the agent produced by the provided
+    :class:`AgentFactory <tella.experiment.AgentFactory>`. The experiment's
+    curriculum is either provided here or else loaded as a command line argument.
 
-    Example: ..
+    Example::
 
         import tella
 
@@ -48,11 +50,10 @@ def rl_cli(
         if __name__ == "__main__":
             tella.rl_cli(MyAgent)
 
-    :param agent_factory: A function or class producing :class:`ContinualRLAgent`.
-    :param curriculum_factory: Optional curriculum factory to support running
-        experiments with a fixed curriculum. Otherwise, curriculum specified on the
-        command line.
-    :return: None
+    :param agent_factory: A function or class producing a :class:`ContinualRLAgent <tella.agents.ContinualRLAgent>`.
+    :param curriculum_factory: Optional curriculum factory producing an
+        :class:`AbstractCurriculum <tella.curriculum.AbstractCurriculum>` to support running experiments
+        with a fixed curriculum. Otherwise, the curriculum is specified on the command line.
     """
     parser = _build_parser(require_curriculum=curriculum_factory is None)
 
@@ -152,7 +153,9 @@ def _build_parser(require_curriculum: bool) -> argparse.ArgumentParser:
             "--curriculum",
             required=True,
             type=str,
-            choices=list(curriculum_registry.keys()),
-            help="Curriculum name for registry.",
+            choices=curriculum_registry,
+            metavar="CURRICULUM_NAME",
+            help="Curriculum name for registry lookup. Registered options are: "
+            + ", ".join(curriculum_registry),
         )
     return parser

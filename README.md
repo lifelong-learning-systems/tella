@@ -1,5 +1,8 @@
 tella
 ===========
+
+![logo](apl_small_vertical_blue.png)
+
 tella stands for Training and Evaluating Lifelong Learning Agents.
 It provides a standard API and tools for performing continual learning experiments.
 
@@ -143,6 +146,9 @@ If a seed is not provided, a random seed is generated.
 The seeds used will be logged using the python logging package.
 
 For utilizing multiple cores, use the `--num-parallel-envs` flag.
+When using `--num-parallel-envs` > 1, you may need to configure
+python multiprocessing's start method via `mp.set_start_method("spawn")`
+at the start of the program, depending on the underlying OS.
 
 To run an agent through multiple lifetimes of a curriculum, use the `--num-lifetimes`
 flag. If you want to run a specific lifetime (useful for running on a cluster),
@@ -196,3 +202,16 @@ To autoformat for PEP8 compliance:
 ```
 black tella
 ```
+
+License
+-------
+
+See [LICENSE](LICENSE) for license information.
+
+Acknowledgments
+----------------
+This software was funded by the DARPA Lifelong Learning Machines (L2M) Program.
+
+The views, opinions, and/or findings expressed are those of the author(s) and should not be interpreted as representing the official views or policies of the Department of Defense or the U.S. Government.
+
+© 2021-2022 The Johns Hopkins University Applied Physics Laboratory LLC

@@ -4,6 +4,7 @@ on:
   push:
     paths-ignore:
       - 'tests/**'
+      - 'docs/**'
 jobs:
   build:
     runs-on: ubuntu-latest

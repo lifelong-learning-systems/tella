@@ -254,9 +254,8 @@ def test_configured_block_limits_per_task():
     mock.mock_open(read_data=CONFIG_FORMAT_ERROR),
 )
 def test_configured_block_limits_format_error():
-    curriculum = MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
     with pytest.raises(ValidationError) as err:
-        validate_curriculum(curriculum)
+        MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
     assert err.match("Task default length must be a positive integer")
 
 
@@ -265,9 +264,8 @@ def test_configured_block_limits_format_error():
     mock.mock_open(read_data=CONFIG_VALUE_ERROR),
 )
 def test_configured_block_limits_value_error():
-    curriculum = MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
     with pytest.raises(ValidationError) as err:
-        validate_curriculum(curriculum)
+        MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
     assert err.match("Task config must be either an integer or a dictionary")
 
 
@@ -276,9 +274,8 @@ def test_configured_block_limits_value_error():
     mock.mock_open(read_data=CONFIG_TYPO_ERROR),
 )
 def test_configured_block_limits_typo_error():
-    curriculum = MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
     with pytest.raises(ValidationError) as err:
-        validate_curriculum(curriculum)
+        MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
     assert err.match("Unexpected task config key")
 
 
@@ -294,3 +291,59 @@ def test_find_example_configs():
 def test_example_configurations(config_file: str):
     curriculum = MiniGridDispersed(rng_seed=0, config_file=config_file)
     validate_curriculum(curriculum)
+
+
+@mock.patch("builtins.open", mock.mock_open(read_data="-a\n-b\n"))
+def test_config_file_not_dictionary():
+    with pytest.raises(ValidationError) as err:
+        MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
+    assert err.match("Configuration must be a dictionary")
+
+
+@mock.patch("builtins.open", mock.mock_open(read_data="asdf: {hello: 1}"))
+def test_config_file_unknown_top_level_key():
+    with pytest.raises(ValidationError) as err:
+        MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
+    assert err.match("Unexpected config key")
+
+
+@mock.patch("builtins.open", mock.mock_open(read_data="num learn blocks: 0"))
+def test_config_file_zero_learn_blocks():
+    with pytest.raises(ValidationError) as err:
+        MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
+    assert err.match("Num learn blocks must be a positive integer")
+
+
+@mock.patch("builtins.open", mock.mock_open(read_data="learn: [0, 1]"))
+def test_config_file_learn_not_dictionary():
+    with pytest.raises(ValidationError) as err:
+        MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
+    assert err.match("Learn blocks config must be a dictionary")
+
+
+@mock.patch(
+    "builtins.open",
+    mock.mock_open(read_data="learn: {default unit: blah}"),
+)
+def test_config_file_learn_invalid_unit():
+    with pytest.raises(ValidationError) as err:
+        MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
+    assert err.match("Task default steps must be episodes or steps")
+
+
+@mock.patch(
+    "builtins.open", mock.mock_open(read_data="learn: {DistShift: {length: blah}}")
+)
+def test_config_file_invalid_task_length():
+    with pytest.raises(ValidationError) as err:
+        MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
+    assert err.match("Task length must be a positive integer")
+
+
+@mock.patch(
+    "builtins.open", mock.mock_open(read_data="learn: {DistShift: {unit: blah}}")
+)
+def test_config_file_invalid_task_unit():
+    with pytest.raises(ValidationError) as err:
+        MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
+    assert err.match("Task unit must be episodes or steps")

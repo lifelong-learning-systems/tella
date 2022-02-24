@@ -188,6 +188,7 @@ class AbstractCurriculum:
         else:
             self.config = {}
         self.config_file = config_file
+        self.validate()
 
     def copy(self) -> "AbstractCurriculum":
         """

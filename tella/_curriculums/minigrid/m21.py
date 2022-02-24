@@ -328,12 +328,12 @@ class _MiniGridCurriculum(InterleavedEvalCurriculum):
                         )
 
                 elif key in valid_labels:
-                    if not isinstance(value, (int, typing.Dict)):
-                        raise ValidationError(
-                            f"Task config must be either an integer or a "
-                            f"dictionary with keys (length, unit), not {value}."
-                        )
-                    if isinstance(value, typing.Dict):
+                    if isinstance(value, int):
+                        if value < 1:
+                            raise ValidationError(
+                                f"Task length must be positive, not {value}"
+                            )
+                    elif isinstance(value, typing.Dict):
                         for task_key, task_value in value.items():
                             if task_key == "length":
                                 if not isinstance(task_value, int) or task_value < 1:
@@ -347,8 +347,13 @@ class _MiniGridCurriculum(InterleavedEvalCurriculum):
                                     )
                             else:
                                 raise ValidationError(
-                                    f"Unexpected task config key, {task_key}."
+                                    f"Task config key must be length or unit, not {task_key}."
                                 )
+                    else:
+                        raise ValidationError(
+                            f"Task config must be either an integer or a "
+                            f"dictionary with keys (length, unit), not {value}."
+                        )
 
                 else:
                     raise ValidationError(f"Unexpected task config key, {key}")

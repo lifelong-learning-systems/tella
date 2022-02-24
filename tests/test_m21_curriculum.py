@@ -314,6 +314,13 @@ def test_config_file_zero_learn_blocks():
     assert err.match("Num learn blocks must be a positive integer")
 
 
+@mock.patch("builtins.open", mock.mock_open(read_data="learn: {DistShift: 0}"))
+def test_config_file_zero_task_length():
+    with pytest.raises(ValidationError) as err:
+        MiniGridDispersed(rng_seed=0, config_file="mocked.yml")
+    assert err.match("Task length must be positive")
+
+
 @mock.patch("builtins.open", mock.mock_open(read_data="learn: [0, 1]"))
 def test_config_file_learn_not_dictionary():
     with pytest.raises(ValidationError) as err:

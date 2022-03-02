@@ -207,6 +207,15 @@ class AbstractCurriculum:
         """
         raise NotImplementedError
 
+    def validate(self) -> None:
+        """
+        A method to validate that the curriculum is set up properly.
+        This is an optional capability for curriculum authors to implement.
+
+        :raises ValidationError: if the curriculum is not set up properly.
+        """
+        pass
+
 
 class InterleavedEvalCurriculum(AbstractCurriculum):
     """
@@ -365,6 +374,7 @@ def validate_curriculum(
     Helper function to do a partial check that task variants are specified
     correctly in the blocks of the :class:`AbstractCurriculum`.
 
+    Uses :meth:`AbstractCurriculum.validate()` if implemented for the curriculum.
     Uses :meth:`TaskVariant.validate()` to check task variants.
 
     :raises ValidationError: if an invalid parameter is detected.
@@ -374,6 +384,8 @@ def validate_curriculum(
 
     :return: None
     """
+    curriculum.validate()
+
     warned_repeat_variants = False
     obs_and_act_spaces = None  # placeholder
     empty_curriculum = True

@@ -385,18 +385,11 @@ class MiniGridCondensed(_MiniGridCurriculum):
 class MiniGridDispersed(_MiniGridCurriculum):
     DEFAULT_LEARN_BLOCKS = 3
 
-    def __init__(
-        self,
-        rng_seed: int,
-        config_file: typing.Optional[str] = None,
-    ):
-        super().__init__(rng_seed, config_file)
-        self.num_learn_blocks = self.config.get(
+    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
+        num_learn_blocks = self.config.get(
             "num learn blocks", self.DEFAULT_LEARN_BLOCKS
         )
-
-    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
-        for num_block in range(self.num_learn_blocks):
+        for num_block in range(num_learn_blocks):
             for cls, task_label, variant_label in self.rng.permutation(TASKS):
 
                 # Get task limit from config, but apply as total limit over all learn blocks
@@ -404,11 +397,11 @@ class MiniGridDispersed(_MiniGridCurriculum):
                     task_label, variant_label
                 ).items()  # unpacking known format, single kwarg as dict
 
-                task_limit_this_block = total_task_length // self.num_learn_blocks
+                task_limit_this_block = total_task_length // num_learn_blocks
                 # If total task length does not evenly divide into num. blocks, distribute the
-                #   `remainder` = (total_task_length % self.num_learn_blocks) over the first
+                #   `remainder` = (total_task_length % num_learn_blocks) over the first
                 #   `remainder` blocks
-                if num_block < (total_task_length % self.num_learn_blocks):
+                if num_block < (total_task_length % num_learn_blocks):
                     task_limit_this_block += 1
 
                 # Then repack as a dict for **kwarg unpacking

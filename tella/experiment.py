@@ -115,6 +115,8 @@ def rl_experiment(
     agent_config: typing.Optional[str] = None,
     curriculum_config: typing.Optional[str] = None,
     lifetime_idx: int = 0,
+    skip_validation: bool = False,
+    skip_evaluation: bool = False,
 ) -> None:
     """
     Run an experiment with an RL agent and an RL curriculum.
@@ -131,6 +133,8 @@ def rl_experiment(
     :param render: Whether to render the environment for debugging or demonstrations.
     :param agent_config: Optional path to a configuration file for the agent.
     :param curriculum_config: Optional path to a configuration file for the curriculum.
+    :param skip_validation: Optional flag to skip curriculum validation.
+    :param skip_evaluation: Optional flag to skip evaluation blocks in the curriculum.
 
     :return: None
     """
@@ -173,8 +177,11 @@ def rl_experiment(
         logger.info(f"Constructed curriculum {curriculum} with seed {curriculum_seed}")
 
         # FIXME: check for RL task variant https://github.com/darpa-l2m/tella/issues/53
-        validate_curriculum(curriculum.copy())
-        logger.info("Validated curriculum")
+        if skip_validation:
+            logger.info("Skipped curriculum validation")
+        else:
+            validate_curriculum(curriculum.copy())
+            logger.info("Validated curriculum")
 
         agent_seed = agent_rng.bit_generator.random_raw()
         agent = agent_factory(
@@ -189,6 +196,7 @@ def rl_experiment(
             render=render,
             log_dir=log_dir,
             num_envs=num_parallel_envs,
+            skip_evaluation=skip_evaluation,
         )
 
 
@@ -220,6 +228,7 @@ def run(
     render: typing.Optional[bool],
     log_dir: str,
     num_envs: typing.Optional[int] = 1,
+    skip_evaluation: bool = False,
 ):
     """
     Run an agent through an entire curriculum.
@@ -229,6 +238,7 @@ def run(
     :param render: Bool flag to toggle environment rendering.
     :param log_dir: Directory for l2logger files.
     :param num_envs: Number of parallel environments.
+    :param skip_evaluation: Optional flag to skip evaluation blocks in the curriculum.
     """
     scenario_dir = curriculum.__class__.__name__
     scenario_info = {
@@ -241,6 +251,9 @@ def run(
     }
     data_logger = L2Logger(log_dir, scenario_dir, scenario_info, num_envs)
     for block in curriculum.learn_blocks_and_eval_blocks():
+        if skip_evaluation and not block.is_learning_allowed:
+            logger.info("Skipped an evaluation block.")
+            continue
         is_learning_allowed = agent.is_learning_allowed = block.is_learning_allowed
         block_type = "Learning" if is_learning_allowed else "Evaluating"
         data_logger.block_start(is_learning_allowed)

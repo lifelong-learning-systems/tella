@@ -76,6 +76,8 @@ def rl_cli(
         render=args.render,
         agent_config=args.agent_config,
         curriculum_config=args.curriculum_config,
+        skip_validation=args.skip_validation,
+        skip_evaluation=args.skip_evaluation,
     )
 
 
@@ -133,7 +135,6 @@ def _build_parser(require_curriculum: bool) -> argparse.ArgumentParser:
         "--curriculum-seed",
         default=None,
         type=int,
-        required=True,
         help="The curriculum rng seed to use for reproducibility.",
     )
     parser.add_argument(
@@ -158,4 +159,14 @@ def _build_parser(require_curriculum: bool) -> argparse.ArgumentParser:
             help="Curriculum name for registry lookup. Registered options are: "
             + ", ".join(curriculum_registry),
         )
+    parser.add_argument(
+        "--skip-validation",
+        action="store_true",
+        help="Flag to skip the validate_curriculum method.",
+    )
+    parser.add_argument(
+        "--skip-evaluation",
+        action="store_true",
+        help="Flag to skip all evaluation blocks.",
+    )
     return parser

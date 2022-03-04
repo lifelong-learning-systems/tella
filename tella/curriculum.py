@@ -20,6 +20,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 import abc
+import functools
 import inspect
 import itertools
 import typing
@@ -367,6 +368,14 @@ def summarize_curriculum(
     return curriculum_summary
 
 
+@functools.lru_cache()
+def _env_spaces(env_constructor):
+    env = env_constructor()
+    spaces = (env.observation_space, env.action_space)
+    env.close()
+    return spaces
+
+
 def validate_curriculum(
     curriculum: AbstractCurriculum,
 ):
@@ -429,11 +438,7 @@ def validate_curriculum(
                 previous_variant = task_variant.variant_label
 
                 # Check that all environments use the same observation and action spaces
-                env = task_variant.make_env()
-                observation_space = env.observation_space
-                action_space = env.action_space
-                env.close()
-                del env
+                observation_space, action_space = _env_spaces(task_variant.task_cls)
                 if obs_and_act_spaces is None:
                     obs_and_act_spaces = (observation_space, action_space)
                 else:

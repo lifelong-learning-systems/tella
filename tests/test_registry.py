@@ -31,6 +31,12 @@ def test_contents():
         pass
     else:
         num_expected += 22
+    try:
+        import gym.envs.atari
+    except ImportError:
+        pass
+    else:
+        num_expected += 2
     assert len(curriculum_registry) == num_expected
 
 

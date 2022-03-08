@@ -20,7 +20,8 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from .agents import ContinualRLAgent
-from .cli import rl_cli, rl_experiment
+from .cli import rl_cli
+from .experiment import rl_experiment
 from .curriculum import (
     Action,
     Observation,

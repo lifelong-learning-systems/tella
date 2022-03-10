@@ -26,7 +26,6 @@ import numpy as np
 from gym_minigrid.envs import (
     DistShift1,
     DistShift2,
-    DoorKeyEnv,
     DoorKeyEnv5x5,
     DoorKeyEnv6x6,
     SimpleCrossingEnv,
@@ -36,14 +35,13 @@ from gym_minigrid.envs import (
 from gym_minigrid.wrappers import ImgObsWrapper
 
 from ...curriculum import (
-    AbstractEvalBlock,
-    AbstractLearnBlock,
-    AbstractRLTaskVariant,
-    EpisodicTaskVariant,
     InterleavedEvalCurriculum,
+    EvalBlock,
     LearnBlock,
+    TaskVariant,
     TaskBlock,
     simple_eval_block,
+    ValidationError,
 )
 from .envs import (
     CustomDynamicObstaclesS6N1,
@@ -52,7 +50,6 @@ from .envs import (
     CustomFetchEnv5x5T1N2,
     CustomFetchEnv8x8T1N2,
     CustomFetchEnv10x10T2N4,
-    CustomFetchEnv16x16T2N4,
     CustomUnlock5x5,
     CustomUnlock7x7,
     CustomUnlock9x9,
@@ -225,15 +222,15 @@ TASKS = [
 ]
 
 
-class _MiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
+class _MiniGridCurriculum(InterleavedEvalCurriculum):
     DEFAULT_BLOCK_LENGTH_UNIT = "episodes"
     DEFAULT_LEARN_BLOCK_LENGTH = 1000
     DEFAULT_EVAL_BLOCK_LENGTH = 100
 
-    def eval_block(self) -> AbstractEvalBlock[AbstractRLTaskVariant]:
+    def eval_block(self) -> EvalBlock:
         rng = np.random.default_rng(self.eval_rng_seed)
         return simple_eval_block(
-            EpisodicTaskVariant(
+            TaskVariant(
                 cls,
                 task_label=task_label,
                 variant_label=variant_label,
@@ -268,10 +265,8 @@ class _MiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
         learn_config = self.config.get("learn", {})
 
         # If requested, overwrite default values
-        default_length = learn_config.get(
-            "default length", self.DEFAULT_LEARN_BLOCK_LENGTH
-        )
-        default_unit = learn_config.get("default unit", self.DEFAULT_BLOCK_LENGTH_UNIT)
+        length = learn_config.get("default length", self.DEFAULT_LEARN_BLOCK_LENGTH)
+        unit = learn_config.get("default unit", self.DEFAULT_BLOCK_LENGTH_UNIT)
 
         # If length given for task + variant, use that
         task_variant_label = task_label + variant_label
@@ -282,43 +277,97 @@ class _MiniGridCurriculum(InterleavedEvalCurriculum[AbstractRLTaskVariant]):
 
         config = learn_config.get(label, {})
         if isinstance(config, dict):
-            length = config.get("length", default_length)
-            unit = config.get("unit", default_unit)
+            length = config.get("length", length)
+            unit = config.get("unit", unit)
         elif isinstance(config, int):
             length = config
-            unit = default_unit
-        else:
-            raise ValueError(
-                f"Curriculum config expected dict with keys 'unit' "
-                f"and/or 'length' or a length int. Received {config}"
-            )
-
-        # TODO: move config validation to curriculum validation method
-        #   https://github.com/darpa-l2m/tella/issues/245
-        assert isinstance(
-            length, int
-        ), f"Expected task length to be an int, got {type(length)}."
-        assert unit in (
-            "steps",
-            "episodes",
-        ), f"Expected task length unit to be 'steps' or 'episodes', got {unit}."
 
         # Length and unit will be used as a kwarg for a task variant, so construct a dict
         returned_kwarg = {f"num_{unit}": length}
         return returned_kwarg
 
+    def validate(self) -> None:
+        if not isinstance(self.config, typing.Dict):
+            raise ValidationError(
+                f"Configuration must be a dictionary, not {self.config}."
+            )
+
+        # Strict enforcement of valid keys to prevent silent errors from typos
+        for key, value in self.config.items():
+
+            if key == "num learn blocks":
+                # Permitting this argument even in MiniGridCondensed for config file reuse
+                if not isinstance(value, int) or value < 1:
+                    raise ValidationError(
+                        f"Num learn blocks must be a positive integer, not {value}."
+                    )
+
+            elif key == "learn":
+                if not isinstance(value, typing.Dict):
+                    raise ValidationError(
+                        f"Learn blocks config must be a dictionary, not {value}."
+                    )
+
+            else:
+                raise ValidationError(f"Unexpected config key, {key}.")
+
+        valid_labels = list({t for _, t, v in TASKS}) + [t + v for _, t, v in TASKS]
+        if "learn" in self.config:
+            for key, value in self.config["learn"].items():
+
+                if key == "default length":
+                    if not isinstance(value, int) or value < 1:
+                        raise ValidationError(
+                            f"Task default length must be a positive integer, not {value}."
+                        )
+
+                elif key == "default unit":
+                    if value not in ("episodes", "steps"):
+                        raise ValidationError(
+                            f"Task default steps must be episodes or steps, not {value}."
+                        )
+
+                elif key in valid_labels:
+                    if isinstance(value, int):
+                        if value < 1:
+                            raise ValidationError(
+                                f"Task length must be positive, not {value}"
+                            )
+                    elif isinstance(value, typing.Dict):
+                        for task_key, task_value in value.items():
+                            if task_key == "length":
+                                if not isinstance(task_value, int) or task_value < 1:
+                                    raise ValidationError(
+                                        f"Task length must be a positive integer, not {task_value}."
+                                    )
+                            elif task_key == "unit":
+                                if task_value not in ("episodes", "steps"):
+                                    raise ValidationError(
+                                        f"Task unit must be episodes or steps, not {task_value}."
+                                    )
+                            else:
+                                raise ValidationError(
+                                    f"Task config key must be length or unit, not {task_key}."
+                                )
+                    else:
+                        raise ValidationError(
+                            f"Task config must be either an integer or a "
+                            f"dictionary with keys (length, unit), not {value}."
+                        )
+
+                else:
+                    raise ValidationError(f"Unexpected task config key, {key}")
+
 
 class MiniGridCondensed(_MiniGridCurriculum):
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
         for cls, task_label, variant_label in self.rng.permutation(TASKS):
             yield LearnBlock(
                 [
                     TaskBlock(
                         task_label,
                         [
-                            EpisodicTaskVariant(
+                            TaskVariant(
                                 cls,
                                 task_label=task_label,
                                 variant_label=variant_label,
@@ -336,20 +385,11 @@ class MiniGridCondensed(_MiniGridCurriculum):
 class MiniGridDispersed(_MiniGridCurriculum):
     DEFAULT_LEARN_BLOCKS = 3
 
-    def __init__(
-        self,
-        rng_seed: int,
-        config_file: typing.Optional[str] = None,
-    ):
-        super().__init__(rng_seed, config_file)
-        self.num_learn_blocks = self.config.get(
+    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
+        num_learn_blocks = self.config.get(
             "num learn blocks", self.DEFAULT_LEARN_BLOCKS
         )
-
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
-        for num_block in range(self.num_learn_blocks):
+        for num_block in range(num_learn_blocks):
             for cls, task_label, variant_label in self.rng.permutation(TASKS):
 
                 # Get task limit from config, but apply as total limit over all learn blocks
@@ -357,11 +397,11 @@ class MiniGridDispersed(_MiniGridCurriculum):
                     task_label, variant_label
                 ).items()  # unpacking known format, single kwarg as dict
 
-                task_limit_this_block = total_task_length // self.num_learn_blocks
+                task_limit_this_block = total_task_length // num_learn_blocks
                 # If total task length does not evenly divide into num. blocks, distribute the
-                #   `remainder` = (total_task_length % self.num_learn_blocks) over the first
+                #   `remainder` = (total_task_length % num_learn_blocks) over the first
                 #   `remainder` blocks
-                if num_block < (total_task_length % self.num_learn_blocks):
+                if num_block < (total_task_length % num_learn_blocks):
                     task_limit_this_block += 1
 
                 # Then repack as a dict for **kwarg unpacking
@@ -372,7 +412,7 @@ class MiniGridDispersed(_MiniGridCurriculum):
                         TaskBlock(
                             task_label,
                             [
-                                EpisodicTaskVariant(
+                                TaskVariant(
                                     cls,
                                     task_label=task_label,
                                     variant_label=variant_label,
@@ -390,15 +430,13 @@ class _STECurriculum(_MiniGridCurriculum):
     TASK_LABEL: str = None
     VARIANT_LABEL: str = None
 
-    def learn_blocks(
-        self,
-    ) -> typing.Iterable[AbstractLearnBlock[AbstractRLTaskVariant]]:
+    def learn_blocks(self) -> typing.Iterable[LearnBlock]:
         yield LearnBlock(
             [
                 TaskBlock(
                     self.TASK_LABEL,
                     [
-                        EpisodicTaskVariant(
+                        TaskVariant(
                             self.TASK_CLASS,
                             task_label=self.TASK_LABEL,
                             variant_label=self.VARIANT_LABEL,

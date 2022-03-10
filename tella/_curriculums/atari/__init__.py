@@ -19,15 +19,4 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-from .agents import ContinualRLAgent
-from .cli import rl_cli
-from .experiment import rl_experiment
-from .curriculum import (
-    Action,
-    Observation,
-    Transition,
-    ValidationError,
-)
-from ._curriculums import load_curriculum_registry
-
-load_curriculum_registry()  # NOTE: inserts things into curriculum_registry
+from .curriculum import AtariCurriculum, BreakoutAndPong

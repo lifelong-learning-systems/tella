@@ -88,3 +88,14 @@ def load_curriculum_registry():
         curriculum_registry["MiniGridDoorKeyS5"] = MiniGridDoorKeyS5
         curriculum_registry["MiniGridDoorKeyS6"] = MiniGridDoorKeyS6
         curriculum_registry["MiniGridDoorKeyS7"] = MiniGridDoorKeyS7
+
+    try:
+        from .atari import (
+            AtariCurriculum,
+            BreakoutAndPong,
+        )
+    except ImportError:
+        logger.info("Unable to load Atari curriculums")
+    else:
+        curriculum_registry["AllAtariGames"] = AtariCurriculum
+        curriculum_registry["BreakoutAndPong"] = BreakoutAndPong

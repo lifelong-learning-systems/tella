@@ -12,10 +12,10 @@ Minimal RL Agent
 -----------------
 This simple agent chooses random actions and does not use the transition data.
 Handling of curriculum events is inherited from
-:class:`ContinualLearningAgent <tella.agents.ContinualLearningAgent>`,
+:class:`ContinualRLAgent <tella.agents.ContinualRLAgent>`, and
 only :meth:`choose_actions() <tella.agents.ContinualRLAgent.choose_actions>`
 and :meth:`receive_transitions() <tella.agents.ContinualRLAgent.receive_transitions>`
-must be defined.::
+are be defined.::
 
     class MinimalRandomAgent(tella.ContinualRLAgent):
         def choose_actions(self, observations):

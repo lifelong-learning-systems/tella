@@ -1,7 +1,7 @@
 tella
 ===========
 
-![logo](apl_small_vertical_blue.png)
+![apl logo](apl_small_vertical_blue.png)
 
 tella stands for Training and Evaluating Lifelong Learning Agents.
 It provides a standard API and tools for performing continual learning experiments.
@@ -210,8 +210,10 @@ See [LICENSE](LICENSE) for license information.
 
 Acknowledgments
 ----------------
+![APL logo](https://raw.githubusercontent.com/lifelong-learning-systems/tella/master/apl_small_logo.png)
+
+tella was created by the Johns Hopkins University Applied Physics Laboratory.
+
 This software was funded by the DARPA Lifelong Learning Machines (L2M) Program.
 
 The views, opinions, and/or findings expressed are those of the author(s) and should not be interpreted as representing the official views or policies of the Department of Defense or the U.S. Government.
-
-© 2021-2022 The Johns Hopkins University Applied Physics Laboratory LLC

@@ -1,7 +1,7 @@
 tella
 ===========
 
-![apl logo](apl_small_vertical_blue.png)
+![apl logo](apl_small_logo.png)
 
 tella stands for Training and Evaluating Lifelong Learning Agents.
 It provides a standard API and tools for performing continual learning experiments.

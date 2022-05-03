@@ -1,4 +1,4 @@
-git+https://github.com/openai/gym.git@778d3c2473a12ae229190f84404f3e2b0739ee35#egg=gym
+gym>=0.23.1
 l2logger>=1.7.0
 numpy>=1.21.4
 pyglet>=1.4.0

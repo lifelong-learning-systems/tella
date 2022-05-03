@@ -1,4 +1,4 @@
-gym>=0.23.1
+gym[classic_control]>=0.23.1
 l2logger>=1.7.0
 numpy>=1.21.4
 pyglet>=1.4.0

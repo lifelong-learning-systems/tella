@@ -230,10 +230,7 @@ def run(
     :param log_dir: Directory for l2logger files.
     :param num_envs: Number of parallel environments.
     """
-    scenario_dir = (
-        f"{curriculum.__class__.__name__}-"
-        f"{agent.__class__.__name__}"
-    )
+    scenario_dir = f"{curriculum.__class__.__name__}-{agent.__class__.__name__}"
     scenario_info = {
         "author": "JHU APL",
         "complexity": "1-low",

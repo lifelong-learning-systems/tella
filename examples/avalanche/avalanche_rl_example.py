@@ -1,15 +1,10 @@
 """
-An initial attempt at a wrapper that uses a tella agent inside of an
-AvalancheRL Strategy.
-
-This doesn't really work because tella makes no assumptions about the internals
-of an agent, but AvalancheRL expects to:
-
+This is an experimental integration between AvalancheRL and tella.
+It is not finished.
+AvalancheRL makes additional assumptions:
 1. Have access to a pytorch model/optimizer
 2. Run the training loop for the agent
-
-It is possible to change these things but that requires changes to the underlying
-RLBaseStrategy class in AvalancheRL.
+which means any tella agent will need to be updated to work with AvalancheRL.
 """
 
 import tella

@@ -44,7 +44,9 @@ class DummyEnv(gym.Env):
         self.i = 0
         self.max_steps = max_steps
 
-    def reset(self):
+    def reset(self, *, seed=None, return_info=False, options=None):
+        self.observation_space.seed(seed)
+        self.action_space.seed(seed)
         self.i = 0
         return (
             self.observation_space.sample()
@@ -63,10 +65,6 @@ class DummyEnv(gym.Env):
             else self.observations.pop(0)
         )
         return obs, 0.0, done, {}
-
-    def seed(self, seed=None):
-        self.observation_space.seed(seed)
-        self.action_space.seed(seed)
 
 
 def choose_action_zero(
@@ -272,8 +270,8 @@ def test_vec_dummy_env_mask(num_episodes: int):
     episode_lengths = [4, 6, 7]
 
     class IndexedDummyEnv(DummyEnv):
-        def seed(self, seed=None):
-            super().seed(seed)
+        def reset(self, *, seed=None, return_info=False, options=None):
+            super().reset(seed=seed)
             # AsyncVectorEnv increments the rng seed for each env, so it can be
             #   used as an index to give each a unique, predictable max_steps
             index = seed - task_rng_seed

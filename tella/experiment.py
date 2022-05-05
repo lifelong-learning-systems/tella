@@ -383,9 +383,6 @@ def generate_transitions(
         gym.vector.SyncVectorEnv if num_envs == 1 else gym.vector.AsyncVectorEnv
     )
 
-    env = vector_env_cls([task_variant.make_env for _ in range(num_envs)])
-
-    env.seed(task_variant.rng_seed)
     num_episodes_finished = 0
     num_steps_finished = 0
 
@@ -393,7 +390,8 @@ def generate_transitions(
     episode_ids = list(range(num_envs))
     next_episode_id = episode_ids[-1] + 1
 
-    observations = env.reset()
+    env = vector_env_cls([task_variant.make_env for _ in range(num_envs)])
+    observations = env.reset(seed=task_variant.rng_seed)
     if task_variant.num_episodes is not None:
         continue_task = num_episodes_finished < task_variant.num_episodes
     else:

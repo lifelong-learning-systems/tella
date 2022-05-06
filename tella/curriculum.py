@@ -488,7 +488,7 @@ def validate_params(fn: typing.Callable, param_names: typing.List[str]) -> None:
     # inspect was broken before Python 3.9 for constructors that inherit from Generic
     # signature came out as *args, **kwds in earlier versions
     # https://github.com/python/cpython/issues/85074
-    old_inspect = sys.version_info[1] < 9
+    old_inspect = sys.version_info < (3, 9)
 
     kwarg_found = False
     expected_fn_names = []

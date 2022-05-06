@@ -21,6 +21,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import itertools
 import pytest
+import sys
 import typing
 from gym.envs.classic_control import CartPoleEnv, MountainCarEnv
 from tella.curriculum import (
@@ -264,6 +265,8 @@ def test_empty_task():
 
 
 def test_invalid_task_params():
+    if sys.version_info < (3, 9):
+        pytest.skip("Python before 3.9 had a bug with inspect.")
     curriculum = SampleCurriculum(
         [
             simple_eval_block(
@@ -356,6 +359,9 @@ def test_validate_missing_params_class():
 
 
 def test_validate_args_function():
+    if sys.version_info < (3, 9):
+        pytest.skip("Python before 3.9 had a bug with inspect.")
+
     def example_function(*args):
         pass
 
@@ -366,6 +372,9 @@ def test_validate_args_function():
 
 
 def test_validate_args_class():
+    if sys.version_info < (3, 9):
+        pytest.skip("Python before 3.9 had a bug with inspect.")
+
     class ExampleClass:
         def __init__(self, *args):
             pass

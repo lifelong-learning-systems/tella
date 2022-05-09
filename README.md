@@ -15,41 +15,26 @@ Install
 -------------
 1. Create a conda or virtual environment and activate it
 
-2. Update pip and wheel in your environment:
+2. We recommend that you update pip and wheel in your environment:
   ```
   pip install -U pip wheel
   ```
-3. Install [l2logger](https://github.com/darpa-l2m/l2logger).
-   If you have ssh keys configured for GitHub, install like so:
+3. Install tella
    ```
-   pip install git+ssh://git@github.com/darpa-l2m/l2logger.git
-   ```
-   If this does not work, try:
-   ```
-   pip install git+https://github.com/darpa-l2m/l2logger.git
-   ```
-   Otherwise, clone the l2logger repository and install:
-   ```
-   git clone https://github.com/darpa-l2m/l2logger
-   pip install ./l2logger
-   ```
-4. Clone this repository:
-   ```
-   git clone git@github.com:darpa-l2m/tella.git
-   ```
-   or
-   ```
-   git clone https://github.com/darpa-l2m/tella.git
-   ```
-5. Install the tella package and its dependencies:
-   ```
-   pip install "./tella[minigrid]"
+   pip install tella
    ```
 
-To update tella, pull the latest changes from the git repository and upgrade:
+There are optional packages that can also be installed if you want
+to use atari environments or run the unit tests.
+They can be installed using pip's extras syntax:
 ```
-pip install -U .
+pip install tella[atari]
 ```
+or
+```
+pip install tella[dev]
+```
+
 
 API
 -------------
@@ -180,7 +165,8 @@ and any recommendations for how this new feature should work.
 
 For Developers
 ----------------
-To install tella in editable mode with our development requirements:
+To install tella in editable mode with our development requirements,
+clone the git repo and run:
 ```
 pip install -e ".[dev]"
 ```

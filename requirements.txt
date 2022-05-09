@@ -1,4 +1,4 @@
-gym[classic_control]>=0.23.1
+gym[classic_control]>=0.22.0
 gym_minigrid
 l2logger>=1.7.0
 matplotlib #for visualization of minigrid envs

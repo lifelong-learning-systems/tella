@@ -9,3 +9,6 @@ venv
 *logs/
 
 docs/_build/
+
+build/
+dist/

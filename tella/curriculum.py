@@ -23,6 +23,7 @@ import abc
 import functools
 import inspect
 import itertools
+import sys
 import typing
 import warnings
 
@@ -484,11 +485,18 @@ def validate_params(fn: typing.Callable, param_names: typing.List[str]) -> None:
     """
 
     fn_signature = inspect.signature(fn)
+    # inspect was broken before Python 3.9 for constructors that inherit from Generic
+    # signature came out as *args, **kwds in earlier versions
+    # https://github.com/python/cpython/issues/85074
+    old_inspect = sys.version_info < (3, 9)
 
     kwarg_found = False
     expected_fn_names = []
     for param_name, param in fn_signature.parameters.items():
         if param.kind == param.VAR_POSITIONAL:
+            if old_inspect:
+                # cannot inspect signature due to python bug so hope for the best
+                return
             raise ValidationError(
                 f"*args not allowed. Found {param_name} in {fn_signature}"
             )

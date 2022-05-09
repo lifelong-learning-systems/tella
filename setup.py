@@ -31,7 +31,6 @@ setuptools.setup(
     install_requires=requirements,
     extras_require={
         "dev": ["pytest", "black==22.1.0"],
-        "minigrid": ["gym_minigrid", "matplotlib"],
         "atari": ["gym[atari,accept-rom-license]"],
     },
 )

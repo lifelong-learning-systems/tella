@@ -423,12 +423,12 @@ def test_l2logger_tsv_episode_reward(log_record, tmpdir):
     tmpdir.chdir()
 
     rl_experiment(
-        SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs", curriculum_seed=0, agent_seed=1
+        SimpleRLAgent, SimpleRLCurriculum, 1, 1, "logs", curriculum_seed=9, agent_seed=1
     )
 
     assert log_record.call_count > 0
 
-    expected_rewards = [10.0, 14.0, 18.0]  # magic numbers from the seed
+    expected_rewards = [13.0, 16.0, 19.0]  # magic numbers from the seed
     for call in log_record.call_args_list:
         (record,), _kwargs = call
         assert record["reward"] == expected_rewards.pop(0)
@@ -444,7 +444,7 @@ def test_l2logger_tsv_multi_episode_reward(log_record, tmpdir):
         1,
         1,
         "logs",
-        curriculum_seed=0,
+        curriculum_seed=9,
         agent_seed=1,
     )
 
@@ -452,7 +452,7 @@ def test_l2logger_tsv_multi_episode_reward(log_record, tmpdir):
 
     # fmt: off
     # magic numbers from the seeds
-    expected_rewards = [10.0, 13.0, 27.0, 12.0, 17.0, 14.0, 35.0, 21.0, 19.0, 14.0, 12.0, 17.0]
+    expected_rewards = [13.0, 14.0, 24.0, 21.0, 36.0, 32.0, 41.0, 44.0, 22.0, 22.0, 21.0, 12.0]
     # fmt: on
     for call in log_record.call_args_list:
         (record,), _kwargs = call

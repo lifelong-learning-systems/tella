@@ -15,7 +15,7 @@ Install
 -------------
 1. Create a conda or virtual environment and activate it
 
-2. We recommens that you update pip and wheel in your environment:
+2. We recommend that you update pip and wheel in your environment:
   ```
   pip install -U pip wheel
   ```
